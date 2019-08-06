@@ -1,0 +1,205 @@
+{include file="common/head"/}
+
+<script src="/public/static/common/js/jquery.2.1.1.min.js"></script>
+
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>列表</legend>
+    </fieldset>
+    <div class="demoTable">
+        <div class="layui-inline">
+            <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
+        </div>
+        <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
+        <a href="{:url('index',['catid'=>input('catid')])}" class="layui-btn">显示全部</a>
+        <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
+        <!--<a href="{:url('Category/index')}" class="layui-btn layui-btn-normal" style="float:right;">返回</a>-->
+        <!--<a href="{:url('add')}" class="layui-btn" style="float:right;margin-right: 15px;">{:lang('add')}</a>-->
+        <!--##上传文件##################################################################-->
+        {if condition="$id"}
+        <button type="button" class="layui-btn layui-btn-primary" id="fanliAll">批量删除</button>
+        {/if}
+        <div class="layui-upload" style="float: right;">
+            <button type="button" class="layui-btn layui-btn-primary" id="wenjian"><i
+                    class="icon icon-upload3"></i>导入订单
+            </button>
+            <input class="layui-upload-file" type="file" name="file">
+        </div>
+        </div>
+    <!--##上传文件##################################################################-->
+        <div style="clear: both;"></div>
+    </div>
+    <table class="layui-table" id="list" lay-filter="list">
+
+    </table>
+</div>
+
+{include file="common/foot"/}
+
+<script type="text/html" id="order">
+    <input name="{{d.id}}" data-id="{{d.id}}" class="list_order layui-input" value=" {{d.listorder}}" size="10"/>
+</script>
+
+<script type="text/html" id="returnstatus">
+    {{ parseInt(d.returnstatus)?"已返":"未返" }}
+</script>
+
+<!--匹配到用户，并且未执行返利才能执行返利-->
+<script type="text/html" id="action">
+
+    <div data-id="{{d.id}}" data-user_id="{{d.user_id}}"
+         class="layui-btn layui-btn-xs {{ (d.user_id && !parseInt(d.returnstatus) &&(d.order_state_num == 3))?'doit':'layui-btn-disabled' }}">{{
+        d.user_id?"执行返利":"未匹配" }}
+    </div>
+
+    <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+</script>
+
+<script>
+    layui.use('table', function () {
+        var table = layui.table, $ = layui.jquery;
+        var tableIn = table.render({
+            id: 'content',
+            elem: '#list',
+            url: '{:url("index")}',
+            where: {catid: '{:input("catid")}',id:'{$id}'},
+            method: 'post',
+            page: true,
+            cols: [[
+                {type: "checkbox", fixed: true,sort:true},
+                {field: 'good_title', title: '商品名', width: 200, templet: '#good_title',sort:true},
+                /*{field: 'mess', title: '掌柜旺旺', width: 200, templet: '#mess',sort:true},*/
+                {field: 'shop', title: '店铺名', width: 200, templet: '#shop',sort:true},
+                {field: 'good_price', title: '商品单价', width: 100, templet: '#good_price',sort:true},
+                {field: 'order_state', title: '订单状态', width: 100, templet: '#order_state',sort:true},
+                {field: 'evaluation', title: '预估佣金', width: 100, templet: '#evaluation',sort:true},
+                {field: 'commission', title: '到手佣金', width: 100, templet: '#commission',sort:true},
+                {field: 'u_m', title: '用户佣金', width: 100, templet: '#u_m',sort:true},
+                {field: 'order_sn', title: '订单编号', width: 200, templet: '#order_sn',sort:true},
+                {field: 'user_id', title: '用户id', width: 100, templet: '#user_id',sort:true},
+                {field: 'returnstatus', title: '是否返利', width: 100, templet: '#returnstatus',sort:true},
+                {width: 160, align: 'center', toolbar: '#action', title: '操作'}
+            ]],
+            limit: 10
+        });
+        //搜索
+        $('#search').on('click', function () {
+            var key = $('#key').val();
+            if ($.trim(key) === '') {
+                layer.msg('{:lang("pleaseEnter")}关键字！', {icon: 0});
+                return;
+            }
+            tableIn.reload({
+                where: {key: key, catid: '{:input("catid")}'}
+            });
+        });
+
+        //执行返利
+        $("body").delegate(".doit", "click", function () {
+
+            var id = $(this).attr("data-id");
+            var user_id = $(this).attr("data-user_id");
+
+
+            if (user_id == 0) {
+                //layer.msg('');
+                return;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: "{:url('admin/tbkorder/do_rebate')}",
+                timeout: 100000, //超时时间设置，单位毫秒 为一秒
+                data: {
+                    id: id,
+                    user_id: user_id,
+                },
+                dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+                success: function (data) {
+                    console.log(data);
+                    if (data > 0) {
+                        layer.msg('执行成功', {icon: 6});
+                        setTimeout(function(){
+                            window.location.reload();
+                        },1000)
+                    }else{
+                        layer.msg('执行失败,请刷新重试', {icon: 6});
+                    }
+                },
+            });
+
+        });
+
+        $('body').on('blur', '.list_order', function () {
+            var id = $(this).attr('data-id');
+            var listorder = $(this).val();
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.post('{:url("listorder")}', {id: id, listorder: listorder, catid: '{:input("catid")}'}, function (res) {
+                layer.close(loading);
+                if (res.code === 1) {
+                    layer.msg(res.msg, {time: 1000, icon: 1}, function () {
+                        location.href = res.url;
+                    });
+                } else {
+                    layer.msg(res.msg, {time: 1000, icon: 2});
+                }
+            })
+        });
+
+        table.on('tool(list)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('您确定要删除该内容吗？', function (index) {
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('listDel')}", {id: data.id}, function (res) {
+                        layer.close(loading);
+                        if (res.code === 1) {
+                            layer.msg(res.msg, {time: 1000, icon: 1});
+                            tableIn.reload({where: {catid: '{:input("catid")}'}});
+                        } else {
+                            layer.msg('操作失败！', {time: 1000, icon: 2});
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+
+        $('#fanliAll').click(function () {
+            layer.confirm('确认要执行此用户的所有返利？', {icon: 3}, function (index) {
+                layer.close(index);
+                var id = '{$id}';
+                var loading = layer.load(1, {shade: [0.1, '#fff']});
+                $.post("{:url('fanliAll')}", {id:id}, function (data) {
+                    layer.close(loading);
+                    if (data.code === 1) {
+                        layer.msg(data.msg, {time: 1000, icon: 1});
+                        tableIn.reload({where: {catid: '{:input("catid")}'}});
+                    } else {
+                        layer.msg(data.msg, {time: 1000, icon: 2});
+                    }
+                });
+            });
+        });
+
+    });
+</script>
+
+<script>
+    layui.use('upload', function () {
+        var upload = layui.upload;
+        upload.render({
+            elem: '#wenjian',
+            accept: 'file',
+            url: '/admin/upFiles/fileexcel.html',
+            title: '上传文件',
+            ext: 'zip|rar|doc|ppt|xls',
+            done: function (res) {
+                /*$('#wenjianFile').attr('src', '__STATIC__/common/images/' + res.ext + '.png');
+                $('#wenjianfval').val(res.url);*/
+                layer.msg('导入成功');
+            }
+        });
+    });
+</script>

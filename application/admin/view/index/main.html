@@ -1,0 +1,222 @@
+{include file="common/head"/}
+
+<script type="text/javascript" src="/public/static/admin/js/echarts.min.js"></script>
+
+<div class="admin-main layui-anim layui-anim-upbit" style="height: auto;">
+    <div class="table-responsive">
+
+        <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+        <div id="main" style="width: 100%;height:500px;"></div>
+        <script type="text/javascript">
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '栏目产品点击率'
+                },
+                tooltip: {},
+                legend: {
+                    data:['点击率']
+                },
+                xAxis: {
+                    data: [
+                        {volist name="classification" id="vo"}
+                        "{$vo}",
+                        {/volist}
+                    ]
+                },
+                yAxis: {},
+                series: [{
+                    name: '点击率',
+                    type: 'bar',
+                    data: [
+                        {volist name="classification" id="vo"}
+                        Math.floor(Math.random()*(1000-500+1)+500), //随机数
+                        {/volist}
+                    ]
+                }]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        </script>
+
+
+        <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+        <div id="main7" style="width: 100%;height:600px;"></div>
+        <script>
+            // 基于准备好的dom，初始化echarts实例
+            var myChart7 = echarts.init(document.getElementById('main7'));
+            //app.title = '嵌套环形图';
+
+            option7 = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b}: {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    x: 'left',
+                    data:['今日注册','活跃人数','共计用户']
+                },
+                series: [
+                    {
+                        name:'统计',
+                        type:'pie',
+                        selectedMode: 'single',
+                        radius: [0, '30%'],
+
+                        label: {
+                            normal: {
+                                position: 'inner'
+                            }
+                        },
+                        labelLine: {
+                            normal: {
+                                show: false
+                            }
+                        },
+                        data:[
+                            {value:335, name:'今日注册', selected:true},
+                            {value:679, name:'活跃人数'},
+                            {value:1548, name:'共计用户'}
+                        ]
+                    },
+                    {
+                        name:'数量',
+                        type:'pie',
+                        radius: ['40%', '55%'],
+                        label: {
+                            normal: {
+                                formatter: '{a|{a}}{abg|}\n{hr|}\n  {b|{b}：}{c}  {per|{d}%}  ',
+                                backgroundColor: '#eee',
+                                borderColor: '#aaa',
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                // shadowBlur:3,
+                                // shadowOffsetX: 2,
+                                // shadowOffsetY: 2,
+                                // shadowColor: '#999',
+                                // padding: [0, 7],
+                                rich: {
+                                    a: {
+                                        color: '#999',
+                                        lineHeight: 22,
+                                        align: 'center'
+                                    },
+                                    // abg: {
+                                    //     backgroundColor: '#333',
+                                    //     width: '100%',
+                                    //     align: 'right',
+                                    //     height: 22,
+                                    //     borderRadius: [4, 4, 0, 0]
+                                    // },
+                                    hr: {
+                                        borderColor: '#aaa',
+                                        width: '100%',
+                                        borderWidth: 0.5,
+                                        height: 0
+                                    },
+                                    b: {
+                                        fontSize: 16,
+                                        lineHeight: 33
+                                    },
+                                    per: {
+                                        color: '#eee',
+                                        backgroundColor: '#334455',
+                                        padding: [2, 4],
+                                        borderRadius: 2
+                                    }
+                                }
+                            }
+                        },
+                        data:[
+                            {value:{$userscount}, name:'今日注册'},
+                            {value:{$useractive_time}, name:'活跃人数'},
+                            {value:{$userall}, name:'共计用户'},
+                        ]
+                    }
+                ]
+            };
+
+            myChart7.setOption(option7);
+        </script>
+    </div>
+</div>
+
+<div class="admin-main layui-anim layui-anim-upbit">
+    <div class="table-responsive">
+        <table class="layui-table" lay-even lay-skin="line">
+            <colgroup>
+                <col width="40%">
+                <col>
+            </colgroup>
+            <thead>
+            <tr>
+                <th class="text-center" colspan="2">{:lang('systemInfo')}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>网站域名</td>
+                <td>{$config.url}</td>
+            </tr>
+            <tr>
+                <td>网站目录</td>
+                <td>{$config.document_root}</td>
+            </tr>
+            <tr>
+                <td>服务器操作系统</td>
+                <td>{$config.server_os}</td>
+            </tr>
+            <tr>
+                <td>服务器端口</td>
+                <td>{$config.server_port}</td>
+            </tr>
+            <tr>
+                <td>服务器IP</td>
+                <td>{$config.server_ip}</td>
+            </tr>
+            <tr>
+                <td>WEB运行环境</td>
+                <td>{$config.server_soft}</td>
+            </tr>
+            <tr>
+                <td>MySQL数据库版本</td>
+                <td>{$config.mysql_version}</td>
+            </tr>
+            <tr>
+                <td>运行PHP版本</td>
+                <td>{$config.php_version}</td>
+            </tr>
+
+            <tr>
+                <td>最大上传限制</td>
+                <td>{$config.max_upload_size}</td>
+            </tr>
+            <tr>
+                <td>牛八客版本</td>
+                <td>{:config('version')}</td>
+            </tr>
+            <tr>
+                <td>作者</td>
+                <td>LeapMary</td>
+            </tr>
+            <tr>
+                <td>联系:电话</td>
+                <td>0531-69959639</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{include file="common/foot"/}
+<script>
+    layui.use('table', function() {
+        var table = layui.table;
+    })
+</script>
+</body>
+</html>

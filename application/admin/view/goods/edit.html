@@ -1,0 +1,563 @@
+{include file="common/head"/}
+<link rel="stylesheet" href="__STATIC__/plugins/spectrum/spectrum.css">
+<style>
+    .edui-editor{z-index: 1!important;}
+</style>
+<script>
+    var ADMIN = '__ADMIN__';
+    var UPURL = "{:url('UpFiles/upImages')}";
+    var PUBLIC = "__PUBLIC__";
+    var imgClassName,fileClassName;
+</script>
+{include file="common/foot"/}
+<script src="__STATIC__/common/js/jquery.2.1.1.min.js"></script>
+<script>
+    var edittext=new Array();
+</script>
+<script src="__STATIC__/ueditor/ueditor.config.js" type="text/javascript"></script>
+<script src="__STATIC__/ueditor/ueditor.all.min.js" type="text/javascript"></script>
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>{$title}</legend>
+    </fieldset>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">一键采集</label>
+        <div class="layui-input-4" id="box_shop_title">
+            <input type="text" data-required="0" min="0" max="0" errormsg="" title="" placeholder="请输入产品地址" lay-verify="defaul" class="layui-input" id ="getgoodinfo" value="">
+        </div>
+    </div>
+
+    <!--默认高佣-->
+    <div class="layui-form-item">
+        <label class="layui-form-label">高佣底佣</label>
+        <div class="layui-input-4" id="commission_choose">
+            <input name="commission_choose" id="commission_choose_1" checked="" value="1" type="radio" class="ace commission_choose" title="底佣">
+            底佣
+            <input checked name="commission_choose" id="commission_choose_2" value="0" type="radio" class="ace commission_choose" title="高佣">
+            高佣
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <div type="button" class="layui-btn getthisgoods" lay-submit="" lay-filter="submit">采集</div>
+        </div>
+    </div>
+
+
+
+
+
+    <!--###########################################################################-->
+    <form class="layui-form" method="post">
+        {if condition="$info['id'] neq ''"}<input TYPE="hidden" name="id" value="{$info.id}">{/if}
+        {volist name="fields" id="r"}
+        {if condition="!empty($r['status'])"}
+        <div class="layui-form-item">
+            <label class="layui-form-label">{$r.name}</label>
+            <div class="layui-input-4" id="box_{$r['field']}">
+                {$r,input($r['field'])|getform=$form,###}
+            </div>
+        </div>
+        {/if}
+        {/volist}
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" lay-submit="" lay-filter="submit">{:lang('submit')}</button>
+                {if condition="MODULE_NAME eq 'page'"}
+                <a href="{:url('category/index')}" class="layui-btn layui-btn-primary">{:lang('back')}</a>
+                {else /}
+                <a href="{:url('index',['catid'=>input('catid')])}" class="layui-btn layui-btn-primary">{:lang('back')}</a>
+                {/if}
+            </div>
+        </div>
+
+
+
+    </form>
+    <!--脱离class的layui-form势力范围-->
+    <!--########################################-->
+    <style>
+        .select_lm{
+            height: 38px;
+            line-height: 1.3;
+            line-height: 38px\9;
+            border-width: 1px;
+            border-style: solid;
+            background-color: #fff;
+            border-radius: 2px;
+            border-color: #e6e6e6;
+            width: 100%;
+        }
+    </style>
+    <div class="layui-form-item">
+        <label class="layui-form-label">一级分类</label>
+        <div class="layui-input-4" id="box_cate_id">
+            <select id="cate_id" name="cate_id" onchange="" class="cate_id select_lm" validate=" required:true, defaul:true">
+                <option value="0">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">二级分类</label>
+        <div class="layui-input-4" id="box_two_cate_id">
+            <select id="two_cate_id" name="two_cate_id" onchange="" class="two_cate_id select_lm" validate=" defaul:true">
+                <option value="0">请选择</option>
+            </select>
+        </div>
+    </div>
+    <!--########################################-->
+
+
+
+
+</div>
+<script src='__STATIC__/plugins/spectrum/spectrum.js'></script>
+<script src='__ADMIN__/js/edit.js'></script>
+<script src='__STATIC__/common/js/layui-mz-min.js'></script>
+<script>
+    var thumb,pic,file;
+    {if condition="ACTION_NAME=='add'"}
+    $("#adzone_id").val({$adzoneid});
+        var url= "{:url('insert')}";
+    {else /}
+        var url= "{:url('update')}";
+    {/if}
+
+            layui.use(['form','upload','layedit','laydate','jquery'], function () {
+
+                var form = layui.form,upload = layui.upload,layedit = layui.layedit,laydate = layui.laydate,$ = layui.jquery;
+
+                form.on('select(province)', function(data) {
+                    var pid = data.value;
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.get("{:url('getRegion')}?pid=" + pid, function (data) {
+                        layer.close(loading);
+                        var html='<option value="">请选择市</option>';
+                        $.each(data, function (i, value) {
+                            html += '<option value="'+value.id+'">'+value.name+'</option>';
+                        });
+                        $('#city').html(html);
+                        $('#district').html('<option value="">请选择县/区</option>');
+                        form.render()
+                    });
+                });
+                form.on('select(city)', function(data) {
+                    var pid = data.value;
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.get("{:url('getRegion')}?pid=" + pid, function (data) {
+                        layer.close(loading);
+                        var html='<option value="">请选择县/区</option>';
+                        $.each(data, function (i, value) {
+                            html += '<option value="'+value.id+'">'+value.name+'</option>';
+                        });
+                        $('#district').html(html);
+
+                        form.render()
+                    });
+                });
+
+                layui.selMeltiple($);
+                //缩略图上传
+                upload.render({
+                    elem: '#thumbBtn'
+                    ,url: '{:url("UpFiles/upload")}'
+                    ,accept: 'images' //普通文件
+                    ,exts: 'jpg|png|gif' //只允许上传压缩文件
+                    ,done: function(res){
+                        console.log(res);
+                        $('#cltThumb').attr('src', "__PUBLIC__"+res.url);
+                        $('#thumb').val(res.url);
+                    }
+                });
+                //多图片上传
+                var imagesSrc;
+                upload.render({
+                    elem: '#test2'
+                    ,url: '{:url("UpFiles/upImages")}'
+                    ,multiple: true
+                    ,done: function(res){
+                        $('#demo2 .layui-row').append('<div class="layui-col-md3"><div class="dtbox"><img src="__PUBLIC__'+ res.src +'" class="layui-upload-img"><input type="hidden" class="imgVal" value="'+ res.src +'"> <i class="delimg layui-icon">&#x1006;</i></div></div>');
+                        imagesSrc +=res.src+';';
+                    }
+                });
+                //日期
+                laydate.render({
+                    elem: '#addtime', //指定元素
+                    type:'datetime',
+                    format:'yyyy-MM-dd HH:mm:ss'
+                });
+                form.on('submit(submit)', function (data) {
+                    if(edittext){
+                        for (key in edittext){
+                            data.field[key] = $(window.frames["LAY_layedit_"+edittext[key]].document).find('body').html();
+                        }
+                    }
+                    var images='';
+                    $(".imgVal").each(function(i) {
+                        images+=$(this).val()+';';
+                    });
+                    data.field.images = images;
+
+                    //$leapmary$//追加分类数据
+                    if($(".cate_id").val() == 0){
+                        layer.msg('请选择一级分类');
+                        return false;
+                    }else{
+                        data.field.cate_id = $(".cate_id").val()
+                    }
+
+                    if($(".two_cate_id").val() == 0){
+                        layer.msg('请选择二级分类');
+                        return false;
+                    }else{
+                        data.field.two_cate_id = $(".two_cate_id").val()
+                    }
+                    //$leapmary$//追加分类数据
+
+                    $.post(url, data.field, function (res) {
+                        if (res.code > 0) {
+                            layer.msg(res.msg);
+                            //不跳转，只提示
+                            /*layer.msg(res.msg, {time: 1800, icon: 1}, function () {
+                                location.href = res.url;
+                            });*/
+                        } else {
+                            layer.msg(res.msg, {time: 1800, icon: 2});
+                        }
+                    });
+                });
+                $('.layui-row').on('click','.delimg',function(){
+                    var thisimg = $(this);
+
+                    layer.confirm('你确定要删除该图片吗？', function(index){
+                        thisimg.parents('.layui-col-md3').remove();
+                        layer.close(index);
+                    })
+                })
+            });
+
+</script>
+
+<script>
+
+    $(document).ready(function () {
+
+        $(".getthisgoods").click(function () {
+
+            console.log($("#getgoodinfo").val());
+            if($("#getgoodinfo").val() == ''){
+                layer.msg('请输入网址');
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "{:url('Goods/gettaobaoapigoodinfo')}",
+                timeout : 100000, //超时时间设置，单位毫秒 为一秒
+                data: {
+                    url:$("#getgoodinfo").val()
+                },
+                dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+                success: function(e){
+                    if(e == 0){
+                        layer.msg('此商品已存在，请勿重复添加');
+                        return false;
+                    }
+                    console.log(e);
+
+                    var data = e.tbkapidata;
+                    var pluginfo = e.pluginfo;
+
+                    //api接口信息
+                    $(".item_url").val(data.item_url);
+                    $(".num_iid").val(data.num_iid);
+                    $(".pict_url").val(data.pict_url);
+                    $(".provcity").val(data.provcity);
+                    $(".reserve_price").val(data.reserve_price);
+                    $(".small_images").val(data.small_images);
+                    $(".title").val(data.title);
+                    $(".user_type").val(data.user_type);
+                    $(".zk_final_price").val(data.zk_final_price);
+
+                    //插件信息
+                    //console.log(pluginfo);
+                    $(".reserve_price").val(pluginfo.xuanku_info.price);
+                    $(".shop_title").val(pluginfo.xuanku_info.shop_title);
+                    $(".user_type").val(pluginfo.xuanku_info.user_type);
+                    $(".nick").val(pluginfo.goods_info.nick);
+                    $(".seller_id").val(pluginfo.goods_info.sellerId);
+                    $(".volume").val(pluginfo.xuanku_info.month_sales);
+                    $(".coupon_total_count").val(pluginfo.goods_info.couponTotalCount);
+
+                    $(".coupon_info").val(pluginfo.goods_info.couponInfo);
+                    $(".coupon_money").val(pluginfo.xuanku_info.coupon_money);
+
+                    var coupon_price = accSub(pluginfo.xuanku_info.price, pluginfo.xuanku_info.coupon_money);
+
+                    $(".coupon_price").val(coupon_price);
+                    //高佣还是底佣的选择
+                    //==1是底佣
+
+                    var commission_choose = $('.commission_choose:checked').val();
+                    console.log(commission_choose);
+                    if(commission_choose == 1){
+                        //底佣计算方式
+                        $(".commission_rate").val(pluginfo.taobaoshare.tkCommonRate);
+                        //售价*佣金比例
+                        var commission = accMul(pluginfo.xuanku_info.coupon_price, pluginfo.taobaoshare.tkCommonRate);
+                        $(".commission").val(Math.floor(commission)/100);
+                    }else{
+                        //高佣计算方式
+                        $(".commission_rate").val(pluginfo.xuanku_info.tk_rate);
+                        //售价*佣金比例
+                        var commission = accMul(pluginfo.xuanku_info.coupon_price, pluginfo.xuanku_info.tk_rate);
+                        $(".commission").val(commission/100);
+                    }
+
+                    $(".num_iid").val(pluginfo.xuanku_info.num_iid);
+                    $(".coupon_remain_count").val(pluginfo.goods_info.couponLeftCount);
+                    $(".coupon_start_time").val(pluginfo.goods_info.couponEffectiveStartTime);
+                    $(".coupon_end_time").val(pluginfo.goods_info.couponEffectiveEndTime);
+
+                    if(pluginfo.taobaoshare.couponShortLinkUrl == null){
+                        $(".coupon_click_url").val(pluginfo.taobaoshare.shortLinkUrl);
+                    }else{
+                        $(".coupon_click_url").val(pluginfo.taobaoshare.couponShortLinkUrl);
+                    }
+
+                    //$(".category").val(pluginfo.goods_info.rootCategoryName);
+                    //$(".item_description").val(pluginfo.xuanku_info.price);
+                    $(".tpwd").val(pluginfo.taobaoshare.taoToken);
+
+                },
+            });
+
+            return false;
+        });
+
+        var cate_id = '{$info.cate_id}';
+        //var two_cate_id = '{$info.two_cate_id}';
+
+        //如果已经选了一级分类就查找二级分类
+        if(cate_id != 0){
+            cate_id = parseInt(cate_id);
+            get_son_classification(cate_id,'two_cate_id')
+        }
+
+        //填充一级分类
+        get_son_classification('','cate_id');
+
+        //一级类动，填充二级类
+        $("body").delegate("#cate_id","change",function(){
+            get_son_classification($(".cate_id").val(),'two_cate_id')
+        });
+
+        //隐藏无用的小图
+
+
+    });
+
+    function get_son_classification(cate_id,cate_id_name) {
+
+        var cate_id_n = '{$info.cate_id}';
+        var two_cate_id_n = '{$info.two_cate_id}';
+
+        cate_id_n = parseInt(cate_id_n);
+        two_cate_id_n = parseInt(two_cate_id_n);
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('share/Classification/get_son_classification')}",
+            timeout : 100000, //超时时间设置，单位毫秒 为一秒
+            data: {
+                cate_id:cate_id
+            },
+            dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+            success: function(data){
+
+                var html = '<option value="0">请选择</option>';
+                for(var i in data){
+                    if(data[i].id == cate_id_n || data[i].id == two_cate_id_n){
+                        html = html+"<option selected value='"+data[i].id+"'>"+data[i].title+"</option>";
+                    }else{
+                        html = html+"<option value='"+data[i].id+"'>"+data[i].title+"</option>";
+                    }
+                }
+
+                $("#"+cate_id_name).html(html);
+
+            },
+        });
+    }
+
+</script>
+
+<script>
+    /****************************************解决JS浮点数(小数)计算加减乘除的BUG    Start****************************************/
+
+    /**
+     ** 加法函数，用来得到精确的加法结果
+     ** 说明：javascript的加法结果会有误差，在两个浮点数相加的时候会比较明显。这个函数返回较为精确的加法结果。
+     ** 调用：accAdd(arg1,arg2)
+     ** 返回值：arg1加上arg2的精确结果
+     **/
+    function accAdd(arg1, arg2) {
+        if (isNaN(arg1)) {
+            arg1 = 0;
+        }
+        if (isNaN(arg2)) {
+            arg2 = 0;
+        }
+        arg1 = Number(arg1);
+        arg2 = Number(arg2);
+        var r1, r2, m, c;
+        try {
+            r1 = arg1.toString().split(".")[1].length;
+        }
+        catch (e) {
+            r1 = 0;
+        }
+        try {
+            r2 = arg2.toString().split(".")[1].length;
+        }
+        catch (e) {
+            r2 = 0;
+        }
+        c = Math.abs(r1 - r2);
+        m = Math.pow(10, Math.max(r1, r2));
+        if (c > 0) {
+            var cm = Math.pow(10, c);
+            if (r1 > r2) {
+                arg1 = Number(arg1.toString().replace(".", ""));
+                arg2 = Number(arg2.toString().replace(".", "")) * cm;
+            } else {
+                arg1 = Number(arg1.toString().replace(".", "")) * cm;
+                arg2 = Number(arg2.toString().replace(".", ""));
+            }
+        } else {
+            arg1 = Number(arg1.toString().replace(".", ""));
+            arg2 = Number(arg2.toString().replace(".", ""));
+        }
+        return (arg1 + arg2) / m;
+    }
+
+    //给Number类型增加一个add方法，调用起来更加方便。
+    Number.prototype.add = function(arg) {
+        return accAdd(this, arg);
+    };
+
+    /**
+     ** 减法函数，用来得到精确的减法结果
+     ** 说明：javascript的减法结果会有误差，在两个浮点数相减的时候会比较明显。这个函数返回较为精确的减法结果。
+     ** 调用：accSub(arg1,arg2)
+     ** 返回值：arg1加上arg2的精确结果
+     **/
+    function accSub(arg1, arg2) {
+        if (isNaN(arg1)) {
+            arg1 = 0;
+        }
+        if (isNaN(arg2)) {
+            arg2 = 0;
+        }
+        arg1 = Number(arg1);
+        arg2 = Number(arg2);
+
+        var r1, r2, m, n;
+        try {
+            r1 = arg1.toString().split(".")[1].length;
+        }
+        catch (e) {
+            r1 = 0;
+        }
+        try {
+            r2 = arg2.toString().split(".")[1].length;
+        }
+        catch (e) {
+            r2 = 0;
+        }
+        m = Math.pow(10, Math.max(r1, r2)); //last modify by deeka //动态控制精度长度
+        n = (r1 >= r2) ? r1 : r2;
+        return ((arg1 * m - arg2 * m) / m).toFixed(n);
+    }
+
+    // 给Number类型增加一个mul方法，调用起来更加方便。
+    Number.prototype.sub = function(arg) {
+        return accSub(this, arg);
+    };
+
+    /**
+     ** 乘法函数，用来得到精确的乘法结果
+     ** 说明：javascript的乘法结果会有误差，在两个浮点数相乘的时候会比较明显。这个函数返回较为精确的乘法结果。
+     ** 调用：accMul(arg1,arg2)
+     ** 返回值：arg1乘以 arg2的精确结果
+     **/
+    function accMul(arg1, arg2) {
+        if (isNaN(arg1)) {
+            arg1 = 0;
+        }
+        if (isNaN(arg2)) {
+            arg2 = 0;
+        }
+        arg1 = Number(arg1);
+        arg2 = Number(arg2);
+
+        var m = 0, s1 = arg1.toString(), s2 = arg2.toString();
+        try {
+            m += s1.split(".")[1].length;
+        }
+        catch (e) {
+        }
+        try {
+            m += s2.split(".")[1].length;
+        }
+        catch (e) {
+        }
+        return Number(s1.replace(".", "")) * Number(s2.replace(".", "")) / Math.pow(10, m);
+    }
+
+    // 给Number类型增加一个mul方法，调用起来更加方便。
+    Number.prototype.mul = function(arg) {
+        return accMul(this, arg);
+    };
+
+    /**
+     ** 除法函数，用来得到精确的除法结果
+     ** 说明：javascript的除法结果会有误差，在两个浮点数相除的时候会比较明显。这个函数返回较为精确的除法结果。
+     ** 调用：accDiv(arg1,arg2)
+     ** 返回值：arg1除以arg2的精确结果
+     **/
+    function accDiv(arg1, arg2) {
+        if (isNaN(arg1)) {
+            arg1 = 0;
+        }
+        if (isNaN(arg2)) {
+            arg2 = 0;
+        }
+        arg1 = Number(arg1);
+        arg2 = Number(arg2);
+
+        var t1 = 0, t2 = 0, r1, r2;
+        try {
+            t1 = arg1.toString().split(".")[1].length;
+        }
+        catch (e) {
+        }
+        try {
+            t2 = arg2.toString().split(".")[1].length;
+        }
+        catch (e) {
+        }
+        with (Math) {
+            r1 = Number(arg1.toString().replace(".", ""));
+            r2 = Number(arg2.toString().replace(".", ""));
+            return (r1 / r2) * pow(10, t2 - t1);
+        }
+    }
+
+    //给Number类型增加一个div方法，调用起来更加方便。
+    Number.prototype.div = function(arg) {
+        return accDiv(this, arg);
+    };
+    /****************************************解决JS浮点数(小数)计算加减乘除的BUG  End****************************************/
+</script>

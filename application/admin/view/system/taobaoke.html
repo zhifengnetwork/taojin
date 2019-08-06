@@ -1,0 +1,84 @@
+{include file="common/head"/}
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>淘宝客配置</legend>
+    </fieldset>
+    <style>
+        .layui-form-label{
+            width: 200px !important;
+        }
+    </style>
+    <form class="layui-form layui-form-pane">
+        <div class="layui-form-item">
+            <label class="layui-form-label">appkey</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="appkey" placeholder="" value="{$info.appkey}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">secretkey</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="secretkey" placeholder="" value="{$info.secretkey}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">sessionkey</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="sessionkey" placeholder="" value="{$info.sessionkey}" class="layui-input">
+            </div>
+        </div>
+
+        <!--//leapmary//兼容软件################################################################-->
+        <div class="layui-form-item">
+            <label class="layui-form-label">兼容软件server</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="server_c" placeholder="" value="{$info.server_c}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">兼容软件key</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="key_c" placeholder="" value="{$info.key_c}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">兼容软件port</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="port_c" placeholder="" value="{$info.port_c}" class="layui-input">
+            </div>
+        </div>
+        <!--//leapmary//兼容软件################################################################-->
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" lay-submit="" lay-filter="submit">提交</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+{include file="common/foot"/}
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form,layer = layui.layer,$= layui.jquery;
+        //提交监听
+        form.on('submit(submit)', function (data) {
+            loading =layer.load(1, {shade: [0.1,'#fff']});
+            $.post("{:url('system/taobaoke')}",data.field,function(res){
+                layer.close(loading);
+                if(res.code > 0){
+                    layer.msg(res.msg,{icon: 1, time: 1000},function(){
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{icon: 2, time: 1000});
+                }
+            });
+        })
+    })
+</script>
+</body>
+</html>

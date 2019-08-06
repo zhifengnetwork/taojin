@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{:config('sys_name')}后台管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="/public/static/plugins/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="/public/static/admin/css/global.css" media="all">
+    <link rel="stylesheet" href="/public/static/common/css/font.css" media="all">
+</head>
+<body class="skin-0">
+<link rel="stylesheet" href="/public/static/plugins/spectrum/spectrum.css">
+<style>
+    .edui-editor {
+        z-index: 1 !important;
+    }
+</style>
+<script>
+    var ADMIN = '/public/static/admin';
+    var UPURL = "/admin/UpFiles/upImages.html";
+    var PUBLIC = "/public";
+    var imgClassName, fileClassName;
+</script>
+<script type="text/javascript" src="/public/static/plugins/layui/layui.js"></script>
+
+
+<script src="/public/static/common/js/jquery.2.1.1.min.js"></script>
+<script>
+    var edittext = new Array();
+</script>
+<script src="/public/static/ueditor/ueditor.config.js" type="text/javascript"></script>
+<script src="/public/static/ueditor/ueditor.all.min.js" type="text/javascript"></script>
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>选择分类</legend>
+    </fieldset>
+
+    <!--###########################################################################-->
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn doit">提交</button>
+            <!--<a href="/admin/Goods/index.html" class="layui-btn layui-btn-primary">返回</a>-->
+        </div>
+    </div>
+
+
+    <!--脱离class的layui-form势力范围-->
+    <!--########################################-->
+    <style>
+        .select_lm {
+            height: 38px;
+            line-height: 1.3;
+            line-height: 38px \9;
+            border-width: 1px;
+            border-style: solid;
+            background-color: #fff;
+            border-radius: 2px;
+            border-color: #e6e6e6;
+            width: 100%;
+        }
+    </style>
+    <div class="layui-form-item">
+        <label class="layui-form-label">一级分类</label>
+        <div class="layui-input-4" id="box_cate_id">
+            <select id="cate_id" name="cate_id" onchange="" class="cate_id select_lm"
+                    validate=" required:true, defaul:true">
+                <option value="0">请选择</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">二级分类</label>
+        <div class="layui-input-4" id="box_two_cate_id">
+            <select id="two_cate_id" name="two_cate_id" onchange="" class="two_cate_id select_lm"
+                    validate=" defaul:true">
+                <option value="0">请选择</option>
+            </select>
+        </div>
+    </div>
+    <!--########################################-->
+
+
+</div>
+<script src='/public/static/plugins/spectrum/spectrum.js'></script>
+<script src='/public/static/admin/js/edit.js'></script>
+<script src='/public/static/common/js/layui-mz-min.js'></script>
+<script>
+    var thumb, pic, file;
+    $("#adzone_id").val();
+    var url = "/admin/Goods/insert.html";
+
+    layui.use(['form', 'upload', 'layedit', 'laydate', 'jquery'], function () {
+
+        var form = layui.form, upload = layui.upload, layedit = layui.layedit, laydate = layui.laydate,
+            $ = layui.jquery;
+
+        form.on('select(province)', function (data) {
+            var pid = data.value;
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.get("/admin/Goods/getRegion.html?pid=" + pid, function (data) {
+                layer.close(loading);
+                var html = '<option value="">请选择市</option>';
+                $.each(data, function (i, value) {
+                    html += '<option value="' + value.id + '">' + value.name + '</option>';
+                });
+                $('#city').html(html);
+                $('#district').html('<option value="">请选择县/区</option>');
+                form.render()
+            });
+        });
+        form.on('select(city)', function (data) {
+            var pid = data.value;
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.get("/admin/Goods/getRegion.html?pid=" + pid, function (data) {
+                layer.close(loading);
+                var html = '<option value="">请选择县/区</option>';
+                $.each(data, function (i, value) {
+                    html += '<option value="' + value.id + '">' + value.name + '</option>';
+                });
+                $('#district').html(html);
+
+                form.render()
+            });
+        });
+
+        layui.selMeltiple($);
+        //缩略图上传
+        upload.render({
+            elem: '#thumbBtn'
+            , url: '/admin/UpFiles/upload.html'
+            , accept: 'images' //普通文件
+            , exts: 'jpg|png|gif' //只允许上传压缩文件
+            , done: function (res) {
+                console.log(res);
+                $('#cltThumb').attr('src', "/public" + res.url);
+                $('#thumb').val(res.url);
+            }
+        });
+        //多图片上传
+        var imagesSrc;
+        upload.render({
+            elem: '#test2'
+            , url: '/admin/UpFiles/upImages.html'
+            , multiple: true
+            , done: function (res) {
+                $('#demo2 .layui-row').append('<div class="layui-col-md3"><div class="dtbox"><img src="/public' + res.src + '" class="layui-upload-img"><input type="hidden" class="imgVal" value="' + res.src + '"> <i class="delimg layui-icon">&#x1006;</i></div></div>');
+                imagesSrc += res.src + ';';
+            }
+        });
+        //日期
+        laydate.render({
+            elem: '#addtime', //指定元素
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm:ss'
+        });
+        form.on('submit(submit)', function (data) {
+            if (edittext) {
+                for (key in edittext) {
+                    data.field[key] = $(window.frames["LAY_layedit_" + edittext[key]].document).find('body').html();
+                }
+            }
+            var images = '';
+            $(".imgVal").each(function (i) {
+                images += $(this).val() + ';';
+            });
+            data.field.images = images;
+
+            //$leapmary$//追加分类数据
+            if ($(".cate_id").val() == 0) {
+                layer.msg('请选择一级分类');
+                return false;
+            } else {
+                data.field.cate_id = $(".cate_id").val()
+            }
+
+            if ($(".two_cate_id").val() == 0) {
+                layer.msg('请选择二级分类');
+                return false;
+            } else {
+                data.field.two_cate_id = $(".two_cate_id").val()
+            }
+            //$leapmary$//追加分类数据
+
+            $.post(url, data.field, function (res) {
+                if (res.code > 0) {
+                    layer.msg(res.msg, {time: 1800, icon: 1}, function () {
+                        location.href = res.url;
+                    });
+                } else {
+                    layer.msg(res.msg, {time: 1800, icon: 2});
+                }
+            });
+        });
+        $('.layui-row').on('click', '.delimg', function () {
+            var thisimg = $(this);
+
+            layer.confirm('你确定要删除该图片吗？', function (index) {
+                thisimg.parents('.layui-col-md3').remove();
+                layer.close(index);
+            })
+        })
+    });
+
+</script>
+
+<script>
+
+    $(document).ready(function () {
+
+        $(".doit").click(function () {
+
+            if ($("#two_cate_id").val() == 0) {
+                layer.msg('请选择二级分类');
+            }
+            console.log($("#cate_id").val());
+            $.ajax({
+                type: "POST",
+                url: "{:url('uatmfavorites/choosecate')}",
+                timeout: 100000, //超时时间设置，单位毫秒 为一秒
+                data: {
+                    cate_id: $("#cate_id").val(),
+                    two_cate_id: $("#two_cate_id").val(),
+                    favorites_id: '{$favorites_id}'
+                },
+                dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+                success: function (data) {
+                    console.log(data);
+                    if(data > 0){
+                        layer.msg("执行成功");
+                        var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+                        parent.layer.close(index);
+                        parent.location.reload();
+                    }
+                },
+            });
+
+            return false;
+        });
+
+        var cate_id = '';
+        //var two_cate_id = '';
+
+        //如果已经选了一级分类就查找二级分类
+        if (cate_id != 0) {
+            cate_id = parseInt(cate_id);
+            get_son_classification(cate_id, 'two_cate_id')
+        }
+
+        //填充一级分类
+        get_son_classification('', 'cate_id');
+
+        //一级类动，填充二级类
+        $("body").delegate("#cate_id", "change", function () {
+            get_son_classification($("#cate_id").val(), 'two_cate_id')
+        });
+
+        //隐藏无用的小图
+
+
+    });
+
+    function get_son_classification(cate_id, cate_id_name) {
+
+        var cate_id_n = '';
+        var two_cate_id_n = '';
+
+        cate_id_n = parseInt(cate_id_n);
+        two_cate_id_n = parseInt(two_cate_id_n);
+
+        $.ajax({
+            type: "POST",
+            url: "/share/Classification/get_son_classification.html",
+            timeout: 100000, //超时时间设置，单位毫秒 为一秒
+            data: {
+                cate_id: cate_id
+            },
+            dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+            success: function (data) {
+
+                var html = '<option value="0">请选择</option>';
+                for (var i in data) {
+                    if (data[i].id == cate_id_n || data[i].id == two_cate_id_n) {
+                        html = html + "<option selected value='" + data[i].id + "'>" + data[i].title + "</option>";
+                    } else {
+                        html = html + "<option value='" + data[i].id + "'>" + data[i].title + "</option>";
+                    }
+                }
+
+                $("#" + cate_id_name).html(html);
+
+            },
+        });
+    }
+
+</script>
