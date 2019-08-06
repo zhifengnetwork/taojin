@@ -1,5 +1,6 @@
 <?php
 namespace app\api\controller;
+use think\Db;
 
 class Index extends ApiBase
 {
@@ -18,4 +19,6 @@ class Index extends ApiBase
 
         echo $this->get_user_id();
     }
+
+
 }

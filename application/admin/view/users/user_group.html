@@ -1,11 +1,11 @@
 {include file="common/head"/}
 <div class="admin-main layui-anim layui-anim-upbit">
     <fieldset class="layui-elem-field layui-field-title">
-        <legend>会员组{:lang('list')}</legend>
+        <legend>代理等级{:lang('list')}</legend>
     </fieldset>
     <blockquote class="layui-elem-quote">
         <a href="{:url('groupAdd')}" class="layui-btn layui-btn-sm">
-            {:lang('add')}会员组
+            {:lang('add')}代理等级
         </a>
     </blockquote>
     <table class="layui-table" id="list" lay-filter="list"></table>
@@ -33,9 +33,9 @@
                 {field: 'level_id', title: '{:lang("id")}', width: 80, fixed: true, sort: true},
                 {field: 'level_name', title: '名称', width: 150},
                 /*{field: 'bomlimit', title: '满足积分条件', width: 150,templet:'#bom'},*/
-                {field: 'proportion', title: '返利比例%', width: 150,templet:'#proportion'},
-                {field: 'money', title: '满足拉人人数', width: 150,templet:'#money'},
-                {field: 'sort',align: 'center',title: '{:lang("order")}', width: 120,templet:'#sort',sort: true},
+                {field: 'yeji', title: '业绩', width: 150},
+                {field: 'num', title: '满足拉人人数', width: 150},
+                // {field: 'sort',align: 'center',title: '{:lang("order")}', width: 120,templet:'#sort',sort: true},
                 {width: 160, align: 'center', toolbar: '#action'}
             ]]
         });

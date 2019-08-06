@@ -18,12 +18,12 @@
 </script>
 <script type="text/html" id="action">
 
-    <a href="{:url('tbkorder/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">订单</a>
-    <a href="{:url('moneydetail/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">资金</a>
-    <a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">等级</a>
+    <!--<a href="{:url('tbkorder/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">订单</a>-->
+    <!--<a href="{:url('moneydetail/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">资金</a>-->
+    <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">等级</a>-->
 
-    <a href="{:url('adminadd')}?id={{d.id}}&type=money" class="layui-btn layui-btn-xs">余额</a>
-    <a href="{:url('adminadd')}?id={{d.id}}&type=integral" class="layui-btn layui-btn-xs">积分</a>
+    <!--<a href="{:url('adminadd')}?id={{d.id}}&type=money" class="layui-btn layui-btn-xs">余额</a>-->
+    <!--<a href="{:url('adminadd')}?id={{d.id}}&type=integral" class="layui-btn layui-btn-xs">积分</a>-->
 
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 
@@ -49,10 +49,10 @@
                 {field: 'id', title: '{:lang("id")}', width: 80, fixed: true,sort:true},
                 {field: 'nick_name', title: '{:lang("nickname")}', width: 120,sort:true},
 
-                {field: 'gold', title: '余额', width: 80,sort:true},
-                {field: 'account_gold', title: '累积余额', width: 90,sort:true},
-                {field: 'able_score', title: '积分', width: 80,sort:true},
-                {field: 'all_able_score', title: '累积积分', width: 110,sort:true},
+                {field: 'balance', title: '余额', width: 80,sort:true},
+                {field: 'lock_balance', title: '冻结余额', width: 90,sort:true},
+                {field: 'integral', title: '糖果', width: 80,sort:true},
+                {field: 'gold', title: '币', width: 110,sort:true},
                 {field: 'active_time', title: '最后活跃时间', width: 170,sort:true},
 
                 {field: 'level_name', title: '会员等级', width: 100,sort:true},

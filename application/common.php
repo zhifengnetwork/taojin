@@ -5,7 +5,64 @@ function sysmd5($str,$type = 'sha1'){
     $sysConfig = F('sys.config');
     return hash($type,$str . $sysConfig['ADMIN_ACCESS']);
 }
+function checkMobile($mobilePhone)
+{
+    if (preg_match("/^1[345678]\d{9}$/", $mobilePhone)) {
+        return $mobilePhone;
+    } else {
+        return false;
+    }
+}
+function send_zhangjun($mobile,$code){//掌骏
 
+    $content = "【全民淘金】您的手机验证码为：".$code."，该短信1分钟内有效。如非本人操作，可不用理会！";
+    $time=date('ymdhis',time());
+    $arr=array('uname'=>"hsxx40",'pwd'=>"hsxx40",'time'=>$time);
+    $signPars='';
+    foreach($arr as $v) {
+        $signPars .=$v;
+    }
+    $sign = strtolower(md5($signPars));
+    $arrs=array('userid'=>"9795",'timestamp'=>$time,'sign'=>$sign,'mobile'=>$mobile,'content'=>$content,'action'=>'send');
+    $url='http://120.77.14.55:8888/v2sms.aspx';
+    $ret=call($url, $arrs);
+    return $ret;
+}
+function call($url,$arr,$second = 30){
+    $ch = curl_init();
+    //设置超时
+    curl_setopt($ch, CURLOPT_TIMEOUT, $second);
+    curl_setopt($ch,CURLOPT_URL, $url);
+    curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,FALSE);
+    curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);//严格校验
+
+    //设置header
+    curl_setopt($ch, CURLOPT_HEADER, FALSE);
+    //要求结果为字符串且输出到屏幕上
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+    //post提交方式
+    curl_setopt($ch, CURLOPT_POST, TRUE);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $arr);
+    //运行curl
+    $data = curl_exec($ch);
+    $data = xmlToArray($data);
+    return $data;
+}
+function xmlToArray($xml){
+    //禁止引用外部xml实体
+    libxml_disable_entity_loader(true);
+    $values = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+    return $values;
+}
+/**
+ * 创建盐
+ * @author tangtanglove <dai_hang_love@126.com>
+ */
+function create_salt($length = -6)
+{
+    return $salt = substr(uniqid(rand()), $length);
+}
 //
 function style($title_style){
     $title_style = explode(';',$title_style);

@@ -31,13 +31,6 @@ class Users extends Common
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
                 ->toArray();
 
-            foreach($list['data'] as $k => $v){
-                unset($list['data'][$k]['balance']);
-                unset($list['data'][$k]['all_balance']);
-                unset($list['data'][$k]['integral']);
-                unset($list['data'][$k]['all_integral']);
-            }
-
             return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
         }
         return $this->fetch();
@@ -133,7 +126,7 @@ class Users extends Common
         return $result;
     }
 
-    /***********************************会员组***********************************/
+    /***********************************代理等级***********************************/
     public function userGroup(){
         if(request()->isPost()){
             $userLevel = db('user_level');
@@ -148,14 +141,14 @@ class Users extends Common
             $data = input('post.');
             $data['open'] = input('post.open') ? input('post.open') : 0;
             db('user_level')->insert($data);
-            $result['msg'] = '会员组添加成功!';
+            $result['msg'] = '代理等级添加成功!';
             $result['url'] = url('userGroup');
             $result['code'] = 1;
             return $result;
         }else{
-            $this->assign('title',lang('add') . "会员组");
+            $this->assign('title',lang('add') . "代理等级");
             $this->assign('info','null');
-            return $this->fetch('groupForm');
+            return $this->fetch('group_form');
         }
     }
 
@@ -167,23 +160,23 @@ class Users extends Common
 
             $data = input('post.');
             db('user_level')->update($data);
-            $result['msg'] = '会员组修改成功!';
+            $result['msg'] = '代理等级修改成功!';
             $result['url'] = url('userGroup');
             $result['code'] = 1;
             return $result;
         }else{
             $map['level_id'] = input('param.level_id');
             $info = db('user_level')->where($map)->find();
-            $this->assign('title',lang('edit') . "会员组");
+            $this->assign('title',lang('edit') . "代理等级");
             $this->assign('info',json_encode($info,true));
-            return $this->fetch('groupForm');
+            return $this->fetch('group_form');
         }
     }
 
     public function groupDel(){
         $level_id = input('level_id');
         if(empty($level_id)){
-            return ['code' => 0,'msg' => '会员组ID不存在！'];
+            return ['code' => 0,'msg' => '代理等级ID不存在！'];
         }
         db('user_level')->where(array('level_id' => $level_id))->delete();
         return ['code' => 1,'msg' => '删除成功！'];

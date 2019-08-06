@@ -2,9 +2,9 @@
 namespace app\admin\controller;
 use think\Db;
 use clt\Leftnav;
-use app\admin\model\Admin;
-use app\admin\model\AuthGroup;
-use app\admin\model\authRule;
+use app\common\model\Admin;
+use app\common\model\AuthGroup;
+use app\common\model\authRule;
 use think\Validate;
 class Auth extends Common
 {
