@@ -4,6 +4,9 @@ use think\Db;
 
 class Captcha extends ApiBase
 {
+    /**
+     * 获取短信验证码
+     */
     public function get_code()
     {
 
@@ -48,18 +51,5 @@ class Captcha extends ApiBase
         $this->ajaxReturn(['status' => -2 , 'msg'=>'发送失败，请重试！']);
     }
 
-    public function phoneAuth($phone, $code)
-    {
-        $res = Db::name('captcha')->field('expires')->where('phone','=',$phone)->where('code',$code)->order('id DESC')->find();
-
-        if ($res) {
-            if ($res['expires'] >= time()) { // 还在有效期就可以验证
-                return true;
-            } else {
-                return '-1';
-            }
-        }
-        return false;
-    }
-
+   
 }

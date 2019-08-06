@@ -6,6 +6,7 @@ use Captcha;
 use think\Loader;
 use think\Request;
 use think\Session;
+use app\common\logic\LoginLogic;
 
 class Login extends ApiBase
 {
@@ -19,11 +20,10 @@ class Login extends ApiBase
         if(!$phone){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'phone为空','data'=>null]);
         }
-        $password1 = input('password');
-        if(!$password1){
+        $password = input('password');
+        if(!$password){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'password为空','data'=>null]);
         }
-        $password  = password_hash($password1,PASSWORD_DEFAULT);
 
         $data = Db::name("users")->where('phone',$phone)
             ->field('password,id')
@@ -33,7 +33,7 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'手机phone不存在或错误','data'=>null]);
         }
         if (password_verify($password,$data['password'])) {
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'登录密码错误','data'=>null]);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'登录密码错误'.$password,'data'=>$data['password']]);
         }
         unset($data['password']);
         //重写
@@ -50,6 +50,9 @@ class Login extends ApiBase
         $pwd = input('pwd');
         $pwd2 = input('pwd2');
         $code = input('code');
+        if (!$pwd || !$pwd2) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
+        }
         if ($pwd != $pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码输入不一样！请重新输入！']);
         }
@@ -61,15 +64,15 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -1, 'msg' => '此手机号已注册，请直接登录！']);
         }
 
-        $res = action('Captcha/phoneAuth', [$phone, $code]);
-        if ($res === '-1') {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！', 'data' => '']);
-        } else if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！', 'data' => '']);
+        $loginLogic = new LoginLogic();
+        $res = $loginLogic->phoneAuth($phone, $code);
+
+        if ($res['status'] == -1 ) {
+            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
         }
 
         $data['salt'] = create_salt();
-        $data['password'] = md5($data['salt'] . $pwd);
+        $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
         $data['phone'] = $phone;
         $data['add_time'] = time();
         $id = Db::name('users')->insertGetId($data);
@@ -80,6 +83,12 @@ class Login extends ApiBase
         $data_user['phone'] = $phone;
         $data_user['id'] = $id;
         $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！', 'data' => $data_user]);
+
+    }
+
+
+
+    public function test(){
 
     }
 

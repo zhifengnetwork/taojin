@@ -1,6 +1,7 @@
 <?php
 
 // 应用公共文件
+
 function sysmd5($str,$type = 'sha1'){
     $sysConfig = F('sys.config');
     return hash($type,$str . $sysConfig['ADMIN_ACCESS']);
