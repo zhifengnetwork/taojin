@@ -71,7 +71,6 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
         }
 
-        $data['salt'] = create_salt();
         $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
         $data['phone'] = $phone;
         $data['add_time'] = time();
@@ -80,12 +79,54 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '注册失败，请重试！', 'data' => '']);
         }
         $data_user['token'] = $this->create_token($id);
-        $data_user['phone'] = $phone;
         $data_user['id'] = $id;
         $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！', 'data' => $data_user]);
 
     }
 
+    /**
+     * 忘记密码
+     */
+    public function zhaohuipwd()
+    {
+        $phone = input('phone');
+        $password1 = input('pwd');
+        $password2 = input('pwd2');
+        $code = input('code');
+
+        $loginLogic = new LoginLogic();
+        $res = $loginLogic->phoneAuth($phone, $code);
+
+        if ($res['status'] == -1 ) {
+            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
+        }
+
+
+        $data = Db::name("users")->where('phone', $phone)
+            ->field('id,password,phone')
+            ->find();
+
+        if (!$data) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机不存在或错误！']);
+        }
+
+        if ($password1 != $password2) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不相同！！']);
+        }
+        $update['password'] = password_hash($password1,PASSWORD_DEFAULT);
+
+        $res = Db::name('users')->where(['phone' => $phone])->update($update);
+
+
+        if ($res == false) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '修改密码失败']);
+        }
+
+        $users['token'] = $this->create_token($data['id']);
+        $users['id'] = $data['id'];
+
+        $this->ajaxReturn(['status' => 1, 'msg' => '修改密码成功！', 'data' => $users]);
+    }
 
 
     public function test(){

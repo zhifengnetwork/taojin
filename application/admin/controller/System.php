@@ -14,6 +14,7 @@ class System extends Common
             cache('config_system', null);
 
             $datas = input('post.');
+            unset($datas['file']);
             if($table->where('id',1)->update($datas)!==false) {
                 savecache('System');
                 return json(['code' => 1, 'msg' => '站点设置保存成功!', 'url' => url('system/system')]);
@@ -21,7 +22,7 @@ class System extends Common
                 return json(array('code' => 0, 'msg' =>'站点设置保存失败！'));
             }
         }else{
-            $system = $table->field('id,name,url,title,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url')->find($sys_id);
+            $system = $table->field('id,name,url,title,money,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url')->find($sys_id);
             $this->assign('system', $system);
             return $this->fetch();
         }
