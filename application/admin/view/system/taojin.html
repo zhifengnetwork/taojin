@@ -1,0 +1,143 @@
+{include file="common/head"/}
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>淘金配置</legend>
+    </fieldset>
+    <form class="layui-form layui-form-pane">
+
+        <style>
+            .layui-form-label{
+                width: 200px !important;
+            }
+        </style>
+
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否开启注册奖励</label>
+            <div class="layui-input-4" id="box_share_a_profit">
+                <input
+                        {if condition="$info.if_role_rebate eq 1"}
+                        checked
+                        {/if}
+                name="if_role_rebate" id="if_role_rebate_1" checked="" value="1" validate=" defaul:true" type="radio" class="ace" title="开启">
+                <div class="layui-unselect layui-form-radio layui-form-radioed">
+                    <i class="layui-anim layui-icon"></i><span>开启</span>
+                </div>
+                <input
+                        {if condition="$info.if_role_rebate eq 0"}
+                        checked
+                        {/if}
+                name="if_role_rebate" id="if_role_rebate_2" value="0" type="radio" class="ace" title="关闭">
+                <div class="layui-unselect layui-form-radio"><i class="layui-anim layui-icon">
+                    </i><span>关闭</span>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">注册者获得冻结余额：</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="re_lock_balance" placeholder="" value="{$info.re_lock_balance}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">注册者获得冻结余额：</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="yq_lock_balance" placeholder="" value="{$info.yq_lock_balance}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" >
+            <label class="layui-form-label">币值(元)</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="currency" placeholder="" value="{$info.currency}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item" >
+            <label class="layui-form-label">解冻冻结余额倍数:</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="buy_prop" placeholder="" value="{$info.buy_prop}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">出局手续费比例%</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="double_percent" placeholder="" value="{$info.double_percent}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">兑换币所需金额</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="exchange_money" placeholder="" value="{$info.exchange_money}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">兑换币所需金沙</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="exchange_integral" placeholder="" value="{$info.exchange_integral}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖金池开奖时间</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="comment_gold" placeholder="" value="{$info.comment_gold}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">抽奖时间设置</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="zan_integration" placeholder="" value="{$info.zan_integration}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">中奖音乐设置</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="shareappintegral" placeholder="" value="{$info.shareappintegral}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">提现手续费%</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="withdraw_percent" placeholder="" value="{$info.withdraw_percent}" class="layui-input">
+            </div>
+        </div>
+
+
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" lay-submit="" lay-filter="submit">提交</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+{include file="common/foot"/}
+<script>
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form,layer = layui.layer,$= layui.jquery;
+        //提交监听
+        form.on('submit(submit)', function (data) {
+            loading =layer.load(1, {shade: [0.1,'#fff']});
+            $.post("{:url('system/app')}",data.field,function(res){
+                layer.close(loading);
+                if(res.code > 0){
+                    layer.msg(res.msg,{icon: 1, time: 1000},function(){
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{icon: 2, time: 1000});
+                }
+            });
+        })
+    })
+</script>
+</body>
+</html>

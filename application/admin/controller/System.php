@@ -123,6 +123,28 @@ class System extends Common
             return $this->fetch();
         }
     }
+    /**
+     *淘金设置
+     **/
+    public function taojin(){
+        $table = db('config');
+        if(request()->isPost()) {
+
+            cache('taojin', null);
+
+            $datas = input('post.');
+
+            foreach ($datas as $k=>$v){
+                $table->where(['name'=>$k,'inc_type'=>'taojin'])->update(['value'=>$v]);
+            }
+            return json(['code' => 1, 'msg' => '设置成功!', 'url' => url('system/taojin')]);
+        }else{
+            $smtp = $table->where(['inc_type'=>'taojin'])->select();
+            $info = convert_arr_kv($smtp,'name','value');
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+    }
 
 
 }
