@@ -8,7 +8,7 @@ function sysmd5($str,$type = 'sha1'){
 }
 function checkMobile($mobilePhone)
 {
-    if (preg_match("/^1[345678]\d{9}$/", $mobilePhone)) {
+    if (preg_match("/^1[3456789]\d{9}$/", $mobilePhone)) {
         return $mobilePhone;
     } else {
         return false;

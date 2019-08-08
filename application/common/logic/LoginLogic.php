@@ -15,13 +15,17 @@ class LoginLogic
      */
     public function phoneAuth($phone, $code)
     {
-        $res = Db::name('captcha')->field('expires')->where('phone','=',$phone)->where('code',$code)->order('id DESC')->find();
+        $res = Db::name('captcha')->where('phone',$phone)->order('id DESC')->find();
         if(!$res){
             return ['status' => -1, 'msg' => '请先获取验证码！'];
         }
         
-        if ($res['expires'] > time()) { 
-            return ['status' => -1, 'msg' => '验证码已过期！'];
+        if ( time() > $res['expires'] ) { 
+            return ['status' => -1, 'msg' => time().'验证码已过期！'.$res['expires'] ];
+        }
+
+        if( $code != $res['code'] ){
+            return ['status' => -1, 'msg' => '验证码错误！'];
         }
 
         return ['status' => 1, 'msg' => '验证码验证通过！'];

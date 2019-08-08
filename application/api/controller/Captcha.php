@@ -27,17 +27,17 @@ class Captcha extends ApiBase
         }
 
         $res = M('captcha')->field('expires')->where('phone','=',$phone)->order('id DESC')->find();
-        $time=$res['expires']-time();
+        $time = $res['expires'] - time();
         if( $res['expires'] > time() ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请'.$time.'秒后再重试！']);
         }
 
-        $code = mt_rand(111111,999999);
+        $code = mt_rand(100000,999999);
 
         $data['phone'] = $phone;
         $data['code'] = $code;
         $data['add_time'] = time();
-        $data['expires'] = time() + 60;
+        $data['expires'] = time() + 300;
 
         $res = M('captcha')->insert($data);
         if(!$res){
