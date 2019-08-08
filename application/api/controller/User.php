@@ -129,11 +129,11 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -1, 'msg' => '手机号码不正确，请输入注册时的手机号']);
         }
         if (strlen($pwd) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
-        if (strlen($pwd) != 6) {
+        if (strlen($pwd) < 6) {
             $this->ajaxReturn(['status' => -2, 'msg' => '密码长度为6！']);
         }
         if (strlen($pwd1) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不能为空！']);
-        if (strlen($pwd1) != 6) {
+        if (strlen($pwd1) < 6) {
             $this->ajaxReturn(['status' => -2, 'msg' => '确认密码长度为6！']);
         }
         if ($pwd != $pwd1) {
@@ -152,13 +152,12 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
         }
 
-        $data['paypwd'] = password_hash($pwd,PASSWORD_DEFAULT);
-        if ($password != $this->_user->pwd) {
-            $res = $this->_user->save(['pwd' => $password]);
-            !$res && $this->ajaxReturn(['status' => -2, 'msg' => '设置失败！']);
+        $paypwd = password_hash($pwd,PASSWORD_DEFAULT);
+        $res = Db::name('users')->where(['id'=>$user_id])->update(['paypwd'=>$paypwd]);
+        if (!$res) {
+           $this->ajaxReturn(['status' => -2, 'msg' => '设置失败！']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '设置成功！']);
     }
-
 
 }
