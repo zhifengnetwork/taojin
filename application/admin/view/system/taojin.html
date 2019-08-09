@@ -1,4 +1,7 @@
 {include file="common/head"/}
+{include file="common/foot"/}
+<script src='__STATIC__/common/js/layui-mz-min.js'></script>
+<script src="__STATIC__/common/js/jquery.2.1.1.min.js"></script>
 <div class="admin-main layui-anim layui-anim-upbit">
     <fieldset class="layui-elem-field layui-field-title">
         <legend>淘金配置</legend>
@@ -17,20 +20,20 @@
             <label class="layui-form-label">是否开启注册奖励</label>
             <div class="layui-input-4" id="box_share_a_profit">
                 <input
-                        {if condition="$info.if_role_rebate eq 1"}
+                        {if condition="$info.if_register_reward eq 1"}
                         checked
                         {/if}
-                name="if_role_rebate" id="if_role_rebate_1" checked="" value="1" validate=" defaul:true" type="radio" class="ace" title="开启">
+                name="if_register_reward" id="if_role_rebate_1" checked="" value="1" validate=" defaul:true" type="radio" class="ace" title="开启">
                 <div class="layui-unselect layui-form-radio layui-form-radioed">
-                    <i class="layui-anim layui-icon"></i><span>开启</span>
+                    <i class="layui-anim layui-icon"></i><span>开启</span>
                 </div>
                 <input
-                        {if condition="$info.if_role_rebate eq 0"}
+                        {if condition="$info.if_register_reward eq 0"}
                         checked
                         {/if}
-                name="if_role_rebate" id="if_role_rebate_2" value="0" type="radio" class="ace" title="关闭">
+                name="if_register_reward" id="if_role_rebate_2" value="0" type="radio" class="ace" title="关闭">
                 <div class="layui-unselect layui-form-radio"><i class="layui-anim layui-icon">
-                    </i><span>关闭</span>
+                    </i><span>关闭</span>
                 </div>
             </div>
         </div>
@@ -83,22 +86,64 @@
 
         <div class="layui-form-item">
             <label class="layui-form-label">奖金池开奖时间</label>
-            <div class="layui-input-4">
-                <input type="text" lay-verify="required" name="comment_gold" placeholder="" value="{$info.comment_gold}" class="layui-input">
+            <div class="layui-input-4" id="box_bonus_time">
+                <input type="text" class="layui-input" name="bonus_time" id="bonus_time" value="{$info.bonus_time}" placeholder="HH:mm:ss">
             </div>
+            <script>
+                layui.use('laydate', function(){
+                    var laydate = layui.laydate;
+                    laydate.render({
+                        elem: '#bonus_time'
+                        ,type: 'time'
+                        ,btns: ['clear', 'confirm']
+                    });
+                });
+            </script>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">抽奖时间设置</label>
-            <div class="layui-input-4">
-                <input type="text" lay-verify="required" name="zan_integration" placeholder="" value="{$info.zan_integration}" class="layui-input">
+            <div class="layui-input-4" id="box_luck_time">
+                <input type="text" class="layui-input" name="luck_time" id="luck_time" value="{$info.luck_time}" placeholder="HH:mm:ss">
             </div>
+            <script>
+                layui.use('laydate', function(){
+                    var laydate = layui.laydate;
+                    laydate.render({
+                        elem: '#luck_time'
+                        ,type: 'time'
+                        ,btns: ['clear', 'confirm']
+                    });
+                });
+            </script>
         </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label">中奖音乐设置</label>
-            <div class="layui-input-4">
-                <input type="text" lay-verify="required" name="shareappintegral" placeholder="" value="{$info.shareappintegral}" class="layui-input">
+            <div class="layui-input-4" id="box_music">
+                <div class="layui-input-4"><input type="hidden" name="music_url" id="music_urlVal" value="">
+                    <div class="layui-upload"><button type="button" class="layui-btn layui-btn-primary" id="pict_url"><i class="icon icon-upload3"></i>点击上传</button>
+                        <input class="layui-upload-file" type="file" name="file">
+                    </div>
+                </div>
+                <div class="layui-upload-list">
+                    <audio src="" id="pict_urlMusic" autoplay="autoplay" controls="controls" preload="auto"></audio>
+                </div>
+                <script>
+                layui.use('upload', function () {
+                    var upload = layui.upload;
+                    upload.render({
+                        elem:'#pict_url',
+                        url: '/admin/up_files/file.html',
+                        accept:'audio',
+                        title: '上传音频文件',
+                        done: function(res){
+                            $('#pict_urlMusic').attr('src', '/public'+res.url);
+                            $('#music_urlVal').val(res.url);
+                        }
+                    });
+                });
+            </script>
             </div>
         </div>
 
@@ -119,14 +164,14 @@
 
     </form>
 </div>
-{include file="common/foot"/}
+
 <script>
     layui.use(['form', 'layer'], function () {
         var form = layui.form,layer = layui.layer,$= layui.jquery;
         //提交监听
         form.on('submit(submit)', function (data) {
             loading =layer.load(1, {shade: [0.1,'#fff']});
-            $.post("{:url('system/app')}",data.field,function(res){
+            $.post("{:url('system/taojin')}",data.field,function(res){
                 layer.close(loading);
                 if(res.code > 0){
                     layer.msg(res.msg,{icon: 1, time: 1000},function(){
