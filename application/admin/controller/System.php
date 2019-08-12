@@ -149,7 +149,6 @@ class System extends Common
             {
                 $info['music_url']=SITE_URL.__PUBLIC__.$info['music_url'];
             }
-            print_r($info['music_url']);
             $this->assign('info', $info);
             return $this->fetch();
         }

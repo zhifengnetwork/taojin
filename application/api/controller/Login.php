@@ -62,14 +62,14 @@ class Login extends ApiBase
         }
         $data = Db::name('users')->where('phone', $phone)->find();
         if ($data) {
-            $this->ajaxReturn(['status' => -1, 'msg' => '此手机号已注册，请直接登录！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '此手机号已注册，请直接登录！']);
         }
 
         $loginLogic = new LoginLogic();
         $res = $loginLogic->phoneAuth($phone, $code);
 
         if ($res['status'] == -1 ) {
-            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
+            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
         }
 
         $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
