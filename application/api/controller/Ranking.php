@@ -25,17 +25,15 @@ class Ranking extends ApiBase
         }
         $num=I('num',1);
         $system = Db::name('system')->field('id,name,title,money,logo')->where('id=1')->find();
-        $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $balance=$user['balance'];
-        if($balance<($system['money']*$num)){
+        $user = Db::name('users')->where(['id'=>$user_id])->find();
+        $balance = $user['balance'];
+        if($balance < ( $system['money'] * $num ) ){
             $this->ajaxReturn(['status' => -2, 'msg' => '余额不足！', 'data' => '']);
         }
         $RankingLogic = new RankingLogic();
-        $res = $RankingLogic->buy_gold_shovel($num);
-        if ($res['status'] == -1 ) {
-            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
-        }
-
+        $res = $RankingLogic->buy_gold_shovel($user_id,$num);
+        
+        $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
     }
     /*
      * 赠送余额
