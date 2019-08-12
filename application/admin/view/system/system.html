@@ -53,7 +53,7 @@
     layui.use(['form', 'layer','upload'], function () {
         var form = layui.form,layer = layui.layer,upload = layui.upload,$ = layui.jquery;
         if("{$system.logo}"){
-            cltLogo.src = "__PUBLIC__"+ "{$system.logo}";
+            cltLogo.src = "{$system.logo}";
         }
         //普通图片上传
         var uploadInst = upload.render({

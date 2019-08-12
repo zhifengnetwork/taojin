@@ -23,6 +23,10 @@ class System extends Common
             }
         }else{
             $system = $table->field('id,name,url,title,money,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url')->find($sys_id);
+            if($system['logo'])
+            {
+                $system['logo']=SITE_URL.__PUBLIC__.$system['logo'];
+            }
             $this->assign('system', $system);
             return $this->fetch();
         }
@@ -133,7 +137,7 @@ class System extends Common
             cache('taojin', null);
 
             $datas = input('post.');
-
+            unset($datas['file']);
             foreach ($datas as $k=>$v){
                 $table->where(['name'=>$k,'inc_type'=>'taojin'])->update(['value'=>$v]);
             }
@@ -141,6 +145,11 @@ class System extends Common
         }else{
             $smtp = $table->where(['inc_type'=>'taojin'])->select();
             $info = convert_arr_kv($smtp,'name','value');
+            if($info['music_url'])
+            {
+                $info['music_url']=SITE_URL.__PUBLIC__.$info['music_url'];
+            }
+            print_r($info['music_url']);
             $this->assign('info', $info);
             return $this->fetch();
         }
