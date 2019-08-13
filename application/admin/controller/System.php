@@ -147,6 +147,7 @@ class System extends Common
             $info = convert_arr_kv($smtp,'name','value');
             if($info['music_url'])
             {
+                $info['music']=$info['music_url'];
                 $info['music_url']=SITE_URL.__PUBLIC__.$info['music_url'];
             }
             $this->assign('info', $info);
