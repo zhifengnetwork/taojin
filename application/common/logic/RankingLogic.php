@@ -24,7 +24,7 @@ class RankingLogic
         Db::startTrans();
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
-        if(!$re||$r){
+        if(!$re||!$r){
             Db::rollback();
             return ['status' => -2, 'msg' => '余额扣取失败或者奖池增加失败！'];
         }else{
@@ -44,10 +44,13 @@ class RankingLogic
             if($balance_unlock>$user['lock_balance']){
                 $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
             }
-            $ress=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance_unlock);
-            if(!$ress){
-                Db::rollback();
-                return ['status' => -2, 'msg' => '冻结余额解冻失败！'];
+            if($balance_unlock!=0){
+                $ress=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance_unlock);
+                $rs=Db::name('users')->where(['id'=>$user_id])->setDec('lock_balance',$balance_unlock);
+                if(!$ress||!$rs){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '冻结余额解冻失败！'];
+                }
             }
             $detail=[];
             $detail['user_id']=$user_id;

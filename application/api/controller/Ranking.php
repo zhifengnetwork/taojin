@@ -98,4 +98,92 @@ class Ranking extends ApiBase
             $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
         }
     }
+    /*
+     * 排位
+     */
+    public function my_ranking(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+        $where=[];
+        $where['rank_status']=0;
+        $list=Db::name('ranking')->field('id')->where($where)->select();
+        $data_list=[];
+        foreach ($list as $key=>$value)//二维数组转换
+        {
+            $data_list[$key]=$value['id'];
+        }
+        $data_list=array_flip($data_list);//键值翻转
+        $where=[];
+        $where['user_id']=$user_id;
+        $where['rank_status']=0;
+        $where['is_delete']=0;
+        $rank_list=Db::name('ranking')
+            ->field('id,user_id,rank_time')
+            ->where($where)
+            ->order('add_time')
+            ->paginate(10,false,$pageParam);
+        $rank_list=$rank_list->toArray();
+        $rank_list=$rank_list['data'];
+        foreach ($rank_list as $k=>$v){
+            $rank_list[$k]['num']=$data_list[$v['id']];
+            $rank_list[$k]['rank']=$data_list[$v['id']]+1;
+            $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+        }
+        $where=[];
+        $where['rank_status']=1;
+        $count=Db::name('ranking')->where($where)->count();//出局人数
+        $data['rank_list']=$rank_list;
+        $data['count']=$count;
+//        $subQuery = Db::name('ranking')
+//            ->fieldRaw('*, @rownum := @rownum+1 AS rownum')
+//            ->where($where)
+//            ->buildSql();
+//        $where=[];
+//        $where['a.user_id']=$user_id;
+//        $rank_list=Db::table($subQuery.' a')
+//            ->where($where)
+//            ->order('a.add_time')
+//            ->paginate(10,false,$pageParam);
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$data]);
+
+    }
+    /*
+     * 挂卖
+     */
+    public function user_auction(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+        $where=[];
+        $where['user_id']=$user_id;
+        $list=Db::name('auction')
+            ->field('id,user_id,currency_num,all_money,add_time')
+            ->where($where)
+            ->paginate(10,false,$pageParam);
+        $list=$list->toArray();
+        $list=$list['data'];
+        foreach ($list as $k=>$v){
+            $list[$k]['add_time']=date('Y-m-d H:i:s',$v['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$list]);
+    }
+    /*
+     * 道具详情
+     */
+    public function goods_details(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $goods=Db::name('system')
+            ->field('id,name,money,title,logo')
+            ->find();
+        $goods['logo']=SITE_URL.$goods['logo'];
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$goods]);
+    }
 }
