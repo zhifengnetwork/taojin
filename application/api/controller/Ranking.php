@@ -186,4 +186,56 @@ class Ranking extends ApiBase
         $goods['logo']=SITE_URL.$goods['logo'];
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$goods]);
     }
+    /*
+     * 我的订单
+     */
+    public function order(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $goods=Db::name('system')
+            ->field('id,name,money,title,logo')
+            ->find();
+        $goods['logo']=SITE_URL.$goods['logo'];
+        $data['goods']=$goods;
+        $pageParam=[];
+        $where=[];
+        $where['user_id']=$user_id;
+        $where['rank_status']=0;
+        $where['is_delete']=0;
+        $rank_list=Db::name('ranking')
+            ->field('id,user_id,rank_time')
+            ->where($where)
+            ->order('add_time')
+            ->paginate(10,false,$pageParam);
+        $rank_list=$rank_list->toArray();
+        $rank_list=$rank_list['data'];
+        foreach ($rank_list as $k=>$v){
+            $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+        }
+        $data['ranking']=$rank_list;
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$data]);
+    }
+    /*
+     * 删除订单
+     */
+    public function order_del(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $id=I('id');
+        if(!$id){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'id不能为空','data'=>'']);
+        }
+        $where['id']=$id;
+        $where['user_id']=$user_id;
+        $res=Db::name('ranking')->where($where)->update(['is_delete'=>1]);
+        if($res){
+            $this->ajaxReturn(['status' => 1, 'msg'=>'删除成功']);
+        }else{
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'删除失败']);
+        }
+    }
 }

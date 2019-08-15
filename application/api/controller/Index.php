@@ -4,11 +4,17 @@ use think\Db;
 
 class Index extends ApiBase
 {
-    public function index()
+    /*
+     * 首页
+     */
+        public function index()
     {
-       
-        echo "API";
-
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $jackpot=Db::name('jackpot')->where('id',1)->find();
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$jackpot]);
     }
 
 

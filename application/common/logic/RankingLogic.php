@@ -71,15 +71,13 @@ class RankingLogic
             $data['rank_time'] = time();
             $data['add_time'] = time();
             $res = Db::name('ranking')->insertGetId($data);
-            if($res > 0){
-                Db::commit();
-                return ['status' => 1, 'msg' => '购买成功！'];
-            }else{
+            if(!$res){
                 Db::rollback();
                 return ['status' => -2, 'msg' => '订单生成错误！'];
             }
         }
-
+        Db::commit();
+        return ['status' => 1, 'msg' => '购买成功！'];
     }
 
     /*
