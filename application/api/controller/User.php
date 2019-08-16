@@ -41,7 +41,29 @@ class User extends ApiBase
 
     }
 
+    // “我的”
+    public function index()
+    {
+        $user_id = $this->get_user_id();
+        if (!$user_id) {
+            $this->ajaxReturn(['status' => -1, 'msg' => '用户不存在', 'data' => '']);
+        }
+        $user = \app\common\model\Users::get($user_id);
+        if(!$user){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
+        }
 
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>[
+            'id'=>$user->id,
+            'name'=>$user->name,
+            'level'=>$user->level_name?:'',
+            'avatar'=>$user->avatar?:'',
+            'register_time'=>$user->add_time,
+            'balance'=>$user->balance,
+            'sha'=>$user->integral,
+            'bi'=>$user->currency
+        ]]);
+    }
 
     /**
      * 上传头像

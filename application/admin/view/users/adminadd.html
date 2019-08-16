@@ -5,7 +5,28 @@
     </fieldset>
 
     <!--##########################################-->
-
+    <div class="layui-form-item">
+        <label class="layui-form-label">
+            用户ID
+        </label>
+        <label class="layui-form-label" style="text-align: left;">
+            {$id}
+        </label>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">
+            {if condition="$type eq 'balance'"}
+            余额
+            {elseif condition="$type eq 'integral'"/}
+             糖果
+            {elseif condition="$type eq 'currency'"/}
+            金币
+            {/if}
+        </label>
+        <label class="layui-form-label" style="text-align: left;">
+            {$value}
+        </label>
+    </div>
     <div class="layui-form-item">
         <label class="layui-form-label">数值</label>
         <div class="layui-input-4">
@@ -15,7 +36,7 @@
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label">一级分类</label>
+        <label class="layui-form-label">操作</label>
         <div class="layui-input-4" id="box_cate_id">
             <select class="ifadd">
                 <option value="1">增加</option>
@@ -59,12 +80,17 @@
                 },
                 dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
                 success: function(data){
-                    console.log(data);
-                    if(data > 0){
-                        layer.msg('执行成功');
-
+                    layer.closeAll();
+                    if (data.code > 0) {
+                        layer.msg(data.msg, {time: 1800, icon: 1}, function () {
+                            location.href = data.url;
+                        });
+                    } else {
+                        layer.msg(data.msg, {time: 1800, icon: 2});
                     }
-                },
+                },beforeSend:function () {
+                    layer.load(1, {shade: [0.1, '#fff']});
+                }
             });
 
         })

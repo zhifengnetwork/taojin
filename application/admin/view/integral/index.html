@@ -33,6 +33,7 @@
     {{(d.type==4)?'签到加(积分)':''}}
     {{(d.type==5)?'分享晒单送(积分)':''}}
     {{(d.type==6)?'评论送(积分)':''}}
+    {{(d.type==8)?'管理员操作':''}}
 </script>
 
 <!--这个地方待处理，需要和其他地方匹配-->
@@ -59,7 +60,9 @@
                 {field: 'id', title: '{:lang("id")}', width: 80, fixed: true ,sort:true},
                 {field: 'u_id', title: '用户id', width: 200, templet: '#u_id' ,sort:true},
                 {field: 'u_name', title: '用户名', width: 200, templet: '#u_name'},
-                {field: 'createtime', title: '创建时间', width: 200, templet: '#createtime' ,sort:true},
+                {field: 'createtime', title: '创建时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.createtime);
+                    } ,sort:true},
                 {field: 'integral', title: '积分变动', width: 200, templet: '#integral' ,sort:true},
                 {field: 'then_integral', title: '改动之前用户积分数', width: 200, templet: '#then_integral' ,sort:true},
                 {field: 'type', title: '类型', width: 200, templet: '#type' ,sort:true},

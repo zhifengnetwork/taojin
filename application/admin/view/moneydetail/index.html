@@ -64,7 +64,9 @@
                 {type: "checkbox", fixed: true},
                 {field: 'id', title: '{:lang("id")}', width: 80, fixed: true ,sort:true},
 
-                {field: 'createtime', title: '创建时间', width: 200, templet: '#createtime' ,sort:true},
+                {field: 'createtime', title: '创建时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.createtime);
+                    },sort:true},
                 {field: 'user_id', title: '用户id', width: 100, templet: '#user_id' ,sort:true},
                 {field: 'be_user_id', title: '来源用户', width: 100, templet: '#be_user_id' ,sort:true},
                 {field: 'order_id', title: '订单id', width: 100, templet: '#order_id' ,sort:true},
