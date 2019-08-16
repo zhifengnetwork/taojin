@@ -127,6 +127,7 @@ class RankingLogic
             Db::rollback();
             return false;
         }
+        //TODO   代理费用
         Db::commit();
         return false;
     }
@@ -175,8 +176,33 @@ class RankingLogic
             Db::rollback();
             return false;
         }
+        //TODO   代理费用
         Db::commit();
         return false;
     }
-
+    /*
+     * 抽奖
+     */
+    public function reward($user_id,$money,$double_percent){
+        $user_money=$money-$money*$double_percent/100;
+        Db::startTrans();
+        $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
+        if(!$res){
+            Db::rollback();
+            return false;
+        }
+        $detail['user_id']=$user_id;
+        $detail['type']=9;//中奖
+        $detail['money']=$money;
+        $detail['createtime']=time();
+        $detail['intro']='中奖获得余额';
+        $id=Db::name('moneydetail')->insertGetId($detail);
+        if(!$id){
+            Db::rollback();
+            return false;
+        }
+        //TODO   代理费用
+        Db::commit();
+        return false;
+    }
 }

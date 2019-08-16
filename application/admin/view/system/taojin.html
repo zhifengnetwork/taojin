@@ -118,7 +118,22 @@
                 });
             </script>
         </div>
-
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖金池中奖时间</label>
+            <div class="layui-input-4" id="box_reward_time">
+                <input type="text" class="layui-input" name="reward_time" id="reward_time" value="{$info.reward_time}" placeholder="HH:mm:ss">
+            </div>
+            <script>
+                layui.use('laydate', function(){
+                    var laydate = layui.laydate;
+                    laydate.render({
+                        elem: '#reward_time'
+                        ,type: 'time'
+                        ,btns: ['clear', 'confirm']
+                    });
+                });
+            </script>
+        </div>
         <div class="layui-form-item">
             <label class="layui-form-label">抽奖时间设置</label>
             <div class="layui-input-4" id="box_luck_time">

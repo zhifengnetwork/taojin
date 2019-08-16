@@ -57,4 +57,56 @@ class Crontab extends ApiBase
         print_r($ranking);
         die;
     }
+    /*
+     * 抽奖定时任务
+     */
+    public function reward_crontab(){
+        $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');
+        $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');
+        $bonus_time=strtotime(date("Y-m-d")." ".$bonus_time);//今天开奖时间
+        $today_time= strtotime(date("Y-m-d"),time());
+        $where['reward_day']=$today_time;
+        $reward=Db::name('reward')->where($where)->find();//已经抽过奖励
+        if((time()>$bonus_time)&&!$reward){
+            $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
+            if($reward_time==0){//随机抽取一分钟
+                $where=[];
+                $start=strtotime(date("Y-m-d",strtotime("-1 day"))." ".'00:00:00');
+                $end=strtotime(date("Y-m-d")." ".'00:00:00');
+                $where['rank_time']=['between',[$start,$end]];
+                //随机抽取一条昨天的数据
+                $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
+                $start_time=strtotime(date('Y-m-d H:i',$ranking['rank_time']));
+                $end_time=$start_time+60;
+                $where=[];
+                $where['rank_time']=['between',[$start_time,$end_time]];
+                $reward_ranking_list=Db::name('ranking')->where($where)->select();
+                $num=count($reward_ranking_list);//多少排位中奖
+                $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
+                $all_money=$jackpot*10/100;
+                $everyone_money=sprintf("%.2f",$all_money/$num);
+                $RankingLogic = new RankingLogic();
+                foreach ($reward_ranking_list as $key=>$value){
+                    $RankingLogic->reward($value["user"],$everyone_money,$double_percent);
+                }
+            }else{
+                $reward_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);//今天中奖时间
+                $start_time=strtotime(date('Y-m-d H:i',$reward_time));//中奖开始时间戳
+                $end_time=$start_time+60;//中奖结束时间戳
+                $where=[];
+                $where['rank_time']=['between',[$start_time,$end_time]];
+                $reward_ranking_list=Db::name('ranking')->where($where)->select();
+                $num=count($reward_ranking_list);//多少排位中奖
+                $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
+                $all_money=$jackpot*10/100;
+                $everyone_money=sprintf("%.2f",$all_money/$num);
+                $RankingLogic = new RankingLogic();
+                foreach ($reward_ranking_list as $key=>$value){
+                    $RankingLogic->reward($value["user"],$everyone_money,$double_percent);
+                }
+            }
+        }else{
+            return;
+        }
+    }
 }
