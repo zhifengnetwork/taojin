@@ -22,7 +22,7 @@ class System extends Common
                 return json(array('code' => 0, 'msg' =>'站点设置保存失败！'));
             }
         }else{
-            $system = $table->field('id,name,url,title,money,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url')->find($sys_id);
+            $system = $table->field('id,name,url,title,money,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url,notice')->find($sys_id);
             if($system['logo'])
             {
                 $system['logo']=SITE_URL.__PUBLIC__.$system['logo'];
