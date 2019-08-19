@@ -65,7 +65,6 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '解冻log生成失败，购买失败！'];
                 }
             }
-            //代理返点
         }
         //注册奖励
         if($if_register_reward){
@@ -136,7 +135,7 @@ class RankingLogic
         if(!$user){
             return false;
         }
-        $money=($goods_money*3)-($goods_money*3*$double_percent/100);//三倍、扣除手续费
+        $money=sprintf("%.2f",($goods_money*3)-($goods_money*3*$double_percent/100));//三倍、扣除手续费
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
@@ -166,7 +165,11 @@ class RankingLogic
             Db::rollback();
             return false;
         }
-        //TODO   代理费用
+        //代理分佣
+        if(!$this->agent_money($ranking['user_id'],$money)){
+            Db::rollback();
+            return false;
+        }
         Db::commit();
         return false;
     }
@@ -185,7 +188,7 @@ class RankingLogic
         if(!$user){
             return false;
         }
-        $money=($goods_money*2)-($goods_money*2*$double_percent/100);//两倍、扣除手续费
+        $money=sprintf("%.2f",($goods_money*2)-($goods_money*2*$double_percent/100));//两倍、扣除手续费
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
@@ -215,24 +218,46 @@ class RankingLogic
             Db::rollback();
             return false;
         }
-        //TODO   代理费用
+        //代理分佣
+        if(!$this->agent_money($ranking['user_id'],$money)){
+            Db::rollback();
+            return false;
+        }
         Db::commit();
         return false;
     }
     /*
      * 抽奖
      */
-    public function reward($user_id,$money,$double_percent){
-        $user_money=$money-$money*$double_percent/100;
+    public function reward($user_id,$money,$double_percent,$rank_id,$rank_time,$bonus_time){
+        $user_money=sprintf("%.2f",$money-($money*$double_percent/100));
+        $today_time= strtotime(date("Y-m-d"),time());//今天的日期
+        $reward=Db::name('reward')->where(['user_id'=>$user_id,'reward_day'=>$today_time])->find();
+        if($reward){
+            return true;//第二次抽奖时，如果已经抽过了，则跳过
+        }
         Db::startTrans();
         $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
         if(!$res){
             Db::rollback();
             return false;
         }
+        $data=[];
+        $data['user_id']=$user_id;
+        $data['rank_id']=$rank_id;
+        $data['rank_time']=$rank_time;//排位时间
+        $data['reward_day']=$today_time;//中奖日期
+        $data['reward_time']=$bonus_time;//中奖时间
+        $data['reward_num']=$user_money;//中奖金额
+        $data['add_time']=time();
+        $ids=Db::name('reward')->insertGetId($data);
+        if(!$ids){
+            Db::rollback();
+            return false;
+        }
         $detail['user_id']=$user_id;
         $detail['type']=9;//中奖
-        $detail['money']=$money;
+        $detail['money']=$user_money;
         $detail['createtime']=time();
         $detail['intro']='中奖获得余额';
         $id=Db::name('moneydetail')->insertGetId($detail);
@@ -240,8 +265,186 @@ class RankingLogic
             Db::rollback();
             return false;
         }
-        //TODO   代理费用
+        //代理分佣
+        if(!$this->agent_money($user_id,$money)){
+            Db::rollback();
+            return false;
+        }
         Db::commit();
-        return false;
+        return true;
+    }
+    /*
+     * 返佣+代理计算
+     */
+    public function agent_money($user_id,$money){
+        $users=Db::name('users')->where('id',$user_id)->find();
+        $p_1=Db::name('users')->where('id',$users['p_1'])->find();
+        //返佣
+        if($p_1){
+            if(!$this->user_balance($p_1['id'],$money*2/100,'返佣')){
+                return false;
+            }
+            $list=Db::name('user_level')->select();
+            $level_list=[];
+            foreach ($list as $key=>$value){
+                $level_list[$value['id']]=$value['percent'];
+            }
+            $percent=$level_list[6];//矿场主返点百分百
+            $percent_one=$level_list[1];//矿队长返点百分百
+            //用上级作为循环查找对象
+            if($p_1['level']==6){//上级是矿场主
+                if(!$this->user_balance($p_1['id'],$money*($percent+$percent_one)/100,'代理返点')){
+                    return false;
+                }
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],$p_1['level']);
+                    if($data){
+                        if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                            return false;
+                        }
+                    }
+                }
+            }elseif($p_1['level']==1){//上级是矿队长
+                if(!$this->user_balance($p_1['id'],$money*$percent_one/100,'代理返点')){//上级
+                    return false;
+                }
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],$p_1['level']);
+                    if($data){
+                        if($data['type']==0){//平级
+                            if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                return false;
+                            }
+                            $data_fl=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data_fl){
+                                if ($data_fl['type']==1){
+                                    if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                        return false;
+                                    }
+                                    $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
+                                    if($data_fl){
+                                        if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }elseif($data['type']==1){
+                            if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                return false;
+                            }
+                            $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data){
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                    return false;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }else{//上级没有代理返点
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],1);
+                    if($data){
+                        if($data['type']==0){
+                            if(!$this->user_balance($data['data']['id'],$money*$percent_one/100,'代理返点')){//上级
+                                return false;
+                            }
+                            $data_level=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data_level){
+                                if($data_level['type']==0){
+                                    if(!$this->user_balance($data_level['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                        return false;
+                                    }
+                                    $data_fl=$this->above($data_level['data']['p_1'],$data_level['data']['level']);
+                                    if($data_fl){
+                                        if ($data_fl['type']==1){
+                                            if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                                return false;
+                                            }
+                                            $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
+                                            if($data_fl){
+                                                if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }elseif ($data_level['type']==1){
+                                    if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                        return false;
+                                    }
+                                    $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                                    if($data){
+                                        if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }elseif($data['type']==1){
+                            if(!$this->user_balance($data['data']['id'],$money*($percent+$percent_one)/100,'代理返点')){//顶级
+                                return false;
+                            }
+                            $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data){
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                    return false;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            //上上级计算返佣
+            $p_2=Db::name('users')->where('id',$users['p_2'])->find();
+            if($p_2){
+                if(!$this->user_balance($p_2['id'],$money*2/100,'返佣')){
+                    return false;
+                }
+            }
+        }
+        return true;
+
+    }
+    /*
+     * 查找上级代理等级
+     */
+    public function above($user_id,$level){
+        $user=Db::name('users')->field('id,p_1,level')->where('id',$user_id)->find();
+        if($user['level']>$level){
+            return ['data'=>$user,'type'=>1];//上级
+        }
+        if($level==$user['level']){
+            return ['data'=>$user,'type'=>0];//平级
+        }
+        if($user['p_1']){//还有上级
+            $this->above($user['p_1'],$level);//递归寻找上级或平级
+        }else{
+            return false;
+        }
+    }
+    /*
+     * 代理返佣
+     */
+    public function user_balance($user_id,$money,$intro){
+        $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
+        if(!$re){
+            return false;
+        }else{
+            $detail=[];
+            $detail['user_id']=$user_id;
+            $detail['type']=1;//返利
+            $detail['money']=$money;
+            $detail['createtime']=time();
+            $detail['intro']=$intro;
+            $ids=Db::name('moneydetail')->insertGetId($detail);
+            if(!$ids){
+                return false;
+            }
+        }
+        return true;
     }
 }

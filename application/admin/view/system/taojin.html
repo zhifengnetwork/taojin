@@ -121,14 +121,14 @@
         <div class="layui-form-item">
             <label class="layui-form-label">奖金池中奖时间</label>
             <div class="layui-input-4" id="box_reward_time">
-                <input type="text" class="layui-input" name="reward_time" id="reward_time" value="{$info.reward_time}" placeholder="HH:mm:ss">
+                <input type="text" class="layui-input" name="reward_time" id="reward_time" value="{$info.reward_time}" placeholder="yyyy-MM-dd HH:mm:ss">
             </div>
             <script>
                 layui.use('laydate', function(){
                     var laydate = layui.laydate;
                     laydate.render({
                         elem: '#reward_time'
-                        ,type: 'time'
+                        ,type: 'datetime'
                         ,btns: ['clear', 'confirm']
                     });
                 });

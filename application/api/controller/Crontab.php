@@ -63,21 +63,52 @@ class Crontab extends ApiBase
     public function reward_crontab(){
         $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');
         $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');
+        $yesterday_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);//昨天的开奖时间
         $bonus_time=strtotime(date("Y-m-d")." ".$bonus_time);//今天开奖时间
+        $is_reward_time=true;//是否随机中奖
+        if($reward_time){
+            $reward_time=strtotime($reward_time);//设置的中奖时间转换时间戳
+            if($reward_time>$yesterday_time&&$reward_time<$bonus_time){//设置的中奖时间，要在昨天开奖之后和今天开奖之前的时间段
+                $is_reward_time=false;
+            }else{
+                $is_reward_time=true;
+            }
+        }else{
+            $is_reward_time=true;
+        }
         $today_time= strtotime(date("Y-m-d"),time());
         $where['reward_day']=$today_time;
-        $reward=Db::name('reward')->where($where)->find();//已经抽过奖励
-        if((time()>$bonus_time)&&!$reward){
+        $reward=Db::name('reward_log')->where($where)->find();//已经抽过奖励
+        if(!$reward){
+            $data=[];
+            $data['reward_day']=$today_time;
+            $data['status']=0;//抽奖是否完成
+            $reward_log_id=Db::name('reward_log')->insertGetId($data);
+            $is_reward=true;
+        }else{
+            $reward_log_id=$reward['id'];
+            if($reward['status']){
+                $is_reward=false;
+            }else{
+                $is_reward=true;
+            }
+        }
+        if((time()>$bonus_time)&&$is_reward){
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
-            if($reward_time==0){//随机抽取一分钟
+            if($is_reward_time){//随机抽取一分钟
                 $where=[];
                 $start=strtotime(date("Y-m-d",strtotime("-1 day"))." ".'00:00:00');
                 $end=strtotime(date("Y-m-d")." ".'00:00:00');
                 $where['rank_time']=['between',[$start,$end]];
-                //随机抽取一条昨天的数据
-                $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
-                $start_time=strtotime(date('Y-m-d H:i',$ranking['rank_time']));
-                $end_time=$start_time+60;
+                if($reward['reward_time']){//抽奖中断
+                    $start_time=$reward['reward_time'];
+                    $end_time=$start_time+60;
+                }else{
+                    //随机抽取一条昨天的数据
+                    $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
+                    $start_time=strtotime(date('Y-m-d H:i',$ranking['rank_time']));
+                    $end_time=$start_time+60;
+                }
                 $where=[];
                 $where['rank_time']=['between',[$start_time,$end_time]];
                 $reward_ranking_list=Db::name('ranking')->where($where)->select();
@@ -87,10 +118,15 @@ class Crontab extends ApiBase
                 $everyone_money=sprintf("%.2f",$all_money/$num);
                 $RankingLogic = new RankingLogic();
                 foreach ($reward_ranking_list as $key=>$value){
-                    $RankingLogic->reward($value["user"],$everyone_money,$double_percent);
+                    $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
+                    if(!$is_end){
+                        Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录随机抽取的中奖时间段
+                        return;//如果某一条出错，则退出任务
+                    }
                 }
             }else{
-                $reward_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);//今天中奖时间
+                //今天中奖时间
+//                $reward_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);
                 $start_time=strtotime(date('Y-m-d H:i',$reward_time));//中奖开始时间戳
                 $end_time=$start_time+60;//中奖结束时间戳
                 $where=[];
@@ -102,9 +138,15 @@ class Crontab extends ApiBase
                 $everyone_money=sprintf("%.2f",$all_money/$num);
                 $RankingLogic = new RankingLogic();
                 foreach ($reward_ranking_list as $key=>$value){
-                    $RankingLogic->reward($value["user"],$everyone_money,$double_percent);
+                    //判断是否抽过奖
+                    $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
+                    if(!$is_end){
+                        Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录中奖时间段
+                        return;//如果某一条出错，则退出任务
+                    }
                 }
             }
+            Db::name('reward_log')->where('id',$reward_log_id)->update(['status'=>1]);//如果所以人抽奖完成，则完成
         }else{
             return;
         }
