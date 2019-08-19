@@ -39,6 +39,153 @@ class Index extends ApiBase
 
         echo $this->get_user_id();
     }
-
-
+    public function balance_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $have=I('have',0);
+        $where=[];
+        $pageParam=[];
+        if($have==1){
+            $where['money']=['egt',0];
+        }elseif($have==2){
+            $where['money']=['lt',0];
+        }
+        $where['user_id']=$user_id;
+        $where['typefrom']=0;//排除冻结余额
+        $balance_list=Db::name('moneydetail')
+            ->where($where)
+            ->paginate(10,false,$pageParam);
+        $balance_list=$balance_list->toArray();
+        $balance_list=$balance_list['data'];
+        foreach ($balance_list as $key=>$value){
+            $balance_list[$key]['createtime']=date('Y-m-d H:i:s',$value['createtime']);
+            $balance_list[$key]['type_text']=$this->balance_type($value['type']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$balance_list]);
+    }
+    public function integral_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $have=I('have',0);
+        $where=[];
+        $pageParam=[];
+        if($have==1){
+            $where['integral']=['egt',0];
+        }elseif($have==2){
+            $where['integral']=['lt',0];
+        }
+        $where['u_id']=$user_id;
+        $integral_list=Db::name('integral')->where($where)
+            ->paginate(10,false,$pageParam);
+        $integral_list=$integral_list->toArray();
+        $integral_list=$integral_list['data'];
+        foreach ($integral_list as $key=>$value){
+            $integral_list[$key]['createtime']=date('Y-m-d H:i:s',$value['createtime']);
+            $integral_list[$key]['type_text']=$this->integral_type($value['type']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$integral_list]);
+    }
+    public function currency_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $have=I('have',0);
+        $where=[];
+        $pageParam=[];
+        if($have==1){
+            $where['currency']=['egt',0];
+        }elseif($have==2){
+            $where['currency']=['lt',0];
+        }
+        $where['user_id']=$user_id;
+        $users_currency_list=Db::name('users_currency')->where($where)
+            ->paginate(10,false,$pageParam);
+        $users_currency_list=$users_currency_list->toArray();
+        $users_currency_list=$users_currency_list['data'];
+        foreach ($users_currency_list as $key=>$value){
+            $users_currency_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+            $users_currency_list[$key]['type_text']=$this->currency_type($value['type']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$users_currency_list]);
+    }
+    function balance_type($type){
+        switch ($type){
+            case 1:
+                return '返利';
+                break;
+            case 2:
+                return '赠送';
+                break;
+            case 3:
+                return '解冻';
+                break;
+            case 4:
+                return '提现';
+                break;
+            case 5:
+                return '被赠送';
+                break;
+            case 6:
+                return '兑换';
+                break;
+            case 7:
+                return '挂卖';
+                break;
+            case 8:
+                return '购买道具';
+                break;
+            case 9:
+                return '中奖';
+                break;
+            case 10:
+                return '出局';
+                break;
+            default:
+                return '参数不对';
+                break;
+        }
+    }
+    function integral_type($type){
+        switch ($type){
+            case 0:
+                return '赠送';
+                break;
+            case 1:
+                return '兑换';
+                break;
+            case 2:
+                return '被赠与';
+                break;
+            case 8:
+                return '管理员操作';
+                break;
+            default:
+                return '参数不对';
+                break;
+        }
+    }
+    function currency_type($type){
+        switch ($type){
+            case 0:
+                return '挂卖';
+                break;
+            case 1:
+                return '赠送';
+                break;
+            case 2:
+                return '管理员操作';
+                break;
+            case 3:
+                return '被赠与';
+                break;
+            default:
+                return '参数不对';
+                break;
+        }
+    }
 }

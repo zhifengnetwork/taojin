@@ -31,5 +31,10 @@ class LoginLogic
         return ['status' => 1, 'msg' => '验证码验证通过！'];
 
     }
-   
+   /*
+    * 根据邀请码，获取用户
+    */
+   public function code_user($code){
+       return Db::name('users')->where(['yq_code'=>$code])->find();
+   }
 }

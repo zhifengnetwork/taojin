@@ -54,7 +54,7 @@ class Users extends ApiBase
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
         if($re){
             $detail=[];
-            $detail['user_id']=$u_id;
+            $detail['user_id']=$user_id;
             $detail['type']=2;//赠送
             $detail['money']=-$balance;
             $detail['createtime']=time();
@@ -104,6 +104,7 @@ class Users extends ApiBase
             $detail['u_id']=$u_id;
             $detail['u_name']=$give_user['nick_name'];
             $detail['integral']=$integral;
+            $detail['type']=2;//被赠与
             $detail['then_integral']=$give_user['integral'];
             $detail['createtime']=time();
             $id=Db::name('integral')->insertGetId($detail);
@@ -164,6 +165,7 @@ class Users extends ApiBase
         if($res){
             $detail['user_id']=$u_id;
             $detail['user_name']=$give_user['nick_name'];
+            $detail['type']=3;//被赠与
             $detail['currency']=$currency;
             $detail['old_currency']=$give_user['currency'];
             $detail['desc']=$user['nick_name'].'赠送';
@@ -179,6 +181,7 @@ class Users extends ApiBase
             $detail=[];
             $detail['user_id']=$user_id;
             $detail['user_name']=$user['nick_name'];
+            $detail['type']=1;//赠送
             $detail['currency']=-$currency;
             $detail['old_currency']=$user['currency'];
             $detail['desc']='赠送'.$give_user['nick_name'];

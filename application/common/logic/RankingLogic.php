@@ -21,6 +21,8 @@ class RankingLogic
         if($balance < ( $money ) ){
             return ['status' => -1, 'msg' => '余额不足！'];
         }
+        //注册奖励开关
+        $if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
         Db::startTrans();
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
@@ -31,7 +33,7 @@ class RankingLogic
             $detail=[];
             $detail['user_id']=$user_id;
             $detail['type']=8;//买道具
-            $detail['money']=-$balance;
+            $detail['money']=-$money;
             $detail['createtime']=time();
             $detail['intro']='购买'.$num.'个道具';
             $ids=Db::name('moneydetail')->insertGetId($detail);
@@ -40,7 +42,7 @@ class RankingLogic
                 return ['status' => -2, 'msg' => '扣款log生成失败，则购买失败！'];
             }
             $buy_prop = Db::name('config')->where(['name'=>'buy_prop','inc_type'=>'taojin'])->value('value');
-            $balance_unlock=$buy_prop*$balance;
+            $balance_unlock=$buy_prop*$money;
             if($balance_unlock>$user['lock_balance']){
                 $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
             }
@@ -51,20 +53,57 @@ class RankingLogic
                     Db::rollback();
                     return ['status' => -2, 'msg' => '冻结余额解冻失败！'];
                 }
-            }
-            $detail=[];
-            $detail['user_id']=$user_id;
-            $detail['type']=3;//解冻
-            $detail['money']=$balance_unlock;
-            $detail['createtime']=time();
-            $detail['intro']='冻结余额';
-            $ids=Db::name('moneydetail')->insertGetId($detail);
-            if(!$ids){
-                Db::rollback();
-                return ['status' => -2, 'msg' => '解冻log生成失败，购买失败！'];
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['type']=3;//解冻
+                $detail['money']=$balance_unlock;
+                $detail['createtime']=time();
+                $detail['intro']='冻结余额';
+                $ids=Db::name('moneydetail')->insertGetId($detail);
+                if(!$ids){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '解冻log生成失败，购买失败！'];
+                }
             }
             //代理返点
         }
+        //注册奖励
+        if($if_register_reward){
+            if(!$user['is_reward']&&$user['p_1']){//奖励上级
+                $re_lock_balance=Db::name('config')->where(['name'=>'re_lock_balance','inc_type'=>'taojin'])->value('value');
+                $yq_lock_balance=Db::name('config')->where(['name'=>'yq_lock_balance','inc_type'=>'taojin'])->value('value');
+                $rsw=Db::name('users')->where(['id'=>$user_id])->setInc('lock_balance',$re_lock_balance);
+                $reward=Db::name('users')->where(['id'=>$user_id])->update(['is_reward'=>1]);
+                $yq=Db::name('users')->where(['id'=>$user['p_1']])->setInc('lock_balance',$yq_lock_balance);
+                if(!$rsw||!$yq||!$reward){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '注册奖励发放失败！'];
+                }
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['type']=1;//注册奖励
+                $detail['typefrom']=1;//冻结余额
+                $detail['money']=$re_lock_balance;
+                $detail['createtime']=time();
+                $detail['intro']='注册奖励'.$re_lock_balance;
+                if(!Db::name('moneydetail')->insertGetId($detail)){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '注册奖励log生成失败！'];
+                }
+                $detail=[];
+                $detail['user_id']=$user['p_1'];
+                $detail['type']=2;//邀请奖励
+                $detail['typefrom']=1;//冻结余额
+                $detail['money']=$yq_lock_balance;
+                $detail['createtime']=time();
+                $detail['intro']='邀请奖励'.$re_lock_balance;
+                if(!Db::name('moneydetail')->insertGetId($detail)){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '邀请奖励log生成失败！'];
+                }
+            }
+        }
+
         for ($i=0;$i<$num;$i++){
             $data['user_id'] = $user_id;
             $data['user_name'] = M('users')->where(['id'=>$user_id])->value('nick_name');

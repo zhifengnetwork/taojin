@@ -51,8 +51,12 @@ class Login extends ApiBase
         $pwd = input('pwd');
         $pwd2 = input('pwd2');
         $code = input('code');
+        $yq_code = input('yq_code');
         if (!$pwd || !$pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
+        }
+        if (!$yq_code) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '邀请码不能为空！']);
         }
         if ($pwd != $pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码输入不一样！请重新输入！']);
@@ -71,7 +75,13 @@ class Login extends ApiBase
         if ($res['status'] == -1 ) {
             $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
         }
-
+        $yq_user=$loginLogic->code_user($yq_code);//获取邀请人信息
+        if($yq_user){//绑定上下级关系
+            $data['p_1']=$yq_user['id'];
+            $data['p_2']=$yq_user['p_1'];
+            $data['p_3']=$yq_user['p_2'];
+        }
+        $data['yq_code']=$this->yq_code();//生成邀请码
         $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
         $data['phone'] = $phone;
         $data['add_time'] = time();
@@ -130,8 +140,14 @@ class Login extends ApiBase
     }
 
 
-    public function test(){
-
+    public function yq_code(){
+        $user_yq_code=date('y').rand(1000000,9999999);
+        $loginLogic = new LoginLogic();
+        if($loginLogic->code_user($user_yq_code)){
+            $this->yq_code();
+        }else{
+            return $user_yq_code;
+        }
     }
 
 }
