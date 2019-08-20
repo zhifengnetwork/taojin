@@ -38,6 +38,7 @@ class User extends ApiBase
             if(empty($data['phone'])){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'未绑定手机！','data'=>$data]);
             }
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
         }else{
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
         }
