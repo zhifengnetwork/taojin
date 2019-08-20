@@ -81,15 +81,9 @@ class Index extends Common
         //leapmary//###############################
 
         /*##三个统计###############################*/
-        //今日注册人数
-        $userscount = db('users')->where("add_time","GT",date("Y-m-d"))->count();
-        //今日活跃人数
-        $useractive_time = db('users')->where("active_time","GT",date("Y-m-d"))->count();
         //总人数
         $userall = db('users')->count();
 
-        $this->assign("userscount",$userscount);
-        $this->assign("useractive_time",$useractive_time);
         $this->assign("userall",$userall);
 
         /*##三个统计###############################*/

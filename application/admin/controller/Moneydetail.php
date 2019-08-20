@@ -88,7 +88,7 @@ FROM
 	clt_users
 WHERE
 	clt_moneydetail.user_id = clt_users.id
-AND clt_moneydetail.type = 4
+	".(!empty($id)?" AND clt_moneydetail.user_id={$id} ":'')."
 ORDER BY
 	clt_moneydetail.listorder ASC,
 	clt_moneydetail.id DESC LIMIT ".($page - 1)*$pageSize.",".$pageSize);
@@ -145,7 +145,7 @@ ORDER BY
             $result=db('moneydetail')
                 ->where('id',$id)
                 ->update(['v_state'=> 1
-            ]);
+                ]);
             if($result===false){
                 return ['code' => 2,'msg' => '更新失败！'];
             }
@@ -457,6 +457,74 @@ ORDER BY
         $map['pid'] = input("pid");
         $list = $Region->where($map)->select();
         return $list;
+    }
+
+    public function withdraw(){
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+
+            $id = input('post.id');
+            if(!empty($id)){
+                $map['user_id'] = array('eq',$id);
+            }
+
+            if(!empty($keyword)){
+                $map['title'] = array('like','%' . $keyword . '%');
+            }
+            $list = Db::name('withdraw')->alias('w')
+                ->join('users u','u.id=w.user_id','')
+                ->field('u.name,u.realname,w.*')
+                ->order('w.id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+            foreach ($list['data'] as &$v){
+                if($v['type']==2){
+                    $card = Db::name('card')->where(['id'=>intval($v['info']),'user_id'=>$v['user_id']])->field('name,bank,number')->find();
+                    $card&&$v['info'] =implode($card,' ');
+                }
+            }
+            return [
+                'code' => 0,
+                'msg' => "获取成功",
+                'data' =>$list['data'],
+                'count' => $list['total'],
+                'rel' => 1
+            ];
+
+        }
+    }
+
+    public function bi(){
+
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+
+            if(!empty($keyword)){
+                $map['title'] = array('like','%' . $keyword . '%');
+            }
+
+            $list = Db::name('users_currency')
+                ->where($map)
+                ->order('id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+
+            //echo $model->getLastSql();
+            $rsult['code'] = 0;
+            $rsult['msg'] = "获取成功";
+            $lists = $list['data'];
+
+            $rsult['data'] = $lists;
+            $rsult['count'] = $list['total'];
+            $rsult['rel'] = 1;
+            return $rsult;
+        }else{
+            return $this->fetch('moneydetail/bi');
+        }
     }
 
 

@@ -38,6 +38,19 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">两倍出局数：</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$info.double_out}</label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">三倍出局数：</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$info.triple_out}</label>
+            </div>
+        </div>
+        <div class="layui-form-item">
             <label class="layui-form-label">注册者获得冻结余额：</label>
             <div class="layui-input-4">
                 <input type="text" lay-verify="required" name="re_lock_balance" placeholder="" value="{$info.re_lock_balance}" class="layui-input">
@@ -45,7 +58,7 @@
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label">注册者获得冻结余额：</label>
+            <label class="layui-form-label">邀请者获得冻结余额：</label>
             <div class="layui-input-4">
                 <input type="text" lay-verify="required" name="yq_lock_balance" placeholder="" value="{$info.yq_lock_balance}" class="layui-input">
             </div>
@@ -83,7 +96,12 @@
                 <input type="text" lay-verify="required" name="exchange_integral" placeholder="" value="{$info.exchange_integral}" class="layui-input">
             </div>
         </div>
-
+        <div class="layui-form-item">
+            <label class="layui-form-label">N金沙赠送一糖果</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="balance_give_integral" placeholder="" value="{$info.balance_give_integral}" class="layui-input">
+            </div>
+        </div>
         <div class="layui-form-item">
             <label class="layui-form-label">奖金池开奖时间</label>
             <div class="layui-input-4" id="box_bonus_time">
@@ -100,18 +118,33 @@
                 });
             </script>
         </div>
-
+        <div class="layui-form-item">
+            <label class="layui-form-label">奖金池中奖时间</label>
+            <div class="layui-input-4" id="box_reward_time">
+                <input type="text" class="layui-input" name="reward_time" id="reward_time" value="{$info.reward_time}" placeholder="yyyy-MM-dd HH:mm:ss">
+            </div>
+            <script>
+                layui.use('laydate', function(){
+                    var laydate = layui.laydate;
+                    laydate.render({
+                        elem: '#reward_time'
+                        ,type: 'datetime'
+                        ,btns: ['clear', 'confirm']
+                    });
+                });
+            </script>
+        </div>
         <div class="layui-form-item">
             <label class="layui-form-label">抽奖时间设置</label>
             <div class="layui-input-4" id="box_luck_time">
-                <input type="text" class="layui-input" name="luck_time" id="luck_time" value="{$info.luck_time}" placeholder="HH:mm:ss">
+                <input type="text" class="layui-input" name="luck_time" id="luck_time" value="{$info.luck_time}" placeholder="yyyy-MM-dd HH:mm:ss">
             </div>
             <script>
                 layui.use('laydate', function(){
                     var laydate = layui.laydate;
                     laydate.render({
                         elem: '#luck_time'
-                        ,type: 'time'
+                        ,type: 'datetime'
                         ,btns: ['clear', 'confirm']
                     });
                 });
@@ -121,7 +154,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">中奖音乐设置</label>
             <div class="layui-input-4" id="box_music">
-                <div class="layui-input-4"><input type="hidden" name="music_url" id="music_urlVal" value="">
+                <div class="layui-input-4"><input type="hidden" name="music_url" id="music_urlVal" value="{$info.music}">
                     <div class="layui-upload"><button type="button" class="layui-btn layui-btn-primary" id="pict_url"><i class="icon icon-upload3"></i>点击上传</button>
                         <input class="layui-upload-file" type="file" name="file">
                     </div>

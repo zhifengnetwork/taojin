@@ -2,7 +2,8 @@
 
 namespace app\admin\controller;
 
-use app\admin\model\Users as UsersModel;
+use app\common\model\Users as UsersModel;
+use think\Db;
 
 class Users extends Common
 {
@@ -196,53 +197,68 @@ class Users extends Common
      * 加减余额积分
      **/
     public function adminadd(){
-
+        $user_id = input('id/d');
+        $type = input('type/s');
+        $user = Db::name('users')->field('nick_name,balance,integral,currency')->where(['id'=>$user_id])->find();
         if(request()->isPost()){
 
             $num = input('num');
-            $ifadd = input('ifadd');
-            $id = input('id'); //用户id
-            $type = input('type');
-
-            /*print_r($num);exit;*/
-
-            $user_info = action('common/User/getuserinfo',['token' => '','u_id' => $id]);
-            $data['user_info'] = $user_info;
-
-            if($ifadd == 0){
-                $num = -$num;
+            $ifadd = input('ifadd/d');
+            if(!$user||!in_array($type,['balance','integral','currency'])){
+                return ['code' => 0,'msg' => '请求失败！'];
             }
-            //加金额
-            if($type == 'money'){
-                //获取用户信息
-                $data['num'] = $num;
-                //管理员操作
-                $re = action('common/User/addmoney',['type' => 6,'data' => $data]);
+            $data_num = $ifadd == 0?-$num:$num;
+            if($type=='balance'){
+                $new_balance = $ifadd==0?bcsub($user['balance'],$num,2):bcadd($user['balance'],$num,2);
+                $data = ['balance'=>$new_balance>0?$new_balance:0];
 
+                $res = Db::name('moneydetail')->insert([
+                    'createtime' => time(),
+                    'user_id' => $user_id,
+                    'be_user_id' => $user_id,
+                    'order_id' => 0,
+                    'money' => $data_num,
+                    'intro' => "{$user['nick_name']}管理员操作{$data_num}",
+                    'type' => 6,
+                    'balance' => $user['balance']
+                ]);
+            }elseif($type=='integral'){
+                $new_balance = $ifadd==0?$user['integral']-$num:$user['integral']+$num;
+                $data = ['integral'=>$new_balance>0?$new_balance:0];
+                $res =Db::name('integral')->insert([
+                    'createtime' => time(),
+                    'u_id' => $user_id,
+                    'u_name' => $user['nick_name'],
+                    'integral' => $data_num,
+                    'type' => 8,
+                    'then_integral' => $user['integral']
+                ]);
+            }elseif($type=='currency'){
+                $new_balance = $ifadd==0?$user['currency']-$num:$user['currency']+$num;
+                $data = ['currency'=>$new_balance>0?$new_balance:0];
+                $res =Db::name('users_currency')->insert([
+                    'add_time' => time(),
+                    'user_id' => $user_id,
+                    'user_name' => $user['nick_name'],
+                    'currency' => $data_num,
+                    'type' => 2,
+                    'old_currency' => $user['currency'],
+                    'desc'=>'管理员操作'
+                ]);
+            }
+            $res&&$res = Db::name('users')->where(['id'=>$user_id])->update($data);
+            if($res){
+                return ['code' => 1,'msg' => '修改成功！','url'=>url('index')];
             }else{
-                //加积分
-                $data['user_id'] = $id;
-                $data['integral_s'] = $num;
-                $re = action('common/User/addintegral',['type' => 'admin_add','data' => $data]);
-
+                return ['code' => 0,'msg' => '修改失败！'];
             }
-
-            print_r($re);
-            exit;
-
-        }else{
-
-            $id = input('id');
-            $type = input('type');
-
-            $this->assign("id",$id);
-            $this->assign("type",$type);
-
-            return $this->fetch('adminadd');
 
         }
+        $this->assign('id',$user_id);
+        $this->assign('value',$user[$type]);
+        $this->assign('type',$type);
 
-
+        return $this->fetch('adminadd');
     }
 
 

@@ -589,7 +589,12 @@ function is_qq(){
     }
     return false;
 }
-
+function shadow($string)
+{
+    $string = strval($string);
+    $str = mb_substr($string, 0, 3) . '****' . substr($string, -4);
+    return $str;
+}
 function is_alipay(){
     if(strpos($_SERVER['HTTP_USER_AGENT'],'AlipayClient') !== false){
         return true;

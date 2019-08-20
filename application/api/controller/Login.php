@@ -38,7 +38,7 @@ class Login extends ApiBase
         unset($data['password']);
 
         //重写
-        $data['token'] = $this->create_token($data['user_id']);
+        $data['token'] = $this->create_token($data['id']);
         $this->ajaxReturn(['status' => 1 , 'msg'=>'登录成功','data'=>$data]);
     }
     /*
@@ -51,9 +51,13 @@ class Login extends ApiBase
         $pwd = input('pwd');
         $pwd2 = input('pwd2');
         $code = input('code');
+        $yq_code = input('yq_code');
         if (!$pwd || !$pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
         }
+//        if (!$yq_code) {
+//            $this->ajaxReturn(['status' => -2, 'msg' => '邀请码不能为空！']);
+//        }
         if ($pwd != $pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码输入不一样！请重新输入！']);
         }
@@ -62,16 +66,25 @@ class Login extends ApiBase
         }
         $data = Db::name('users')->where('phone', $phone)->find();
         if ($data) {
-            $this->ajaxReturn(['status' => -1, 'msg' => '此手机号已注册，请直接登录！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '此手机号已注册，请直接登录！']);
         }
 
         $loginLogic = new LoginLogic();
         $res = $loginLogic->phoneAuth($phone, $code);
 
         if ($res['status'] == -1 ) {
-            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
+            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
         }
-
+        //如果有邀请码，则绑定上下级关系
+        if($yq_code){
+            $yq_user=$loginLogic->code_user($yq_code);//获取邀请人信息
+            if($yq_user){//绑定上下级关系
+                $data['p_1']=$yq_user['id'];
+                $data['p_2']=$yq_user['p_1'];
+                $data['p_3']=$yq_user['p_2'];
+            }
+        }
+        $data['yq_code']=$this->yq_code();//生成邀请码
         $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
         $data['phone'] = $phone;
         $data['add_time'] = time();
@@ -130,8 +143,14 @@ class Login extends ApiBase
     }
 
 
-    public function test(){
-
+    public function yq_code(){
+        $user_yq_code=date('y').rand(1000000,9999999);
+        $loginLogic = new LoginLogic();
+        if($loginLogic->code_user($user_yq_code)){
+            $this->yq_code();
+        }else{
+            return $user_yq_code;
+        }
     }
 
 }
