@@ -38,7 +38,7 @@ class Login extends ApiBase
         unset($data['password']);
 
         //重写
-        $data['token'] = $this->create_token($data['user_id']);
+        $data['token'] = $this->create_token($data['id']);
         $this->ajaxReturn(['status' => 1 , 'msg'=>'登录成功','data'=>$data]);
     }
     /*
