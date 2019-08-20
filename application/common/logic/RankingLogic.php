@@ -107,6 +107,7 @@ class RankingLogic
             $data['user_id'] = $user_id;
             $data['user_name'] = M('users')->where(['id'=>$user_id])->value('nick_name');
             $data['rank_time'] = time();
+            $data['money']=$system['money'];
             $data['add_time'] = time();
             $res = Db::name('ranking')->insertGetId($data);
             if(!$res){
