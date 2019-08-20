@@ -30,14 +30,17 @@ class User extends ApiBase
             if(empty($data)){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'会员不存在！','data'=>'']);
             }
-
+            if($data['avatar']){
+                $data['avatar']=SITE_URL.$data['avatar'];
+            }else{
+                $data['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
+            }
             if(empty($data['phone'])){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'未绑定手机！','data'=>$data]);
             }
         }else{
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
 
     }
 
