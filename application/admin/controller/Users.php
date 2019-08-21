@@ -27,11 +27,15 @@ class Users extends Common
 
             $list = db('users')->alias('u')
                 ->join(config('database.prefix') . 'user_level ul','u.level = ul.level_id','left')
-                ->where('u.phone|u.nick_name|u.tb_nickname','like',"%" . $key . "%")
+                ->where('u.phone|u.nick_name','like',"%" . $key . "%")
                 ->order('u.id desc')
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
                 ->toArray();
-
+            foreach ($list['data'] as $key=>$value){
+                if(!$list['data'][$key]['level_name']){
+                    $list['data'][$key]['level_name']='普通会员';
+                }
+            }
             return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
         }
         return $this->fetch();

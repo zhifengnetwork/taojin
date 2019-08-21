@@ -264,7 +264,7 @@ class Users extends ApiBase
                 $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败！']);
             }
         }
-        if(!$res||!$re||$r){
+        if(!$res||!$re||!$r){
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败！']);
         }else{
