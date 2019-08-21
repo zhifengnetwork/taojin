@@ -37,7 +37,7 @@ class Captcha extends ApiBase
         $data['phone'] = $phone;
         $data['code'] = $code;
         $data['add_time'] = time();
-        $data['expires'] = time() + 300;
+        $data['expires'] = time() + 60;
 
         $res = M('captcha')->insert($data);
         if(!$res){
