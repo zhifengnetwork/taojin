@@ -112,8 +112,7 @@ class User extends ApiBase
      */
     public function update_username()
     {
-//        $user_id = $this->get_user_id();
-        $user_id = 4;
+        $user_id = $this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
@@ -122,7 +121,7 @@ class User extends ApiBase
         if ($data){
             $this->ajaxReturn(['status' => -1, 'msg' => '此用户名太受欢迎,请更换一个']);
         }
-            $res = Db::name('users')->where(['id'=>$user_id])->update(['nick_name' => $username]);
+        $res = Db::name('users')->where(['id'=>$user_id])->update(['nick_name' => $username]);
         if (!$res){
             $this->ajaxReturn(['status' => -1, 'msg' => '修改失败请重试']);
         }
