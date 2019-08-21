@@ -115,10 +115,82 @@ class RankingLogic
                 return ['status' => -2, 'msg' => '订单生成错误！'];
             }
         }
+        if($user['p_1']){
+            $level_one=Db::name('user_level')->where('id',1)->find();//矿队长
+            $level_two=Db::name('user_level')->where('id',6)->find();//矿场主
+            $is_dl=$this->select_up($user['p_1'],$level_one,$level_two);
+        }
         Db::commit();
         return ['status' => 1, 'msg' => '购买成功！'];
     }
-
+    /*
+     * 向上查找
+     */
+    public function select_up($user_id,$level_one,$level_two){
+        $users=Db::name('users')->field('id,level')->where('id',$user_id)->select();
+        if($users&&$users['level']==6){//找到一个上级是顶级，则上级的上级一定是顶级
+            return true;//
+        }
+        //查找下级
+        $list=Db::name('users')->field('id,level')->where('p_1',$users['id'])->select();
+        $my_list=$list;
+        $my_list=$this->select_all_down($list,$my_list);
+        $num=count($my_list);//下级人数
+        if($users['level']==0){//普通用户升级
+            if($num>$level_one['num']){
+                $money=$this->all_money($my_list);
+                if($money>$level_one['yeji']){
+                    $data['level']=1;
+                    Db::name('users')->where('id',$users['id'])->update($data);
+                }
+            }
+        }elseif($users['level']==1){//矿队长升级
+            if($num>$level_two['num']){
+                $money=$this->all_money($my_list);
+                if($money>$level_two['yeji']){
+                    $data['level']=6;
+                    Db::name('users')->where('id',$users['id'])->update($data);
+                }
+            }
+        }
+        if($users['p_1']){//如果有上级,则递归查找
+            $this->select_up($users['p_1'],$level_one,$level_two);
+        }else{
+            return true;//没有上级  返回true
+        }
+    }
+    /*
+     * 查询所有id下订单总额
+     */
+    public function all_money($my_list){
+        $ids='';
+        foreach ($my_list as $key=>$value){
+            if(!$ids){
+                $ids=$my_list[$key]['id'];
+            }else{
+                $ids=$ids.','.$my_list[$key]['id'];
+            }
+        }
+        $all_money=Db::name('ranking')->where('user_id','in',$ids)->sum('money');
+        return $all_money;
+    }
+    /*
+     * 查找所有下级
+     */
+    public function select_all_down($team_list,$my_list){
+        if($team_list){
+            foreach ($team_list as $key=>$value){//循环找下级
+                $list=Db::name('users')->field('id')->where('p_1',$value['id'])->select();
+                if($list){
+                    $my_list=array_merge($my_list,$list);//合并数组
+                    $my_list=$this->recursion_team($list,$my_list);//递归
+                }
+            }
+            return $my_list;
+        }else{
+            return $my_list;
+        }
+    }
     /*
      * 三倍出局随机选取某个值
      */
