@@ -146,27 +146,26 @@ class User extends ApiBase
         if ($password1 != $password2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '确认密码错误', 'data' => '']);
         }
-        $member = Db::name('users')->where(['id' => $user_id])->field('id,password,pwd,mobile')->find();
+        $member = Db::name('users')->where(['id' => $user_id])->field('id,password,paypwd,phone')->find();
         $type = input('type',1);//1登录密码 2支付密码
         $code = input('code');
-        $mobile = $member['mobile'];
-        $res = action('PhoneAuth/phoneAuth', [$mobile, $code]);
-        if ($res === '-1') {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！', 'data' => '']);
-        } else if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！', 'data' => '']);
+        $phone = $member['phone'];
+        $loginLogic = new LoginLogic();
+        $res = $loginLogic->phoneAuth($phone, $code);
+        if ($res['status'] == -1 ) {
+            $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
         }
         if ($type == 1) {
             $stri = 'password';
         } else {
-            $stri = 'pwd';
+            $stri = 'paypwd';
         }
         $password = password_hash($password2,PASSWORD_DEFAULT);
         if ($password == $member[$stri]) {
             $this->ajaxReturn(['status' => -2, 'msg' => '新密码和旧密码不能相同']);
         } else {
             $data = array($stri => $password);
-            $update = Db::name('member')->where('id', $user_id)->data($data)->update();
+            $update = Db::name('users')->where('id', $user_id)->update($data);
             if ($update) {
                 $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
             } else {
