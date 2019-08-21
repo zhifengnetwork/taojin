@@ -35,6 +35,9 @@ class User extends ApiBase
             }else{
                 $data['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
             }
+            if(!$data['nick_name']){
+                $data['nick_name']='未命名';
+            }
             if(empty($data['phone'])){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'未绑定手机！','data'=>$data]);
             }
