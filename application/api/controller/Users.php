@@ -88,12 +88,12 @@ class Users extends ApiBase
         }
 
         if($this->verify($integral)){//判断是否为100的整数倍
-            $this->ajaxReturn(['status' => -2, 'msg' => '金沙必须是100的倍数！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '糖果数量必须是100的倍数！']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['id'=>$u_id])->find();
         if($user['integral']<$integral){
-            $this->ajaxReturn(['status' => -2, 'msg' => '您的金沙不足，不能赠送！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '您的糖果不足，不能赠送！']);
         }
         if(!$give_user){
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
@@ -150,7 +150,7 @@ class Users extends ApiBase
         }
 
         if($this->verify($currency)){//判断是否为100的整数倍
-            $this->ajaxReturn(['status' => -2, 'msg' => '金沙必须是100的倍数！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '币数量必须是100的倍数！']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['id'=>$u_id])->find();
