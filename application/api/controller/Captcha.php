@@ -17,10 +17,10 @@ class Captcha extends ApiBase
         }
 
 
-        $member = Db::table(config('database.prefix').'users')->where('phone',$phone)->find();
-        if($member){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'此手机号已注册，请直接登录！']);
-        }
+//        $member = Db::table(config('database.prefix').'users')->where('phone',$phone)->find();
+//        if($member){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'此手机号已注册，请直接登录！']);
+//        }
         $phone_number = checkMobile($phone);
         if ($phone_number == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'手机号码格式不对！']);
