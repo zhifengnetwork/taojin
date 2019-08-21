@@ -24,7 +24,7 @@ class User extends ApiBase
         $user_id = $this->get_user_id();
         if(!empty($user_id)){
             $data = Db::name("users")
-                ->field('id,phone,nick_name,avatar,balance,lock_balance,integral,currency')
+                ->field('id,phone,nick_name,avatar,balance,lock_balance,integral,currency,add_time')
                 ->where(['id' => $user_id ,'status'=>1])
                 ->find();
             if(empty($data)){
@@ -37,6 +37,9 @@ class User extends ApiBase
             }
             if(!$data['nick_name']){
                 $data['nick_name']='未命名';
+            }
+            if($data['add_time']){
+                $data['add_time']=date('Y.m.d',$data['add_time']);
             }
             if(empty($data['phone'])){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'未绑定手机！','data'=>$data]);
