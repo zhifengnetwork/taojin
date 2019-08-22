@@ -13,13 +13,13 @@ class RankingLogic
     /*
      * 购买金铲子
      */
-    public function buy_gold_shovel($user_id,$num){
+    public function buy_gold_shovel($user_id,$num,$today_start=0){
         $system = Db::name('system')->field('id,name,title,money,logo')->where('id=1')->find();
         $user = Db::name('users')->where(['id'=>$user_id])->find();
         $balance = $user['balance'];
         $money=$system['money'] * $num;
         if($balance < ( $money ) ){
-            return ['status' => -1, 'msg' => '余额不足！'];
+            return ['status' => -2, 'msg' => '余额不足！'];
         }
         //注册奖励开关
         $if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
@@ -102,11 +102,18 @@ class RankingLogic
                 }
             }
         }
-
+        if($today_start!=0){
+            $today_start=$today_start+1;//01秒
+        }
         for ($i=0;$i<$num;$i++){
             $data['user_id'] = $user_id;
             $data['user_name'] = M('users')->where(['id'=>$user_id])->value('nick_name');
-            $data['rank_time'] = time();
+            if($today_start!=0){
+                $data['rank_time'] = $today_start;
+                $today_start=$today_start+60;//+1分钟
+            }else{
+                $data['rank_time'] = time();
+            }
             $data['money']=$system['money'];
             $data['add_time'] = time();
             $res = Db::name('ranking')->insertGetId($data);

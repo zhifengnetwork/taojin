@@ -13,6 +13,7 @@ class Crontab extends ApiBase
         $RankingLogic = new RankingLogic();
         if($num>=$triple_out){
             //三倍出局
+            $where=[];
             $where['out_source']=$triple_out;
             $triple_num=Db::name('ranking')->where($where)->count();
             $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
@@ -33,6 +34,7 @@ class Crontab extends ApiBase
         }
         if($num>=$double_out){
             //两倍出局
+            $where=[];
             $where['out_source']=$double_out;
             $double_num=Db::name('ranking')->where($where)->count();
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
@@ -61,9 +63,9 @@ class Crontab extends ApiBase
      * 抽奖定时任务
      */
     public function reward_crontab(){
-        $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');
-        $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');
-        $yesterday_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);//昨天的开奖时间
+        $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');//开奖时间
+        $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');//中奖时间
+        $yesterday_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$bonus_time);//昨天的开奖时间
         $bonus_time=strtotime(date("Y-m-d")." ".$bonus_time);//今天开奖时间
         $is_reward_time=true;//是否随机中奖
         if($reward_time){
