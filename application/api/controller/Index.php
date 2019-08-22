@@ -14,6 +14,14 @@ class Index extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $jackpot=Db::name('jackpot')->where('id',1)->find();
+        $system = Db::name('system')->where('id=1')->value('notice');
+        $jackpot['notice']=$system;
+        $bonus_time=strtotime(date("Y-m-d")." ".$jackpot['open_time']);
+        if($bonus_time>time()){
+            $jackpot['data_time']=date("Y-m-d");
+        }else{
+            $jackpot['data_time']=date("Y-m-d",strtotime('+1 day'));
+        }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$jackpot]);
     }
     /*
