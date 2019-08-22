@@ -63,7 +63,7 @@ class Auth extends Common
             $this->assign('title',lang('add').lang('admin'));
             $this->assign('info','null');
             $this->assign('selected', 'null');
-            return view('adminForm');
+            return view('admin_form');
         }
     }
     //删除管理员
@@ -129,7 +129,7 @@ class Auth extends Common
             $this->assign('info', $info->toJson());
             $this->assign('authGroup',json_encode($auth_group,true));
             $this->assign('title',lang('edit').lang('admin'));
-            return view('adminForm');
+            return view('admin_form');
         }
     }
     /*-----------------------用户组管理----------------------*/
