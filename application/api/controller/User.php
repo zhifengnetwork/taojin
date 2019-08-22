@@ -30,9 +30,7 @@ class User extends ApiBase
             if(empty($data)){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'会员不存在！','data'=>'']);
             }
-            if($data['avatar']){
-                $data['avatar']=SITE_URL.$data['avatar'];
-            }else{
+            if(!$data['avatar']){
                 $data['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
             }
             if(!$data['nick_name']){
