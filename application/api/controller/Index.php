@@ -49,9 +49,9 @@ class Index extends ApiBase
         $have=I('have',0);
         $where=[];
         $pageParam=[];
-        if($have==1){
+        if($have==2){
             $where['money']=['egt',0];
-        }elseif($have==2){
+        }elseif($have==1){
             $where['money']=['lt',0];
         }
         $where['user_id']=$user_id;
