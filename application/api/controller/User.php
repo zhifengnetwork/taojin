@@ -77,7 +77,7 @@ class User extends ApiBase
     /*
      * 上传头像
      */
-    public function updata_head_img()
+    public function updata_head_img2()
     {
         $user_id = $this->get_user_id();
         if (!$user_id) {
@@ -102,7 +102,7 @@ class User extends ApiBase
     /**
      * 上传头像
      */
-    public function updata_head_img1()
+    public function updata_head_img()
     {
         $user_id = $this->get_user_id();
         if (!$user_id) {
