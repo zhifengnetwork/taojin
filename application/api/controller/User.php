@@ -185,8 +185,7 @@ class User extends ApiBase
 
     public function paypwd()
     {
-//        $user_id = $this->get_user_id();
-        $user_id = 4;
+        $user_id = $this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
@@ -213,16 +212,14 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
 
         }
+        if (!$code) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
+        }
         $loginLogic = new LoginLogic();
         $res = $loginLogic->phoneAuth($phone, $code);
 
         if ($res['status'] == -1 ) {
             $this->ajaxReturn(['status' => -1, 'msg' => $res['msg']]);
-        }
-
-        $code = trim(input('code/d'));
-        if (!$code) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
         }
 
         $paypwd = password_hash($pwd,PASSWORD_DEFAULT);
