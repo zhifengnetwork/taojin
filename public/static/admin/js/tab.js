@@ -12,7 +12,7 @@ layui.define(['element', 'common'], function (exports) {
             this.config = {
                 elem: undefined,
                 closed: true, //是否包含删除按钮
-                autoRefresh: false,
+                autoRefresh: true,
                 contextMenu: false,
                 onSwitch: undefined,
                 openWait: true
@@ -182,7 +182,7 @@ layui.define(['element', 'common'], function (exports) {
             element.tabChange(ELEM.tabFilter, that.getTabId(data.title));
             //自动刷新
             if (_config.autoRefresh) {
-                _config.elem.find('div.layui-tab-content > div').eq(tabIndex).children('iframe')[0].contentWindow.location.reload();
+                _config.elem.find('div.layui-tab-content > div').eq(tabIndex).children('iframe')[0].contentWindow.location.href=data.href;
             }
         }
         if (_config.contextMenu) {

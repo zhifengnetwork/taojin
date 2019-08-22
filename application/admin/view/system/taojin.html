@@ -105,18 +105,19 @@
         <div class="layui-form-item">
             <label class="layui-form-label">奖金池开奖时间</label>
             <div class="layui-input-4" id="box_bonus_time">
-                <input type="text" class="layui-input" name="bonus_time" id="bonus_time" value="{$info.bonus_time}" placeholder="HH:mm:ss">
+                <label class="layui-form-label">{$info.bonus_time}</label>
+                <!--<input type="text" class="layui-input" name="bonus_time" id="bonus_time" value="{$info.bonus_time}" placeholder="HH:mm:ss">-->
             </div>
-            <script>
-                layui.use('laydate', function(){
-                    var laydate = layui.laydate;
-                    laydate.render({
-                        elem: '#bonus_time'
-                        ,type: 'time'
-                        ,btns: ['clear', 'confirm']
-                    });
-                });
-            </script>
+            <!--<script>-->
+                <!--layui.use('laydate', function(){-->
+                    <!--var laydate = layui.laydate;-->
+                    <!--laydate.render({-->
+                        <!--elem: '#bonus_time'-->
+                        <!--,type: 'time'-->
+                        <!--,btns: ['clear', 'confirm']-->
+                    <!--});-->
+                <!--});-->
+            <!--</script>-->
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">奖金池中奖时间</label>
