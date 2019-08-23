@@ -7,13 +7,21 @@ class Index extends ApiBase
     /*
      * 首页
      */
-        public function index()
-    {
+        public function index(){
         $user_id=$this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $jackpot=Db::name('jackpot')->where('id',1)->find();
+        $where['end_time']=['gt',time()];
+        $where['user_id']=$user_id;
+        $where['status']=0;
+        $give=Db::name('give')->where($where)->find();
+        if($give){
+            $jackpot['is_give']=1;
+        }else{
+            $jackpot['is_give']=0;
+        }
         $system = Db::name('system')->where('id=1')->value('notice');
         $jackpot['notice']=$system;
         $bonus_time=strtotime(date("Y-m-d")." ".$jackpot['open_time']);
@@ -23,6 +31,57 @@ class Index extends ApiBase
             $jackpot['data_time']=date("Y-m-d",strtotime('+1 day'));
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$jackpot]);
+    }
+    /*
+     * 首页领取糖果
+     */
+    public function receive_give(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $where['end_time']=['gt',time()];
+        $where['user_id']=$user_id;
+        $where['status']=0;
+        $give_list=Db::name('give')->where($where)->select();
+        if($give_list){
+            $number=0;
+            foreach ($give_list as $key=>$value){
+                $num_i=$this->receive_log($user_id,$value['num'],$value['id']);
+                $number=$number+$num_i;
+            }
+            $data['num']=$number;
+            $this->ajaxReturn(['status' => 1, 'msg' => '领取成功！','data'=>$data]);
+        }else{
+            $this->ajaxReturn(['status' => -2, 'msg' => '糖果已过期！']);
+        }
+    }
+    /*
+     * 领取增加糖果
+     */
+    public function receive_log($user_id,$num,$give_id){
+        $user=Db::name('users')->where(['id'=>$user_id])->find();
+        Db::startTrans();
+        $res=Db::name('users')->where(['id'=>$user_id])->setInc('integral',$num);
+        $re=Db::name('give')->where('id',$give_id)->update(['status'=>1]);//已领取
+        if($res&&$re){
+            $detail['u_id']=$user_id;
+            $detail['u_name']=$user['nick_name'];
+            $detail['integral']=$num;
+            $detail['type']=3;//出局赠送
+            $detail['then_integral']=$user['integral'];
+            $detail['createtime']=time();
+            $id=Db::name('integral')->insertGetId($detail);
+            if(!$id){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+            }
+        }else{
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+        }
+        Db::commit();
+        return $num;
     }
     /*
      * 首页中奖
