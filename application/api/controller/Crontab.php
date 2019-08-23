@@ -15,11 +15,15 @@ class Crontab extends ApiBase
             //三倍出局
             $where=[];
             $where['out_source']=$triple_out;
+
             $triple_num=Db::name('ranking')->where($where)->count();
             $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
             $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
-            $luck_time=strtotime(date($luck_time));
+            $luck_time=strtotime($luck_time);
+            if($luck_time>time()){
+                $luck_time=0;
+            }
             if($triple_num<100){
                 $for_count=100-$triple_num;
                 for($i=0;$i<$for_count;$i++){
@@ -81,6 +85,7 @@ class Crontab extends ApiBase
         $today_time= strtotime(date("Y-m-d"),time());
         $where['reward_day']=$today_time;
         $reward=Db::name('reward_log')->where($where)->find();//已经抽过奖励
+        print_r($reward);
         if(!$reward){
             $data=[];
             $data['reward_day']=$today_time;
@@ -122,6 +127,7 @@ class Crontab extends ApiBase
                 foreach ($reward_ranking_list as $key=>$value){
                     $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
                     if(!$is_end){
+                        echo 52;
                         Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录随机抽取的中奖时间段
                         return;//如果某一条出错，则退出任务
                     }

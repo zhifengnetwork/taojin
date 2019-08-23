@@ -202,8 +202,9 @@ class RankingLogic
      * 三倍出局随机选取某个值
      */
     public function triple_out($balance_give_integral,$double_percent,$triple_out,$luck_time,$goods_money=20){
-
-        $where['add_time']=['gt',$luck_time];
+        if($luck_time!=0){
+            $where['add_time']=['gt',$luck_time];
+        }
         $where['out_source']=0;//没有抽奖
         $where['rank_status']=0;//没有出局
         //随机抽取一条符合条件的数据
@@ -317,6 +318,7 @@ class RankingLogic
             return true;//第二次抽奖时，如果已经抽过了，则跳过
         }
         Db::startTrans();
+        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money/2);
         $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
         if(!$res){
             Db::rollback();
@@ -324,7 +326,7 @@ class RankingLogic
         }
         $data=[];
         $data['user_id']=$user_id;
-        $data['rank_id']=$rank_id;
+        $data['ranking_id']=$rank_id;
         $data['rank_time']=$rank_time;//排位时间
         $data['reward_day']=$today_time;//中奖日期
         $data['reward_time']=$bonus_time;//中奖时间

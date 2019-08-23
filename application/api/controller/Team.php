@@ -73,5 +73,17 @@ class Team extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $rank_list]);
     }
-
+    /*
+     * 邀请码
+     */
+    public function share(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $yq_code=Db::name('users')->where('id',$user_id)->value('yq_code');
+        $yq_url=SITE_URL.'/#/Register?yq_code='.$yq_code;
+        $data['url']=$yq_url;
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
+    }
 }
