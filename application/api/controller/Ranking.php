@@ -139,7 +139,7 @@ class Ranking extends ApiBase
         $goods=Db::name('system')
             ->field('id,name,money,title,logo')
             ->find();
-        $goods['logo']=SITE_URL.$goods['logo'];
+        $goods['logo']=SITE_URL.'/public'.$goods['logo'];
         $data['goods']=$goods;
         $pageParam=[];
         $where=[];
