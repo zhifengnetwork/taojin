@@ -159,7 +159,7 @@ class Auth extends Common
         }else{
             $this->assign('title','添加用户组');
             $this->assign('info','null');
-            return $this->fetch('groupForm');
+            return $this->fetch('group_form');
         }
     }
     //修改分组
@@ -174,7 +174,7 @@ class Auth extends Common
             $info = AuthGroup::get(['group_id'=>$id]);
             $this->assign('info', json_encode($info,true));
             $this->assign('title','编辑用户组');
-            return $this->fetch('groupForm');
+            return $this->fetch('group_form');
         }
     }
     //分组配置规则

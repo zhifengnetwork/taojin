@@ -230,6 +230,9 @@ class Index extends ApiBase
             case 2:
                 return '被赠与';
                 break;
+            case 3:
+                return '出局奖励';
+                break;
             case 8:
                 return '管理员操作';
                 break;
