@@ -38,14 +38,15 @@ class Auth extends Common
             if ($check_user) {
                 return $result = ['code'=>0,'msg'=>'用户已存在，请重新输入用户名!'];
             }
+            unset($data['file']);
             $data['pwd'] = input('post.pwd', '', 'md5');
             $data['add_time'] = time();
             $data['ip'] = request()->ip();
             //验证
-            $msg = $this->validate($data,'Admin');
-            if($msg!='true'){
-                return $result = ['code'=>0,'msg'=>$msg];
-            }
+//            $msg = $this->validate($data,'Admin');
+//            if($msg!='true'){
+//                return $result = ['code'=>0,'msg'=>$msg];
+//            }
             //单独验证密码
             $checkPwd = Validate::is(input('post.pwd'),'require');
             if (false === $checkPwd) {
