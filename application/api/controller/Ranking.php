@@ -324,7 +324,7 @@ class Ranking extends ApiBase
     }
     public function time_list($type,$start_time){
         if($start_time>time()){//还没开奖
-            if((time()+60*$type)>$start_time){
+            if((time()+3600*$type)>$start_time){
                 return false;
             }else{
                 $today_start=time();

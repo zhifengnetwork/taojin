@@ -221,7 +221,7 @@ class RankingLogic
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
         $data['rank_status']=1;//出局
-        $data['out_source']=$triple_out;//出局源
+        $data['out_source']='T_'.$triple_out;//出局源
         $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
         if(!$res||!$r){
             Db::rollback();
@@ -259,7 +259,7 @@ class RankingLogic
      * 两倍出局
      */
     public function double_out($balance_give_integral,$double_percent,$double_out,$goods_money=20){
-        $where['out_source']=0;//没有抽奖
+        $where['out_source']=0;//没有出局源
         $where['rank_status']=0;//没有出局
         $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
         if(!$ranking){
@@ -274,7 +274,7 @@ class RankingLogic
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
         $data['rank_status']=1;//出局
-        $data['out_source']=$double_out;//出局源
+        $data['out_source']='D_'.$double_out;//出局源
         $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
         if(!$res||!$r){
             Db::rollback();

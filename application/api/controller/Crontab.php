@@ -14,7 +14,7 @@ class Crontab extends ApiBase
         if($num>=$triple_out){
             //三倍出局
             $where=[];
-            $where['out_source']=$triple_out;
+            $where['out_source']='T_'.$triple_out;//三倍出局标志源
 
             $triple_num=Db::name('ranking')->where($where)->count();
             $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
@@ -39,7 +39,7 @@ class Crontab extends ApiBase
         if($num>=$double_out){
             //两倍出局
             $where=[];
-            $where['out_source']=$double_out;
+            $where['out_source']='D_'.$double_out;//两倍出局标志源
             $double_num=Db::name('ranking')->where($where)->count();
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
             $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
