@@ -103,11 +103,12 @@ class RankingLogic
             }
         }
         if($today_start!=0){
-            $today_start=$today_start+1;//01秒
+            $today_start=$today_start;//01秒
         }
+        $user_name=M('users')->where(['id'=>$user_id])->value('nick_name');
         for ($i=0;$i<$num;$i++){
             $data['user_id'] = $user_id;
-            $data['user_name'] = M('users')->where(['id'=>$user_id])->value('nick_name');
+            $data['user_name'] = $user_name;
             if($today_start!=0){
                 $data['rank_time'] = $today_start;
                 $today_start=$today_start+60;//+1分钟
