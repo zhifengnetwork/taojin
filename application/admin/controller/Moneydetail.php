@@ -527,6 +527,55 @@ ORDER BY
         }
     }
 
+    public function card()
+    {
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+
+            if(!empty($keyword)){
+                $map['title'] = array('like','%' . $keyword . '%');
+            }
+
+            $list = Db::name('card')->alias('c')
+                ->field('c.*, u.id as uid  , u.avatar , u.nick_name , u.phone')
+                ->join("users u", 'u.id = c.user_id', 'LEFT')
+                ->where($map)
+                ->order('c.id DESC')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))->toArray();
+
+            return [
+                'code'=>0,
+                'msg'=>'获取成功',
+                'data'=>$list['data'],
+                'count'=>$list['total'],
+                'rel'=>1
+            ];
+        }else{
+            return $this->fetch('moneydetail/card');
+        }
+    }
+
+    public function check_card()
+    {
+        $status = input('status/d');
+        if ($status != 2 && $status != 1) {
+            $this->error('状态错误');
+        }
+        $id = input('id/d');
+        $card = Db::name('card')->where(['id'=>$id])->find();
+        if (!$card || $card['status'] != 0) {
+            $this->error('数据没有找到或不能操作');
+        }
+        $res = Db::name('card')->where(['id'=>$id])->update(['status' => $status, 'check_time' => time()]);
+        if (!$res) {
+            $this->error('操作失败');
+        }
+
+        $this->success('操作成功', url('moneydetail/card'));
+    }
+
 
 
 }

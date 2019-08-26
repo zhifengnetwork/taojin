@@ -1,0 +1,165 @@
+{include file="common/head"/}
+
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>银行卡列表</legend>
+    </fieldset>
+    <div class="demoTable">
+        <div class="layui-inline">
+            <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
+        </div>
+        <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
+        <a href="{:url('index')}" class="layui-btn">显示全部</a>
+        <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
+        <!--<a href="{:url('Category/index')}" class="layui-btn layui-btn-normal" style="float:right;">返回</a>-->
+        <!--<a href="{:url('add')}" class="layui-btn" style="float:right;margin-right: 15px;">{:lang('add')}</a>-->
+        <div style="clear: both;"></div>
+    </div>
+    <table class="layui-table" id="list" lay-filter="list">
+
+    </table>
+</div>
+
+{include file="common/foot"/}
+
+<script type="text/html" id="status">
+    {{# if(d.status==1){ }}
+    <a href="javascript:" class="layui-btn layui-btn-xs layui-btn-warm">审核成功</a>
+    {{# }else if(d.status==2){  }}
+    <a href="#" class="layui-btn layui-btn-xs layui-btn-disabled">审核失败</a>
+    {{# }else{  }}
+    <a href="javascript:" class="layui-btn layui-btn-xs layui-btn-danger" lay-event="cert">审核中</a>
+    {{# } }}
+</script>
+
+<!--这个地方待处理，需要和其他地方匹配-->
+<script type="text/html" id="action">
+
+    <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+
+</script>
+
+<script>
+    layui.use('table', function() {
+        var table = layui.table, $ = layui.jquery;
+        var tableIn = table.render({
+            id: 'content',
+            elem: '#list',
+            url: '{:url("card")}',
+            method: 'post',
+            page: true,
+            cols: [[
+                {type: "checkbox", fixed: true},
+
+                {field: 'id', title: '{:lang("id")}', width: 80, fixed: true ,sort:true},
+                {field: 'uid', title: '会员ID', width: 80, templet: '#uid' ,sort:true},
+                {field: 'nick_name', title: '会员信息', width: 200, templet: '#nick_name' ,sort:true},
+                {field: 'bank', title: '银行名', width: 200, templet: '#bank'},
+                {field: 'number', title: '卡号', width: 200, templet: '#number' ,sort:true},
+                {field: 'name', title: '姓名', width: 200, templet: '#name' ,sort:true},
+                {field: 'create_time', title: '申请时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.create_time);
+                    } ,sort:true},
+                {field: 'check_time', title: '审批时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.check_time);
+                    } ,sort:true},
+                {field: 'status', title: '状态', width: 200, templet: '#status' ,sort:true},
+                {width: 160, align: 'center', toolbar: '#action',title:'操作'}
+            ]],
+            limit: 10
+        });
+        //搜索
+        $('#search').on('click', function () {
+            var key = $('#key').val();
+            if ($.trim(key) === '') {
+                layer.msg('{:lang("pleaseEnter")}关键字！', {icon: 0});
+                return;
+            }
+            tableIn.reload({
+                where: {key: key}
+            });
+        });
+
+        $('body').on('blur','.list_order',function() {
+            var id = $(this).attr('data-id');
+            var listorder = $(this).val();
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.post('{:url("listorder")}',{id:id,listorder:listorder},function(res){
+                layer.close(loading);
+                if(res.code === 1){
+                    layer.msg(res.msg, {time: 1000, icon: 1}, function () {
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{time:1000,icon:2});
+                }
+            })
+        });
+
+        table.on('tool(list)', function(obj) {
+            var data = obj.data;
+            if(obj.event === 'del'){
+                layer.confirm('您确定要删除该内容吗？', function(index){
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('listDel')}",{id:data.id},function(res){
+                        layer.close(loading);
+                        if(res.code===1){
+                            layer.msg(res.msg,{time:1000,icon:1});
+                            tableIn.reload();
+                        }else{
+                            layer.msg('操作失败！',{time:1000,icon:2});
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+
+
+            //修改状态 改ajax部分
+            if(obj.event === 'cert'){
+                layer.confirm('您确定同意该银行卡申请吗？', function(index){
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('check_card')}",{id:data.id,status:data.v_state},function(res){
+                        layer.close(loading);
+                        if(res.code===1){
+                            layer.msg(res.msg,{time:1000,icon:1});
+                            tableIn.reload();
+                        }else{
+                            layer.msg('操作失败！',{time:1000,icon:2});
+                        }
+                    });
+                    layer.close(index);
+                });
+
+
+
+                layer.confirm('请选择审核结果？', {
+                    btn: ['同意', '拒绝', '取消'],
+                    btn3: function(index){
+                        layer.close(index);
+                    }
+                }, function(index){
+                    cert(data.id,1,index);
+                }, function(index){
+                    cert(data.id,2,index);
+                });
+            }
+        });
+        
+        function cert(id,status,index) {
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.post("{:url('check_card')}",{id:id,status:status},function(res){
+                layer.close(loading);
+                if(res.code===1){
+                    layer.msg(res.msg,{time:1000,icon:1});
+                    tableIn.reload();
+                }else{
+                    layer.msg('操作失败！',{time:1000,icon:2});
+                }
+            });
+            layer.close(index);
+        }
+
+    });
+</script>
