@@ -51,17 +51,9 @@ class Crontab extends ApiBase
         }
     }
     //测试
-    public function text($goods_money=20){
-//        $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
-//        $time=strtotime(date($luck_time));
-//        $ranking=Db::name('ranking')->limit(1)->orderRaw('rand()')->select();
-        $where['out_source']=0;//没有抽奖
-        $where['rank_status']=0;//没有出局
-        $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
-//        Db::name('ranking')->getLastSql();
-//        return $ranking;
-        print_r($ranking);
-        die;
+    public function text(){
+        sleep(3);
+        $this->ajaxReturn(['status' => -2 , 'msg'=>'测试睡眠']);
     }
     /*
      * 抽奖定时任务
