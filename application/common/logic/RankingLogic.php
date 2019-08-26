@@ -123,12 +123,12 @@ class RankingLogic
                 return ['status' => -2, 'msg' => '订单生成错误！'];
             }
         }
+        Db::commit();
         if($user['p_1']){
             $level_one=Db::name('user_level')->where('id',1)->find();//矿队长
             $level_two=Db::name('user_level')->where('id',6)->find();//矿场主
             $is_dl=$this->select_up($user['p_1'],$level_one,$level_two);
         }
-        Db::commit();
         return ['status' => 1, 'msg' => '购买成功！'];
     }
     /*
