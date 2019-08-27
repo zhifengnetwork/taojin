@@ -524,7 +524,7 @@ class RankingLogic
      * 代理返佣
      */
     public function user_balance($user_id,$money,$intro){
-        $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
+        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$money);
         if(!$re){
             return false;
         }else{
