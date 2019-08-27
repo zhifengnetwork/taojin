@@ -151,7 +151,7 @@ class Crontab extends ApiBase
                 $num=count($reward_ranking_list);//多少排位中奖
                 $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
                 $all_money=$jackpot*10/100;
-                $everyone_money=sprintf("%.2f",$all_money/$num);
+                $everyone_money=sprintf("%.2f",$all_money/$num);//每人得到多少
                 $RankingLogic = new RankingLogic();
                 foreach ($reward_ranking_list as $key=>$value){
                     //判断是否抽过奖

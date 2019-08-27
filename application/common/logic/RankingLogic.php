@@ -330,9 +330,9 @@ class RankingLogic
             return true;//第二次抽奖时，如果已经抽过了，则跳过
         }
         Db::startTrans();
-        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money/2);
+        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money);//扣取奖金池的钱
         $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
-        if(!$res){
+        if(!$res||!$r){
             Db::rollback();
             return false;
         }
