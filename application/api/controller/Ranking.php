@@ -29,6 +29,9 @@ class Ranking extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
         }
         $num=I('num',1);
+        if($num<1){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的购买数量']);
+        }
         $RankingLogic = new RankingLogic();
         $res = $RankingLogic->buy_gold_shovel($user_id,$num);
         $this->ajaxReturn($res);
