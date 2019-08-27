@@ -18,7 +18,7 @@ class RankingLogic
         $user = Db::name('users')->where(['id'=>$user_id])->find();
         $balance = $user['balance'];
         $money=$system['money'] * $num;
-        if($balance < ( $money ) ){
+        if($balance < $money  ){
             return ['status' => -2, 'msg' => '余额不足！'];
         }
         //注册奖励开关
@@ -102,31 +102,42 @@ class RankingLogic
                 }
             }
         }
-        if($today_start!=0){
-            $today_start=$today_start;//01秒
-        }
         $user_name=M('users')->where(['id'=>$user_id])->value('nick_name');
-        for ($i=0;$i<$num;$i++){
-            $data['user_id'] = $user_id;
-            $data['user_name'] = $user_name;
-            if($today_start!=0){
-                $data['rank_time'] = $today_start;
-                $today_start=$today_start+60;//+1分钟
-            }else{
-                $data['rank_time'] = time();
-            }
-            $data['money']=$system['money'];
-            $data['add_time'] = time();
-            $res = Db::name('ranking')->insertGetId($data);
-            if(!$res){
+        if($today_start!=0&&$num>120){
+            $data_c['user_id']=$user_id;
+            $data_c['user_name']=$user_name;
+            $data_c['add_time']=time();
+            $data_c['start_time']=$today_start;
+            $data_c['num']=$num;
+            $data_c['money']=$system['money'];
+            $res_c=Db::name('crontab')->insertGetId($data_c);
+            if(!$res_c){
                 Db::rollback();
                 return ['status' => -2, 'msg' => '订单生成错误！'];
+            }
+        }else{
+            for ($i=0;$i<$num;$i++){
+                $data['user_id'] = $user_id;
+                $data['user_name'] = $user_name;
+                if($today_start!=0){
+                    $data['rank_time'] = $today_start;
+                    $today_start=$today_start+60;//+1分钟
+                }else{
+                    $data['rank_time'] = time();
+                }
+                $data['money']=$system['money'];
+                $data['add_time'] = time();
+                $res = Db::name('ranking')->insertGetId($data);
+                if(!$res){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '订单生成错误！'];
+                }
             }
         }
         Db::commit();
         if($user['p_1']){
-            $level_one=Db::name('user_level')->where('id',1)->find();//矿队长
-            $level_two=Db::name('user_level')->where('id',6)->find();//矿场主
+            $level_one=Db::name('user_level')->where('level_id',1)->find();//矿队长
+            $level_two=Db::name('user_level')->where('level_id',6)->find();//矿场主
             $is_dl=$this->select_up($user['p_1'],$level_one,$level_two);
         }
         return ['status' => 1, 'msg' => '购买成功！'];

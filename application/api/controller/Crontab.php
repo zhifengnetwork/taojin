@@ -15,7 +15,6 @@ class Crontab extends ApiBase
             //三倍出局
             $where=[];
             $where['out_source']='T_'.$triple_out;//三倍出局标志源
-
             $triple_num=Db::name('ranking')->where($where)->count();
             $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
@@ -150,5 +149,52 @@ class Crontab extends ApiBase
         }else{
             return;
         }
+    }
+    public function time_slot_crontab(){
+        $start_time=time();
+        for ($i=0;$i<60;$i++){
+            if(($start_time-time())>59){//运行时间大于59秒，退出
+                return;
+            }
+            $where['status']=0;
+            $where['type']=0;
+            $cro_list=Db::name('crontab')->where($where)->select();//包时间段
+            if($cro_list){
+                foreach ($cro_list as $key=>$value){
+                    $num=$value['num'];
+                    $user_id=$value['user_id'];
+                    $user_name=$value['user_name'];
+                    $today_start=$value['start_time'];
+                    $money=$value['money'];
+                    Db::startTrans();
+                    for ($i=0;$i<$num;$i++){
+                        $data['user_id'] = $user_id;
+                        $data['user_name'] = $user_name;
+                        if($today_start!=0){
+                            $data['rank_time'] = $today_start;
+                            $today_start=$today_start+60;//+1分钟
+                        }else{
+                            $data['rank_time'] = time();
+                        }
+                        $data['money']=$money;
+                        $data['add_time'] = time();
+                        $res = Db::name('ranking')->insertGetId($data);
+                        if(!$res){
+                            Db::rollback();
+                            return ;
+                        }
+                    }
+                    $res=Db::name('crontab')->where('id',$value['id'])->update(['status'=>1,'updata_time'=>time()]);//更新
+                    if(!$res){
+                        Db::rollback();
+                        return ;
+                    }
+                    Db::commit();
+                }
+            }else{
+                sleep(1);
+            }
+        }
+        return;
     }
 }
