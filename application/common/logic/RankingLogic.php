@@ -240,7 +240,7 @@ class RankingLogic
             return false;
         }
         //赠送糖果
-        $tg_num=ceil($goods_money*3/$balance_give_integral);//赠送糖果取整
+        $tg_num=invtal($goods_money*3/$balance_give_integral);//赠送糖果取整
         $data=[];
         $data['num']=$tg_num;
         $data['user_id']=$ranking['user_id'];
@@ -293,7 +293,7 @@ class RankingLogic
             return false;
         }
         //赠送糖果
-        $tg_num=ceil($goods_money*2/$balance_give_integral);//赠送糖果取整
+        $tg_num=invtal($goods_money*2/$balance_give_integral);//赠送糖果取整
         $data=[];
         $data['num']=$tg_num;
         $data['user_id']=$ranking['user_id'];
