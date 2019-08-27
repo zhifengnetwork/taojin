@@ -16,6 +16,7 @@ class Crontab extends ApiBase
             $double_out = Db::name('config')->where(['name'=>'double_out','inc_type'=>'taojin'])->value('value');
             $triple_out = Db::name('config')->where(['name'=>'triple_out','inc_type'=>'taojin'])->value('value');
             $RankingLogic = new RankingLogic();
+            $is_s=true;//睡
             if($num>=$triple_out){
                 //三倍出局
                 $where=[];
@@ -39,6 +40,7 @@ class Crontab extends ApiBase
                 }else{
                     Db::name('config')->where(['name'=>'triple_out','inc_type'=>'taojin'])->setInc('value',1000);//抽奖完成，则抽奖准备数量增加
                 }
+                $is_s=false;
             }
             if($num>=$double_out){
                 //两倍出局
@@ -52,11 +54,13 @@ class Crontab extends ApiBase
                 }else{
                     Db::name('config')->where(['name'=>'double_out','inc_type'=>'taojin'])->setInc('value',10);//两倍出局数量增加
                 }
-            }else{
+                $is_s=false;
+            }
+            if($is_s){
                 sleep(1);
             }
-
         }
+        return '运行结束';
     }
     //测试
     public function text(){
@@ -99,7 +103,6 @@ class Crontab extends ApiBase
                 $is_reward=true;
             }
         }
-        echo 1;
         if(((time()>$bonus_time)&&time()<$bonus_time+3600)&&$is_reward){//在开奖时间一个小时内
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
             if($is_reward_time){//随机抽取一分钟
@@ -120,7 +123,7 @@ class Crontab extends ApiBase
                 $where['rank_time']=['between',[$start_time,$end_time]];
                 $reward_ranking_list=Db::name('ranking')->where($where)->select();
                 if(!$reward_ranking_list){//数据为空，则退出
-                    return;
+                    return '数据空，退出';
                 }
                 $num=count($reward_ranking_list);//多少排位中奖
                 $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
@@ -131,7 +134,7 @@ class Crontab extends ApiBase
                     $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
                     if(!$is_end){
                         Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录随机抽取的中奖时间段
-                        return;//如果某一条出错，则退出任务
+                        return 'id为：'.$value["user_id"].'出错';//如果某一条出错，则退出任务
                     }
                 }
             }else{
@@ -143,7 +146,7 @@ class Crontab extends ApiBase
                 $where['rank_time']=['between',[$start_time,$end_time]];
                 $reward_ranking_list=Db::name('ranking')->where($where)->select();
                 if(!$reward_ranking_list){//数据为空，则退出
-                    return;
+                    return '数据空，退出';
                 }
                 $num=count($reward_ranking_list);//多少排位中奖
                 $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
@@ -155,13 +158,14 @@ class Crontab extends ApiBase
                     $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
                     if(!$is_end){
                         Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录中奖时间段
-                        return;//如果某一条出错，则退出任务
+                        return 'id为：'.$value["user_id"].'出错';//如果某一条出错，则退出任务
                     }
                 }
             }
             Db::name('reward_log')->where('id',$reward_log_id)->update(['status'=>1]);//如果所以人抽奖完成，则完成
+            return '抽奖完成';
         }else{
-            return;
+            return '不在抽奖时间内';
         }
     }
     public function time_slot_crontab(){
@@ -195,20 +199,21 @@ class Crontab extends ApiBase
                         $res = Db::name('ranking')->insertGetId($data);
                         if(!$res){
                             Db::rollback();
-                            return ;
+                            return 'ranking生成失败';
                         }
                     }
                     $res=Db::name('crontab')->where('id',$value['id'])->update(['status'=>1,'updata_time'=>time()]);//更新
                     if(!$res){
                         Db::rollback();
-                        return ;
+                        return 'crontab更新失败';
                     }
                     Db::commit();
                 }
+                return '生成订单完毕';
             }else{
                 sleep(1);
             }
         }
-        return;
+        return '执行完毕';
     }
 }
