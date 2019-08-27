@@ -305,7 +305,7 @@ class RankingLogic
         $detail['type']=10;//出局赠送
         $detail['money']=$money;
         $detail['createtime']=time();
-        $detail['intro']='三倍出局获得冻结余额';
+        $detail['intro']='双倍出局获得冻结余额';
         $id=Db::name('moneydetail')->insertGetId($detail);
         if(!$id||!$ids){
             Db::rollback();
