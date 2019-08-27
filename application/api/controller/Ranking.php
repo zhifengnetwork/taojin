@@ -51,6 +51,8 @@ class Ranking extends ApiBase
         $pageParam=[];
         $where=[];
         $where['rank_status']=0;
+        $where['rank_status']=0;
+        $where['is_delete']=0;
         $list=Db::name('ranking')->field('id')->where($where)->select();
         $data_list=[];
         foreach ($list as $key=>$value)//二维数组转换
