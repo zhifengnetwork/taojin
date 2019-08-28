@@ -32,12 +32,14 @@
     {{(d.type == 3)?'解冻':''}}
     {{(d.type == 4)?'提现':''}}
     {{(d.type == 5)?'被赠送':''}}
+    {{(d.type == 6)?'兑换':''}}
+    {{(d.type == 7)?'挂卖':''}}
+    {{(d.type == 8)?'购买道具':''}}
+    {{(d.type == 9)?'中奖':''}}
+    {{(d.type == 10)?'出局':''}}
 </script>
-
 <script type="text/html" id="typefrom">
-    {{(d.type == 1)?'本人订单返利':''}}
-    {{(d.type == 2)?'下一级订单返利':''}}
-    {{(d.type == 3)?'下二级订单返利':''}}
+    {{(d.typefrom == 1)?'冻结金沙':'金沙'}}
 </script>
 
 <!--这个地方待处理，需要和其他地方匹配-->
@@ -88,7 +90,7 @@
                 return;
             }
             tableIn.reload({
-                where: {key: key,catid:'{:input("catid")}'}
+                where: {key: key}
             });
         });
 
@@ -123,7 +125,7 @@
             var id = $(this).attr('data-id');
             var listorder = $(this).val();
             var loading = layer.load(1, {shade: [0.1, '#fff']});
-            $.post('{:url("listorder")}',{id:id,listorder:listorder,catid:'{:input("catid")}'},function(res){
+            $.post('{:url("listorder")}',{id:id,listorder:listorder},function(res){
                 layer.close(loading);
                 if(res.code === 1){
                     layer.msg(res.msg, {time: 1000, icon: 1}, function () {

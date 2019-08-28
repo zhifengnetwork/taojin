@@ -50,7 +50,7 @@ class Moneydetail extends Common
                     $catid = input('post.catid');
                 }
             }
-
+            $map=[];
             //如果是提现管理，只显示提现
             if(!empty($_POST['type'])){
                 $map['type'] = $_POST['type'];
@@ -64,39 +64,41 @@ class Moneydetail extends Common
             /*#########################################*/
 
             if(!empty($keyword)){
-                $map['title'] = array('like','%' . $keyword . '%');
+                $map['user_id|id'] = array('like','%' . $keyword . '%');
             }
             $prefix = config('database.prefix');
             $Fields = Db::getFields($prefix . $modelname);
             foreach($Fields as $k => $v){
                 $field[$k] = $k;
             }
-            if(in_array('catid',$field)){
-                $map['catid'] = array('in',$catid);
-            }
-
-            /*$list = $model
-                ->where($map)
+            $list = $model
+            ->where($map)
                 ->order($order)
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
-                ->toArray();*/
+                ->toArray();
+//            $list = Db::name('moneydetail')->alias('m')
+//                ->join('users u','u.id=m.user_id','LEFT')
+//                ->field('m.*,u.phone,u.nick_name,u.ali_account,u.name')
+//                ->where($map)
+//                ->order($order)
+//                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+//                ->toArray();
 
-            $list = $model->query("SELECT
-	clt_moneydetail.*,clt_users.phone,clt_users.nick_name,clt_users.ali_account,clt_users.name
-FROM
-	clt_moneydetail,
-	clt_users
-WHERE
-	clt_moneydetail.user_id = clt_users.id
-	".(!empty($id)?" AND clt_moneydetail.user_id={$id} ":'')."
-ORDER BY
-	clt_moneydetail.listorder ASC,
-	clt_moneydetail.id DESC LIMIT ".($page - 1)*$pageSize.",".$pageSize);
-
+//            $list = $model->query("SELECT
+//	clt_moneydetail.*,clt_users.phone,clt_users.nick_name,clt_users.ali_account,clt_users.name
+//FROM
+//	clt_moneydetail,
+//	clt_users
+//WHERE
+//	clt_moneydetail.user_id = clt_users.id
+//	".(!empty($id)?" AND clt_moneydetail.user_id={$id} ":'')."
+//ORDER BY
+//	clt_moneydetail.listorder ASC,
+//	clt_moneydetail.id DESC LIMIT ".($page - 1)*$pageSize.",".$pageSize);
             $rsult['code'] = 0;
             $rsult['msg'] = "获取成功";
 
-            $rsult['data'] = $list;
+            $rsult['data'] = $list['data'];
             $rsult['count'] = $list['total'];
             $rsult['rel'] = 1;
             return $rsult;
@@ -504,7 +506,7 @@ ORDER BY
             $pageSize = input('limit') ? input('limit') : config('pageSize');
 
             if(!empty($keyword)){
-                $map['title'] = array('like','%' . $keyword . '%');
+                $map['id|user_id|user_name'] = array('like','%' . $keyword . '%');
             }
 
             $list = Db::name('users_currency')

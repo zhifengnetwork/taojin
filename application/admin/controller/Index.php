@@ -73,7 +73,10 @@ class Index extends Common
             'mysql_version' => $version[0]['ver'],
             'max_upload_size' => ini_get('upload_max_filesize')
         ];
-
+        $system_money=Db::name('system_money')->where('id',1)->find();
+        $this->assign("system_money",$system_money);
+        $user_all=Db::name('users')->field('SUM(balance) as balance,SUM(integral) as integral,SUM(currency) as currency')->find();
+        $this->assign("user_all",$user_all);
         //leapmary//###############################
         $classification = db('classification')->where("pid",0)->select();
         $classification = convert_arr_kv($classification,'id','title');

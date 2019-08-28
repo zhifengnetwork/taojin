@@ -45,15 +45,12 @@ class Integral extends Common
             }
 
             if(!empty($keyword)){
-                $map['title'] = array('like','%' . $keyword . '%');
+                $map['id|u_id'] = array('like','%' . $keyword . '%');
             }
             $prefix = config('database.prefix');
             $Fields = Db::getFields($prefix . $modelname);
             foreach($Fields as $k => $v){
                 $field[$k] = $k;
-            }
-            if(in_array('catid',$field)){
-                $map['catid'] = array('in',$catid);
             }
 
             $list = $model
