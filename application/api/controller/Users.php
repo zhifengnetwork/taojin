@@ -45,7 +45,7 @@ class Users extends ApiBase
             $detail['money']=$balance;
             $detail['createtime']=time();
             $detail['intro']=$user['nick_name'].'赠送';
-            $id=Db::name('moneydetail')->insertGetId($detail);
+            $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
             if(!$id){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
@@ -59,7 +59,7 @@ class Users extends ApiBase
             $detail['money']=-$balance;
             $detail['createtime']=time();
             $detail['intro']='赠送给'.$give_user['nick_name'];
-            $ids=Db::name('moneydetail')->insertGetId($detail);
+            $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
             if(!$ids){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
@@ -209,6 +209,7 @@ class Users extends ApiBase
         if(!$currency||intval($currency)<0){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的兑换币数量！','data'=>'']);
         }
+        $system_money=Db::name('system_money')->where('id',1)->find();
         $integral_num=$this->set_value('exchange_integral');
         $balance_num=$this->set_value('exchange_money');
         $integral=$currency*$integral_num;
@@ -222,6 +223,11 @@ class Users extends ApiBase
         }
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$user_id])->setInc('currency',$currency);
+        $system_money['currency']=$system_money['currency']-$currency;//释放币
+        if($system_money['currency']<0){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '系统币不足，请联系管理员！']);
+        }
         if($res){
             $detail['user_id']=$user_id;
             $detail['user_name']=$user['nick_name'];
@@ -236,6 +242,7 @@ class Users extends ApiBase
             }
         }
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('integral',$integral);
+        $system_money['integral']=$system_money['integral']+$integral;//回收糖果
         if($re){
             $detail=[];
             $detail['u_id']=$user_id;
@@ -251,6 +258,7 @@ class Users extends ApiBase
             }
         }
         $r=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+        $system_money['balance']=$system_money['balance']+$balance;//回收金沙
         if($r){
             $detail=[];
             $detail['user_id']=$user_id;
@@ -258,13 +266,14 @@ class Users extends ApiBase
             $detail['money']=-$balance;
             $detail['createtime']=time();
             $detail['intro']='兑换币'.$currency.'个';
-            $ids=Db::name('moneydetail')->insertGetId($detail);
+            $ids=Db::name('moneydetail')->insertGetId($detail);//兑换log
             if(!$ids){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败！']);
             }
         }
-        if(!$res||!$re||!$r){
+        $res_s=Db::name('system_money')->update($system_money);//修改
+        if(!$res||!$re||!$r||!$res_s){
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败！']);
         }else{
@@ -331,6 +340,7 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币数量！','data'=>'']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
+        $system_money=Db::name('system_money')->where('id',1)->find();
         if($user['currency']<$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'币数量不足，请重新挂卖！','data'=>'']);
         }
@@ -339,6 +349,7 @@ class Users extends ApiBase
         Db::startTrans();
 
         $res=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
+        $system_money['currency']=$system_money['currency']+$currency;
         if($res){
             $data['user_id']=$user_id;
             $data['currency_num']=$currency;
@@ -363,6 +374,11 @@ class Users extends ApiBase
         $user_money=$user['balance']+$balance;
 //        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance);
         $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$user_money]);
+        $system_money['balance']=$system_money['balance']-$user_money;
+        if($system_money['balance']<0){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '系统金沙不足，请联系管理员！']);
+        }
         if($re){
             $detail=[];
             $detail['user_id']=$user_id;
@@ -370,13 +386,14 @@ class Users extends ApiBase
             $detail['money']=$balance;
             $detail['createtime']=time();
             $detail['intro']='挂卖币'.$currency.'个，获得'.$balance;
-            $ids=Db::name('moneydetail')->insertGetId($detail);
+            $ids=Db::name('moneydetail')->insertGetId($detail);//挂卖log
             if(!$ids){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '挂卖失败！']);
             }
         }
-        if(!$res||!$re){
+        $r=Db::name('system_money')->update($system_money);//修改
+        if(!$res||!$re||!$r){
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '挂卖失败！']);
         }else{

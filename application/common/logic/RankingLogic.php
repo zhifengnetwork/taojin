@@ -24,8 +24,10 @@ class RankingLogic
         //注册奖励开关
         $if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
         Db::startTrans();
+        $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
+        $system_money['balance']=$system_money['balance']+$money;
         if(!$re||!$r){
             Db::rollback();
             return ['status' => -2, 'msg' => '余额扣取失败或者奖池增加失败！'];
@@ -49,6 +51,11 @@ class RankingLogic
             if($balance_unlock!=0){
                 $ress=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance_unlock);
                 $rs=Db::name('users')->where(['id'=>$user_id])->setDec('lock_balance',$balance_unlock);
+                $system_money['balance']=$system_money['balance']-$balance_unlock;
+                if($system_money['balance']<0){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '系统金沙不足，请联系管理员！'];
+                }
                 if(!$ress||!$rs){
                     Db::rollback();
                     return ['status' => -2, 'msg' => '冻结余额解冻失败！'];
@@ -58,12 +65,17 @@ class RankingLogic
                 $detail['type']=3;//解冻
                 $detail['money']=$balance_unlock;
                 $detail['createtime']=time();
-                $detail['intro']='冻结余额';
+                $detail['intro']='解冻余额';
                 $ids=Db::name('moneydetail')->insertGetId($detail);
                 if(!$ids){
                     Db::rollback();
                     return ['status' => -2, 'msg' => '解冻log生成失败，购买失败！'];
                 }
+            }
+            $rs=Db::name('system_money')->update($system_money);//修改
+            if(!$rs){
+                Db::rollback();
+                return ['status' => -2, 'msg' => '修改系统余额失败，请联系管理员！'];
             }
         }
         //注册奖励
@@ -330,6 +342,7 @@ class RankingLogic
             return true;//第二次抽奖时，如果已经抽过了，则跳过
         }
         Db::startTrans();
+        $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $integral_num=Db::name('jackpot')->where('id',1)->value('integral_num');
         $integral_num=$integral_num-$money;
         $r=Db::name('jackpot')->where('id',1)->update(['integral_num'=>$integral_num]);//扣取奖金池的钱
@@ -338,7 +351,13 @@ class RankingLogic
         $user_balance=Db::name('users')->where('id',$user_id)->value('balance');
         $user_balance=$user_balance+$user_money;
         $res=Db::name('users')->where('id',$user_id)->update(['balance'=>$user_balance]);
-        if(!$res||!$r){
+        $system_money['balance']=$system_money['balance']-$user_balance;
+        if($system_money['balance']<0){
+            Db::rollback();
+            return false;
+        }
+        $re=Db::name('system_money')->update($system_money);//修改
+        if(!$res||!$r||$re){
             Db::rollback();
             return false;
         }
@@ -360,7 +379,7 @@ class RankingLogic
         $detail['money']=$user_money;
         $detail['createtime']=time();
         $detail['intro']='中奖获得余额';
-        $id=Db::name('moneydetail')->insertGetId($detail);
+        $id=Db::name('moneydetail')->insertGetId($detail);//中奖
         if(!$id){
             Db::rollback();
             return false;
@@ -532,9 +551,15 @@ class RankingLogic
     public function user_balance($user_id,$money,$intro){
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
+        $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
+        $system_money['balance']=$system_money['balance']-$balance;
+        if($system_money['balance']<0){
+            return false;//系统金额少于0  则返佣失败
+        }
+        $res=Db::name('system_money')->update($system_money);
 //        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$money);
-        if(!$re){
+        if(!$re||!$res){
             return false;
         }else{
             $detail=[];

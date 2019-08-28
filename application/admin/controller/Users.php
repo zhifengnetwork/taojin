@@ -4,6 +4,7 @@ namespace app\admin\controller;
 
 use app\common\model\Users as UsersModel;
 use think\Db;
+use think\Session;
 
 class Users extends Common
 {
@@ -40,6 +41,7 @@ class Users extends Common
             }
             return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
         }
+
         return $this->fetch();
     }
 
@@ -214,27 +216,49 @@ class Users extends Common
                 return ['code' => 0,'msg' => '请求失败！'];
             }
             $data_num = $ifadd == 0?-$num:$num;
+            Db::startTrans();
+            $system_money=Db::name('system_money')->where('id',1)->find();
             if($type=='balance'){
                 $new_balance = $ifadd==0?bcsub($user['balance'],$num,2):bcadd($user['balance'],$num,2);
                 $data = ['balance'=>$new_balance>0?$new_balance:0];
-
+                $system_money['balance']=$ifadd==1?bcsub($system_money['balance'],$num,2):bcadd($system_money['balance'],$num,2);
+                if($system_money['balance']<0){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '系统金沙不足，请联系管理员！'];
+                }
+                $re=Db::name('system_money')->update($system_money);
+                if(!$re){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！'];
+                }
                 $res = Db::name('moneydetail')->insert([
                     'createtime' => time(),
                     'user_id' => $user_id,
                     'be_user_id' => $user_id,
                     'order_id' => 0,
                     'money' => $data_num,
-                    'intro' => "{$user['nick_name']}管理员操作{$data_num}",
+                    'intro' => Session::get('username')."管理员操作{$data_num}",
                     'type' => 6,
                     'balance' => $user['balance']
                 ]);
             }elseif($type=='integral'){
                 $new_balance = $ifadd==0?$user['integral']-$num:$user['integral']+$num;
                 $data = ['integral'=>$new_balance>0?$new_balance:0];
+                $system_money['integral']=$ifadd==1?bcsub($system_money['integral'],$num,2):bcadd($system_money['integral'],$num,2);
+                if($system_money['integral']<0){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '系统糖果不足，请联系管理员！'];
+                }
+                $re=Db::name('system_money')->update($system_money);
+                if(!$re){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！'];
+                }
                 $res =Db::name('integral')->insert([
                     'createtime' => time(),
                     'u_id' => $user_id,
                     'u_name' => $user['nick_name'],
+                    'intro'=>Session::get('username')."管理员操作{$data_num}",
                     'integral' => $data_num,
                     'type' => 8,
                     'then_integral' => $user['integral']
@@ -242,6 +266,16 @@ class Users extends Common
             }elseif($type=='currency'){
                 $new_balance = $ifadd==0?$user['currency']-$num:$user['currency']+$num;
                 $data = ['currency'=>$new_balance>0?$new_balance:0];
+                $system_money['currency']=$ifadd==1?bcsub($system_money['currency'],$num,2):bcadd($system_money['currency'],$num,2);
+                if($system_money['currency']<0){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '系统币不足，请联系管理员！'];
+                }
+                $re=Db::name('system_money')->update($system_money);
+                if(!$re){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！'];
+                }
                 $res =Db::name('users_currency')->insert([
                     'add_time' => time(),
                     'user_id' => $user_id,
@@ -249,13 +283,15 @@ class Users extends Common
                     'currency' => $data_num,
                     'type' => 2,
                     'old_currency' => $user['currency'],
-                    'desc'=>'管理员操作'
+                    'desc'=>Session::get('username').'管理员操作'
                 ]);
             }
             $res&&$res = Db::name('users')->where(['id'=>$user_id])->update($data);
             if($res){
+                Db::commit();
                 return ['code' => 1,'msg' => '修改成功！','url'=>url('index')];
             }else{
+                Db::rollback();
                 return ['code' => 0,'msg' => '修改失败！'];
             }
 

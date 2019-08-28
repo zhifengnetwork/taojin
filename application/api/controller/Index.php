@@ -62,9 +62,16 @@ class Index extends ApiBase
     public function receive_log($user_id,$num,$give_id){
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         Db::startTrans();
+        $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $res=Db::name('users')->where(['id'=>$user_id])->setInc('integral',$num);
         $re=Db::name('give')->where('id',$give_id)->update(['status'=>1]);//已领取
-        if($res&&$re){
+        $system_money['integral']=$system_money['integral']-$num;
+        if($system_money['integral']<0){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '系统糖果不足，请联系管理员！']);
+        }
+        $r=Db::name('system_money')->update($system_money);
+        if($res&&$re&&$r){
             $detail['u_id']=$user_id;
             $detail['u_name']=$user['nick_name'];
             $detail['integral']=$num;

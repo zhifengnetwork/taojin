@@ -16,6 +16,11 @@ class Team extends ApiBase
         if(!$is_direct){//直推会员
             $team_list=Db::name('users')->field('id,nick_name,phone')->where('p_1',$user_id)->select();
             $count=Db::name('users')->where('p_1',$user_id)->count();
+            foreach ($team_list as $key=>$value){
+                if(!$team_list[$key]['nick_name']){
+                    $team_list[$key]['nick_name']='无名氏';
+                }
+            }
             $data['data']=$team_list;
             $data['count']=$count;
             $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
