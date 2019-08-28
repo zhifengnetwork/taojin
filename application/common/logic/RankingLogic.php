@@ -36,8 +36,8 @@ class RankingLogic
             Db::rollback();
             return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
         }
-        $rs=Db::name('system_money')->update($system_money);//修改
-        if(!$re||!$r){
+        $rsss=Db::name('system_money')->update($system_money);//修改
+        if(!$re||!$r||!$rsss){
             Db::rollback();
             return ['status' => -2, 'msg' => '余额扣取失败或者奖池增加失败！'];
         }else{
