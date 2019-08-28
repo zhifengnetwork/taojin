@@ -155,14 +155,14 @@ class Crontab extends ApiBase
                 $RankingLogic = new RankingLogic();
                 foreach ($reward_ranking_list as $key=>$value){
                     //判断是否抽过奖
-                    $is_end=$RankingLogic->reward($value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
+                    $is_end=$RankingLogic->reward($value['id'],$value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
                     if(!$is_end){
                         Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录中奖时间段
                         return 'id为：'.$value["user_id"].'出错';//如果某一条出错，则退出任务
                     }
                 }
             }
-            Db::name('reward_log')->where('id',$reward_log_id)->update(['status'=>1]);//如果所以人抽奖完成，则完成
+            Db::name('reward_log')->where('id',$reward_log_id)->update(['status'=>1,'reward_time'=>$start_time]);//如果所以人抽奖完成，则完成
             return '抽奖完成';
         }else{
             return '不在抽奖时间内';

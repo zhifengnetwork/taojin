@@ -322,10 +322,10 @@ class RankingLogic
     /*
      * 抽奖
      */
-    public function reward($user_id,$money,$double_percent,$rank_id,$rank_time,$bonus_time){
+    public function reward($ranking_id,$user_id,$money,$double_percent,$rank_id,$rank_time,$bonus_time){
         $user_money=sprintf("%.2f",$money-($money*$double_percent/100));
         $today_time= strtotime(date("Y-m-d"),time());//今天的日期
-        $reward=Db::name('reward')->where(['user_id'=>$user_id,'reward_day'=>$today_time])->find();
+        $reward=Db::name('reward')->where(['ranking_id'=>$ranking_id,'user_id'=>$user_id,'reward_day'=>$today_time])->find();//根据ranking_id确定是否抽奖
         if($reward){
             return true;//第二次抽奖时，如果已经抽过了，则跳过
         }
