@@ -360,7 +360,9 @@ class Users extends ApiBase
                 $this->ajaxReturn(['status' => -2, 'msg' => '挂卖失败！']);
             }
         }
-        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance);
+        $user_money=$user['balance']+$balance;
+//        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance);
+        $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$user_money]);
         if($re){
             $detail=[];
             $detail['user_id']=$user_id;

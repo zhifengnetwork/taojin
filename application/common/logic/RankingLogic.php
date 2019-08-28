@@ -330,8 +330,14 @@ class RankingLogic
             return true;//第二次抽奖时，如果已经抽过了，则跳过
         }
         Db::startTrans();
-        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money);//扣取奖金池的钱
-        $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
+        $integral_num=Db::name('jackpot')->where('id',1)->value('integral_num');
+        $integral_num=$integral_num-$money;
+        $r=Db::name('jackpot')->where('id',1)->update(['integral_num'=>$integral_num]);//扣取奖金池的钱
+//        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money);//扣取奖金池的钱
+//        $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
+        $user_balance=Db::name('users')->where('id',$user_id)->value('balance');
+        $user_balance=$user_balance+$user_money;
+        $res=Db::name('users')->where('id',$user_id)->update(['balance'=>$user_balance]);
         if(!$res||!$r){
             Db::rollback();
             return false;
@@ -524,7 +530,10 @@ class RankingLogic
      * 代理返佣
      */
     public function user_balance($user_id,$money,$intro){
-        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$money);
+        $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
+        $balance=$balance+$money;
+        $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
+//        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$money);
         if(!$re){
             return false;
         }else{
