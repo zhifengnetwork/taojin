@@ -226,6 +226,14 @@ class Users extends Common
                     Db::rollback();
                     return ['code' => 0,'msg' => '系统金沙不足，请联系管理员！'];
                 }
+                $system_data['balance']=$ifadd==1?-$num:$num;;
+                $system_data['add_time']=time();
+                $system_data['desc']='后台充值修改系统金额';
+                $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+                if(!$sys_id){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！,生成系统log出错!'];
+                }
                 $re=Db::name('system_money')->update($system_money);
                 if(!$re){
                     Db::rollback();
@@ -249,6 +257,14 @@ class Users extends Common
                     Db::rollback();
                     return ['code' => 0,'msg' => '系统糖果不足，请联系管理员！'];
                 }
+                $system_data['integral']=$ifadd==1?-$num:$num;;
+                $system_data['add_time']=time();
+                $system_data['desc']='后台充值修改系统金额';
+                $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+                if(!$sys_id){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！,生成系统log出错!'];
+                }
                 $re=Db::name('system_money')->update($system_money);
                 if(!$re){
                     Db::rollback();
@@ -270,6 +286,14 @@ class Users extends Common
                 if($system_money['currency']<0){
                     Db::rollback();
                     return ['code' => 0,'msg' => '系统币不足，请联系管理员！'];
+                }
+                $system_data['currency']=$ifadd==1?-$num:$num;
+                $system_data['add_time']=time();
+                $system_data['desc']='后台充值修改系统金额';
+                $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+                if(!$sys_id){
+                    Db::rollback();
+                    return ['code' => 0,'msg' => '修改失败！,生成系统log出错!'];
                 }
                 $re=Db::name('system_money')->update($system_money);
                 if(!$re){

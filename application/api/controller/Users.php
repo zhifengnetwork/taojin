@@ -272,6 +272,16 @@ class Users extends ApiBase
                 $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败！']);
             }
         }
+        $system_data['currency']=-$currency;
+        $system_data['integral']=$integral;
+        $system_data['balance']=$balance;
+        $system_data['add_time']=time();
+        $system_data['desc']='兑换修改系统金额';
+        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+        if(!$sys_id){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '兑换失败,生成系统log出错！']);
+        }
         $res_s=Db::name('system_money')->update($system_money);//修改
         if(!$res||!$re||!$r||!$res_s){
             Db::rollback();
@@ -391,6 +401,15 @@ class Users extends ApiBase
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '挂卖失败！']);
             }
+        }
+        $system_data['currency']=$currency;
+        $system_data['balance']=-$user_money;
+        $system_data['add_time']=time();
+        $system_data['desc']='挂卖修改系统金额';
+        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+        if(!$sys_id){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '挂卖失败,生成系统log出错！']);
         }
         $r=Db::name('system_money')->update($system_money);//修改
         if(!$res||!$re||!$r){

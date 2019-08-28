@@ -70,6 +70,14 @@ class Index extends ApiBase
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '系统糖果不足，请联系管理员！']);
         }
+        $system_data['integral']=-$num;
+        $system_data['add_time']=time();
+        $system_data['desc']='领取糖果修改系统糖果';
+        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+        if(!$sys_id){
+            Db::rollback();
+            return false;
+        }
         $r=Db::name('system_money')->update($system_money);
         if($res&&$re&&$r){
             $detail['u_id']=$user_id;
