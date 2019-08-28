@@ -24,11 +24,25 @@ class User extends ApiBase
         $user_id = $this->get_user_id();
         if(!empty($user_id)){
             $data = Db::name("users")
-                ->field('id,phone,nick_name,avatar,balance,lock_balance,integral,currency,add_time')
+                ->field('id,phone,nick_name,avatar,balance,lock_balance,integral,currency,add_time,level')
                 ->where(['id' => $user_id ,'status'=>1])
                 ->find();
             if(empty($data)){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'会员不存在！','data'=>'']);
+            }
+            switch ($data['level']){
+                case 0:
+                    $data['level']='矿工';
+                    break;
+                case 1:
+                    $data['level']='矿队长';
+                    break;
+                case 6:
+                    $data['level']='矿场主';
+                    break;
+                default:
+                    $data['level']='矿工';
+                    break;
             }
             if(!$data['avatar']){
                 $data['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
