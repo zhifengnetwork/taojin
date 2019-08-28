@@ -28,16 +28,16 @@ class RankingLogic
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
         $system_money['balance']=$system_money['balance']+$money;
-        $system_data['balance']=$money;
-        $system_data['add_time']=time();
-        $system_data['desc']='购买修改系统金额';
-        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
-        if(!$sys_id){
-            Db::rollback();
-            return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
-        }
-        $rsss=Db::name('system_money')->update($system_money);//修改
-        if(!$re||!$r||!$rsss){
+//        $system_data['balance']=$money;
+//        $system_data['add_time']=time();
+//        $system_data['desc']='购买修改系统金额';
+//        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+//        if(!$sys_id){
+//            Db::rollback();
+//            return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
+//        }
+//        $rsss=Db::name('system_money')->update($system_money);//修改
+        if(!$re||!$r){
             Db::rollback();
             return ['status' => -2, 'msg' => '余额扣取失败或者奖池增加失败！'];
         }else{
@@ -58,7 +58,7 @@ class RankingLogic
                 $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
             }
             if($balance_unlock!=0){
-                $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
+//                $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
                 $ress=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance_unlock);
                 $rs=Db::name('users')->where(['id'=>$user_id])->setDec('lock_balance',$balance_unlock);
                 $system_money['balance']=$system_money['balance']-$balance_unlock;
@@ -82,14 +82,14 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '解冻log生成失败，购买失败！'];
                 }
             }
-            $system_data['balance']=-$balance_unlock;
-            $system_data['add_time']=time();
-            $system_data['desc']='解冻修改系统金额';
-            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
-            if(!$sys_id){
-                Db::rollback();
-                return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
-            }
+//            $system_data['balance']=-$balance_unlock;
+//            $system_data['add_time']=time();
+//            $system_data['desc']='解冻修改系统金额';
+//            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+//            if(!$sys_id){
+//                Db::rollback();
+//                return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
+//            }
             $rs=Db::name('system_money')->update($system_money);//修改
             if(!$rs){
                 Db::rollback();
