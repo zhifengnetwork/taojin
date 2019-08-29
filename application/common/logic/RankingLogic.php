@@ -66,6 +66,10 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '修改系统余额失败，请联系管理员！'];
                 }
                 $system_money['balance']=$system_money['balance']-$balance_unlock;
+                if($system_money['balance']<0){
+                    Db::rollback();
+                    return ['status' => -2, 'msg' => '系统金沙不足，请联系管理员！'];
+                }
                 $system_data['balance']=-$balance_unlock;
                 $system_data['add_time']=time();
                 $system_data['desc']='解冻修改系统金额';
@@ -75,10 +79,6 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
                 }
                 $rs=Db::name('system_money')->update($system_money);//修改
-                if($system_money['balance']<0){
-                    Db::rollback();
-                    return ['status' => -2, 'msg' => '系统金沙不足，请联系管理员！'];
-                }
                 if(!$ress||!$rs){
                     Db::rollback();
                     return ['status' => -2, 'msg' => '冻结余额解冻失败！'];

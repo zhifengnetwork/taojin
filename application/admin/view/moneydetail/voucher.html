@@ -155,7 +155,7 @@
             if(obj.event === 'xiajia'){
                 layer.confirm('您确定同意该笔提现申请吗？', function(index){
                     var loading = layer.load(1, {shade: [0.1, '#fff']});
-                    $.post("{:url('listXiajia')}",{id:data.id,status:data.v_state},function(res){
+                    $.post("{:url('listXiajia')}",{id:data.id,status:data.status},function(res){
                         layer.close(loading);
                         if(res.code===1){
                             layer.msg(res.msg,{time:1000,icon:1});

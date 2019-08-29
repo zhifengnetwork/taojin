@@ -77,6 +77,8 @@ class Index extends Common
         $this->assign("system_money",$system_money);
         $user_all=Db::name('users')->field('SUM(balance) as balance,SUM(integral) as integral,SUM(currency) as currency')->find();
         $this->assign("user_all",$user_all);
+        $withdraw=Db::name('withdraw')->where('status',0)->sum('money');
+        $this->assign("withdraw",$withdraw);
         //leapmary//###############################
         $classification = db('classification')->where("pid",0)->select();
         $classification = convert_arr_kv($classification,'id','title');

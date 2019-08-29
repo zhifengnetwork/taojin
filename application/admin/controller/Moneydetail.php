@@ -143,15 +143,34 @@ class Moneydetail extends Common
         $id = input('post.id');
         $v_state = input('post.status');
         //如果等于0，则更改状态为1
+        Db::startTrans();
         if($v_state==0){
-            $result=db('moneydetail')
+            $result=db('withdraw')
                 ->where('id',$id)
-                ->update(['v_state'=> 1
+                ->update(['status'=> 1
                 ]);
-            if($result===false){
+            if(!$result){
+                Db::rollback();
                 return ['code' => 2,'msg' => '更新失败！'];
             }
+            $system_money=Db::name('system_money')->where('id',1)->find();
+            $withdraw=db('withdraw')->where('id',$id)->find();
+            $system_money['balance']=$system_money['balance']+$withdraw['money'];
+            $system_data['balance']=$withdraw['money'];
+            $system_data['add_time']=time();
+            $system_data['desc']='提现审核修改系统金额';
+            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+            if(!$sys_id){
+                Db::rollback();
+                return ['status' => -2, 'msg' => '审核失败,生成系统log出错！'];
+            }
+            $rs=Db::name('system_money')->update($system_money);//修改
+            if(!$rs){
+                Db::rollback();
+                return ['status' => -2, 'msg' => '系统修改余额失败，审核失败！'];
+            }
         }
+        Db::commit();
         return ['code' => 1,'msg' => '审核成功！'];
 
     }
