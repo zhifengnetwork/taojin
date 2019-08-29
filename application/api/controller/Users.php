@@ -212,7 +212,7 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $currency=I('currency');
-        if(!$currency||intval($currency)<0){
+        if(!$currency||intval($currency)<0||ceil($currency)!=$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的兑换币数量！','data'=>'']);
         }
         $system_money=Db::name('system_money')->where('id',1)->find();
@@ -352,7 +352,7 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $currency=I('currency');
-        if(!$currency||intval($currency)<0){
+        if(!$currency||intval($currency)<0||ceil($currency)!=$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币数量！','data'=>'']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
