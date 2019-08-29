@@ -281,6 +281,9 @@ class Users extends ApiBase
         $system_data['currency']=-$currency;
         $system_data['integral']=$integral;
         $system_data['balance']=$balance;
+        $system_data['new_currency']=$system_money['currency'];
+        $system_data['new_integral']=$system_money['integral'];
+        $system_data['new_balance']=$system_money['balance'];
         $system_data['add_time']=time();
         $system_data['desc']='兑换修改系统金额';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);
@@ -410,6 +413,8 @@ class Users extends ApiBase
         }
         $system_data['currency']=$currency;
         $system_data['balance']=-$balance;
+        $system_data['new_currency']=$system_money['currency'];
+        $system_data['new_balance']=$system_money['balance'];
         $system_data['add_time']=time();
         $system_data['desc']='挂卖修改系统金额';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);

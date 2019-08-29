@@ -79,6 +79,7 @@ class Index extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '系统糖果不足，请联系管理员！']);
         }
         $system_data['integral']=-$num;
+        $system_data['new_integral']=$system_money['integral'];
         $system_data['add_time']=time();
         $system_data['desc']='领取糖果修改系统糖果';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);

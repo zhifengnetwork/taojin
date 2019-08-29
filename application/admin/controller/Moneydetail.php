@@ -157,6 +157,7 @@ class Moneydetail extends Common
             $withdraw=db('withdraw')->where('id',$id)->find();
             $system_money['balance']=$system_money['balance']+$withdraw['money'];
             $system_data['balance']=$withdraw['money'];
+            $system_data['new_balance']=$system_money['balance'];
             $system_data['add_time']=time();
             $system_data['desc']='提现审核修改系统金额';
             $sys_id=Db::name('system_money_log')->insertGetId($system_data);

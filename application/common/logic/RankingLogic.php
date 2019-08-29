@@ -29,6 +29,7 @@ class RankingLogic
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
         $system_money['balance']=$system_money['balance']+$money;
         $system_data['balance']=$money;
+        $system_data['new_balance']=$system_money['balance'];
         $system_data['add_time']=time();
         $system_data['desc']='购买修改系统金额';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);
@@ -63,7 +64,7 @@ class RankingLogic
                 $rs=Db::name('users')->where(['id'=>$user_id])->setDec('lock_balance',$balance_unlock);
                 if(!$rs){
                     Db::rollback();
-                    return ['status' => -2, 'msg' => '修改系统余额失败，请联系管理员！'];
+                    return ['status' => -2, 'msg' => '冻结余额解冻失败!'];
                 }
                 $system_money['balance']=$system_money['balance']-$balance_unlock;
                 if($system_money['balance']<0){
@@ -71,6 +72,7 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '系统金沙不足，请联系管理员！'];
                 }
                 $system_data['balance']=-$balance_unlock;
+                $system_data['new_balance']=$system_money['balance'];
                 $system_data['add_time']=time();
                 $system_data['desc']='解冻修改系统金额';
                 $sys_id=Db::name('system_money_log')->insertGetId($system_data);
@@ -78,10 +80,10 @@ class RankingLogic
                     Db::rollback();
                     return ['status' => -2, 'msg' => '购买失败,生成系统log出错！'];
                 }
-                $rs=Db::name('system_money')->update($system_money);//修改
-                if(!$ress||!$rs){
+                $res=Db::name('system_money')->update($system_money);//修改
+                if(!$ress||!$res){
                     Db::rollback();
-                    return ['status' => -2, 'msg' => '冻结余额解冻失败！'];
+                    return ['status' => -2, 'msg' => '修改系统余额失败，请联系管理员！'];
                 }
                 $detail=[];
                 $detail['user_id']=$user_id;
@@ -384,7 +386,7 @@ class RankingLogic
             return false;
         }
         $re=Db::name('system_money')->update($system_money);//修改
-        if(!$res||!$r||$re){
+        if(!$res||!$r||!$re){
             Db::rollback();
             return false;
         }
@@ -579,11 +581,13 @@ class RankingLogic
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
-        $system_money['balance']=$system_money['balance']-$money;
+//        $system_money['balance']=$system_money['balance']-$money;
+        $system_money['balance']=sprintf("%.2f",$system_money['balance']-$money);
         if($system_money['balance']<0){
             return false;//系统金额少于0  则返佣失败
         }
         $system_data['balance']=-$money;
+        $system_data['new_balance']=$system_money['balance'];
         $system_data['add_time']=time();
         $system_data['desc']='返佣修改系统金额';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);
