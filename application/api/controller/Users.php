@@ -24,7 +24,9 @@ class Users extends ApiBase
         if(!$balance){
             $this->ajaxReturn(['status' => -2, 'msg' => 'money不能为空！']);
         }
-
+        if($balance<1){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
+        }
         if($this->verify($balance)){//判断是否为100的整数倍
             $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
         }
@@ -86,7 +88,9 @@ class Users extends ApiBase
         if(!$integral){
             $this->ajaxReturn(['status' => -2, 'msg' => 'money不能为空！']);
         }
-
+        if($integral<1){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的糖果']);
+        }
         if($this->verify($integral)){//判断是否为100的整数倍
             $this->ajaxReturn(['status' => -2, 'msg' => '糖果数量必须是100的倍数！']);
         }
@@ -148,7 +152,9 @@ class Users extends ApiBase
         if(!$currency){
             $this->ajaxReturn(['status' => -2, 'msg' => 'currency不能为空！']);
         }
-
+        if($currency<1){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币']);
+        }
         if($this->verify($currency)){//判断是否为100的整数倍
             $this->ajaxReturn(['status' => -2, 'msg' => '币数量必须是100的倍数！']);
         }
