@@ -579,7 +579,6 @@ class RankingLogic
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
-        $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
         $system_money['balance']=$system_money['balance']-$money;
         if($system_money['balance']<0){
             return false;//系统金额少于0  则返佣失败
@@ -591,8 +590,8 @@ class RankingLogic
         if(!$sys_id){
             return false;
         }
+        $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
         $res=Db::name('system_money')->update($system_money);
-//        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$money);
         if(!$re||!$res){
             return false;
         }else{
