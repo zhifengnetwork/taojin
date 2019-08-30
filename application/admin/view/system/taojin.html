@@ -63,8 +63,14 @@
                 <input type="text" lay-verify="required" name="yq_lock_balance" placeholder="" value="{$info.yq_lock_balance}" class="layui-input">
             </div>
         </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">昨日币值(元)：</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$info.yesterday_currency}</label>
+            </div>
+        </div>
         <div class="layui-form-item" >
-            <label class="layui-form-label">币值(元)</label>
+            <label class="layui-form-label">今日币值(元)</label>
             <div class="layui-input-4">
                 <input type="text" lay-verify="required" name="currency" placeholder="" value="{$info.currency}" class="layui-input">
             </div>

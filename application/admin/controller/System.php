@@ -138,7 +138,18 @@ class System extends Common
 
             $datas = input('post.');
             unset($datas['file']);
+
             foreach ($datas as $k=>$v){
+                if($k=='currency'){
+                    $yesterday_time=$table->where(['inc_type'=>'taojin','name'=>'yesterday_time'])->value('value');
+                    $currency=$table->where(['inc_type'=>'taojin','name'=>'currency'])->value('value');
+                    $yesterday_time=strtotime($yesterday_time);
+                    $tomorrow=date('Y-m-d ',strtotime('+1 day')).'00:00:00';
+                    if($yesterday_time<time()){
+                        $table->where(['name'=>'yesterday_currency','inc_type'=>'taojin'])->update(['value'=>$currency]);
+                        $table->where(['name'=>'yesterday_time','inc_type'=>'taojin'])->update(['value'=>$tomorrow]);
+                    }
+                }
                 $table->where(['name'=>$k,'inc_type'=>'taojin'])->update(['value'=>$v]);
             }
             return json(['code' => 1, 'msg' => '设置成功!', 'url' => url('system/taojin')]);
