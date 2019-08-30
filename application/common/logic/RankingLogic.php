@@ -581,12 +581,14 @@ class RankingLogic
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
+        $old_balance=$system_money['balance'];
 //        $system_money['balance']=$system_money['balance']-$money;
         $system_money['balance']=sprintf("%.2f",$system_money['balance']-$money);
         if($system_money['balance']<0){
             return false;//系统金额少于0  则返佣失败
         }
         $system_data['balance']=-$money;
+        $system_data['old_balance']=$old_balance;
         $system_data['new_balance']=$system_money['balance'];
         $system_data['add_time']=time();
         $system_data['desc']='返佣修改系统金额';
