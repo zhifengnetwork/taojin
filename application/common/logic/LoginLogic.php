@@ -21,7 +21,7 @@ class LoginLogic
         }
         
         if ( time() > $res['expires'] ) { 
-            return ['status' => -1, 'msg' => time().'验证码已过期！'.$res['expires'] ];
+            return ['status' => -1, 'msg' => '验证码已过期！' ];
         }
 
         if( $code != $res['code'] ){

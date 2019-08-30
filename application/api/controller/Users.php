@@ -16,10 +16,16 @@ class Users extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $u_id=I('u_id');
+//        $u_id=I('u_id');
         $balance=I('money');
-        if(!$u_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => 'u_id不能为空！']);
+        $phone=I('phone');
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
+
+        if(!$phone){
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能为空！']);
         }
         if(!$balance){
             $this->ajaxReturn(['status' => -2, 'msg' => 'money不能为空！']);
@@ -32,17 +38,21 @@ class Users extends ApiBase
         }
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $give_user=Db::name('users')->where(['id'=>$u_id])->find();
+        $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+        }
         if($user['balance']<$balance){
             $this->ajaxReturn(['status' => -2, 'msg' => '您的余额不足，不能赠送！']);
         }
         if(!$give_user){
-            $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        $res=Db::name('users')->where(['id'=>$u_id])->setInc('balance',$balance);
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('balance',$balance);
         if($res){
-            $detail['user_id']=$u_id;
+            $detail['user_id']=$give_user['id'];
             $detail['type']=5;//被赠送
             $detail['money']=$balance;
             $detail['createtime']=time();
@@ -80,10 +90,14 @@ class Users extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $u_id=I('u_id');
         $integral=I('integral');
-        if(!$u_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => 'u_id不能为空！']);
+        $phone=I('phone');
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
+        if(!$phone){
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能为空！']);
         }
         if(!$integral){
             $this->ajaxReturn(['status' => -2, 'msg' => 'money不能为空！']);
@@ -95,7 +109,11 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '糖果数量必须是100的倍数！']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $give_user=Db::name('users')->where(['id'=>$u_id])->find();
+        $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+        }
         if($user['integral']<$integral){
             $this->ajaxReturn(['status' => -2, 'msg' => '您的糖果不足，不能赠送！']);
         }
@@ -103,9 +121,9 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
         Db::startTrans();
-        $res=Db::name('users')->where(['id'=>$u_id])->setInc('integral',$integral);
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('integral',$integral);
         if($res){
-            $detail['u_id']=$u_id;
+            $detail['u_id']=$give_user['id'];
             $detail['u_name']=$give_user['nick_name'];
             $detail['integral']=$integral;
             $detail['type']=2;//被赠与
@@ -144,10 +162,14 @@ class Users extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $u_id=I('u_id');
         $currency=I('currency');
-        if(!$u_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => 'u_id不能为空！']);
+        $phone=I('phone');
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
+        if(!$phone){
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能为空！']);
         }
         if(!$currency){
             $this->ajaxReturn(['status' => -2, 'msg' => 'currency不能为空！']);
@@ -159,7 +181,11 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '币数量必须是100的倍数！']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $give_user=Db::name('users')->where(['id'=>$u_id])->find();
+        $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+        }
         if($user['currency']<$currency){
             $this->ajaxReturn(['status' => -2, 'msg' => '您的币不足，不能赠送！']);
         }
@@ -167,9 +193,9 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
         Db::startTrans();
-        $res=Db::name('users')->where(['id'=>$u_id])->setInc('currency',$currency);
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('currency',$currency);
         if($res){
-            $detail['user_id']=$u_id;
+            $detail['user_id']=$give_user['id'];
             $detail['user_name']=$give_user['nick_name'];
             $detail['type']=3;//被赠与
             $detail['currency']=$currency;
@@ -212,6 +238,10 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $currency=I('currency');
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
         if(!$currency||intval($currency)<0||ceil($currency)!=$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的兑换币数量！','data'=>'']);
         }
