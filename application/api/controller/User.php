@@ -24,7 +24,7 @@ class User extends ApiBase
         $user_id = $this->get_user_id();
         if(!empty($user_id)){
             $data = Db::name("users")
-                ->field('id,phone,nick_name,avatar,balance,lock_balance,integral,currency,add_time,level')
+                ->field('id,phone,nick_name,avatar,balance,recharge_balance,lock_balance,integral,currency,add_time,level')
                 ->where(['id' => $user_id ,'status'=>1])
                 ->find();
             if(empty($data)){
