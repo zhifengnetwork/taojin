@@ -9,7 +9,7 @@
             <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
         </div>
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
-        <a href="{:url('index')}" class="layui-btn">显示全部</a>
+        <a href="{:url('card')}" class="layui-btn">显示全部</a>
         <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
         <!--<a href="{:url('Category/index')}" class="layui-btn layui-btn-normal" style="float:right;">返回</a>-->
         <!--<a href="{:url('add')}" class="layui-btn" style="float:right;margin-right: 15px;">{:lang('add')}</a>-->
@@ -146,7 +146,26 @@
                 });
             }
         });
-        
+        $('#delAll').click(function(){
+            layer.confirm('确认要删除选中的内容吗？', {icon: 3}, function(index) {
+                layer.close(index);
+                var checkStatus = table.checkStatus('content'); //content即为参数id设定的值
+                var ids = [];
+                $(checkStatus.data).each(function (i, o) {
+                    ids.push(o.id);
+                });
+                var loading = layer.load(1, {shade: [0.1, '#fff']});
+                $.post("{:url('cardDelAll')}", {ids: ids,catid:'{:input("catid")}'}, function (data) {
+                    layer.close(loading);
+                    if (data.code === 1) {
+                        layer.msg(data.msg, {time: 1000, icon: 1});
+                        tableIn.reload({where:{catid:'{:input("catid")}'}});
+                    } else {
+                        layer.msg(data.msg, {time: 1000, icon: 2});
+                    }
+                });
+            });
+        })
         function cert(id,status,index) {
             var loading = layer.load(1, {shade: [0.1, '#fff']});
             $.post("{:url('check_card')}",{id:id,status:status},function(res){

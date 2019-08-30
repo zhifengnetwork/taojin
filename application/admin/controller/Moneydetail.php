@@ -578,7 +578,14 @@ class Moneydetail extends Common
             return $this->fetch('moneydetail/card');
         }
     }
-
+    public function cardDelAll(){
+        $map['id'] = array('in',input('param.ids/a'));
+        Db::name('card')->where($map)->delete();
+        $result['code'] = 1;
+        $result['msg'] = '删除成功！';
+        $result['url'] = url('card',array('catid' => input('post.catid')));
+        return $result;
+    }
     public function check_card()
     {
         $status = input('status/d');
