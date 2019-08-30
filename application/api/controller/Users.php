@@ -393,7 +393,7 @@ class Users extends ApiBase
         $user_money=$user['balance']+$balance;
 //        $re=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance);
         $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$user_money]);
-        $system_money['balance']=$system_money['balance']-$balance;
+        $system_money['balance']=sprintf("%.2f",$system_money['balance']-$balance);
         if($system_money['balance']<0){
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '系统金沙不足，请联系管理员！']);

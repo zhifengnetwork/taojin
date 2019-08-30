@@ -372,7 +372,7 @@ class RankingLogic
         $user_balance=Db::name('users')->where('id',$user_id)->value('balance');
         $user_balance=$user_balance+$user_money;
         $res=Db::name('users')->where('id',$user_id)->update(['balance'=>$user_balance]);
-        $system_money['balance']=$system_money['balance']-$user_balance;
+        $system_money['balance']=sprintf("%.2f",$system_money['balance']-$user_money);
         if($system_money['balance']<0){
             Db::rollback();
             return false;

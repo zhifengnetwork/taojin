@@ -155,7 +155,7 @@ class Moneydetail extends Common
             }
             $system_money=Db::name('system_money')->where('id',1)->find();
             $withdraw=db('withdraw')->where('id',$id)->find();
-            $system_money['balance']=$system_money['balance']+$withdraw['money'];
+            $system_money['balance']=sprintf("%.2f",$system_money['balance']+$withdraw['money']);
             $system_data['balance']=$withdraw['money'];
             $system_data['new_balance']=$system_money['balance'];
             $system_data['add_time']=time();
