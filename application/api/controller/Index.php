@@ -206,6 +206,27 @@ class Index extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$users_currency_list]);
     }
+    public function get_lock_balance(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+//        $lock_balance_list=Db::name('moneydetail')->where(['type'=>3,'user_id'=>$user_id])->whereOr(['typefrom'=>1])
+        $lock_balance_list=Db::name('moneydetail')
+            ->where('type=3 or typefrom=1')
+            ->where(['user_id'=>$user_id])
+            ->field('user_id,money,type,typefrom,intro')
+            ->paginate(10,false,$pageParam)
+            ->toArray();
+        $lock_balance_list=$lock_balance_list['data'];
+        foreach ($lock_balance_list as $key=>$value){
+            if($value['type']==3&&$value['typefrom']==0){
+                $lock_balance_list['money']=-$value['money'];
+            }
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
+    }
     function balance_type($type){
         switch ($type){
             case 1:

@@ -51,39 +51,64 @@ class Ranking extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $pageParam=[];
-        $where=[];
-        $where['rank_status']=0;
-        $where['rank_status']=0;
-        $where['is_delete']=0;
-        $list=Db::name('ranking')->field('id')->where($where)->select();
-        $data_list=[];
-        foreach ($list as $key=>$value)//二维数组转换
-        {
-            $data_list[$key]=$value['id'];
+        $type=I('type',0);
+        if($type==1){//出局排位
+            $pageParam=[];
+            $where=[];
+            $where['user_id']=$user_id;
+            $where['rank_status']=1;//出局
+            $where['is_delete']=0;
+            $rank_list=Db::name('ranking')
+                ->field('id,user_id,rank_time')
+                ->where($where)
+                ->order('id')
+                ->paginate(10,false,$pageParam);
+            $rank_list=$rank_list->toArray();
+            $rank_list=$rank_list['data'];
+            foreach ($rank_list as $k=>$v){
+                $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+            }
+            $where=[];
+            $where['rank_status']=1;
+            $count=Db::name('ranking')->where($where)->count();//出局人数
+            $data['rank_list']=$rank_list;
+            $data['count']=$count;
+        }else{
+            $pageParam=[];
+            $where=[];
+            $where['rank_status']=0;
+            $where['rank_status']=0;
+            $where['is_delete']=0;
+            $list=Db::name('ranking')->field('id')->where($where)->select();
+            $data_list=[];
+            foreach ($list as $key=>$value)//二维数组转换
+            {
+                $data_list[$key]=$value['id'];
+            }
+            $data_list=array_flip($data_list);//键值翻转
+            $where=[];
+            $where['user_id']=$user_id;
+            $where['rank_status']=0;
+            $where['is_delete']=0;
+            $rank_list=Db::name('ranking')
+                ->field('id,user_id,rank_time')
+                ->where($where)
+                ->order('id')
+                ->paginate(10,false,$pageParam);
+            $rank_list=$rank_list->toArray();
+            $rank_list=$rank_list['data'];
+            foreach ($rank_list as $k=>$v){
+                $rank_list[$k]['num']=$data_list[$v['id']];
+                $rank_list[$k]['rank']=$data_list[$v['id']]+1;
+                $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+            }
+            $where=[];
+            $where['rank_status']=1;
+            $count=Db::name('ranking')->where($where)->count();//出局人数
+            $data['rank_list']=$rank_list;
+            $data['count']=$count;
         }
-        $data_list=array_flip($data_list);//键值翻转
-        $where=[];
-        $where['user_id']=$user_id;
-        $where['rank_status']=0;
-        $where['is_delete']=0;
-        $rank_list=Db::name('ranking')
-            ->field('id,user_id,rank_time')
-            ->where($where)
-            ->order('id')
-            ->paginate(10,false,$pageParam);
-        $rank_list=$rank_list->toArray();
-        $rank_list=$rank_list['data'];
-        foreach ($rank_list as $k=>$v){
-            $rank_list[$k]['num']=$data_list[$v['id']];
-            $rank_list[$k]['rank']=$data_list[$v['id']]+1;
-            $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
-        }
-        $where=[];
-        $where['rank_status']=1;
-        $count=Db::name('ranking')->where($where)->count();//出局人数
-        $data['rank_list']=$rank_list;
-        $data['count']=$count;
+
 //        $subQuery = Db::name('ranking')
 //            ->fieldRaw('*, @rownum := @rownum+1 AS rownum')
 //            ->where($where)
