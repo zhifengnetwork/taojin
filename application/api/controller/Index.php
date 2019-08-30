@@ -52,22 +52,89 @@ class Index extends ApiBase
         $where['user_id']=$user_id;
         $where['status']=0;
         $give_list=Db::name('give')->where($where)->select();
-        if($give_list){
-            $number=0;
-            foreach ($give_list as $key=>$value){
-                $num_i=$this->receive_log($user_id,$value['num'],$value['id']);
-                $number=$number+$num_i;
-            }
-            $data['num']=$number;
-            $this->ajaxReturn(['status' => 1, 'msg' => '领取成功！','data'=>$data]);
-        }else{
+        $sum_num=Db::name('give')->where($where)->sum('num');
+        if($give_list) {
+            $ids = $this->get_ids($give_list);
+            $this->receive_log($user_id, $sum_num, $ids);
+            $data['num'] = $sum_num;
+            $this->ajaxReturn(['status' => 1, 'msg' => '领取成功！', 'data' => $data]);
+        } else{
             $this->ajaxReturn(['status' => -2, 'msg' => '糖果已过期！']);
         }
+//        if($give_list){
+//            $number=0;
+//            foreach ($give_list as $key=>$value){
+//                $num_i=$this->receive_log($user_id,$value['num'],$value['id']);
+//                $number=$number+$num_i;
+//            }
+//            $data['num']=$number;
+//            $this->ajaxReturn(['status' => 1, 'msg' => '领取成功！','data'=>$data]);
+//        }else{
+//            $this->ajaxReturn(['status' => -2, 'msg' => '糖果已过期！']);
+//        }
+    }
+    public function get_ids($give_list){
+        $ids="";
+        foreach ($give_list as $key=>$value){
+            if(!$ids){
+                $ids=$value['id'];
+            }else{
+                $ids=','.$value['id'];
+            }
+        }
+        return $ids;
     }
     /*
      * 领取增加糖果
      */
-    public function receive_log($user_id,$num,$give_id){
+    public function receive_log($user_id,$num,$ids){
+        $user=Db::name('users')->where(['id'=>$user_id])->find();
+        Db::startTrans();
+        $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
+        $res=Db::name('users')->where(['id'=>$user_id])->setInc('integral',$num);
+        $system_money['integral']=$system_money['integral']-$num;
+        if($system_money['integral']<0){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '系统糖果不足，请联系管理员！']);
+        }
+        $system_data['integral']=-$num;
+        $system_data['new_integral']=$system_money['integral'];
+        $system_data['add_time']=time();
+        $system_data['desc']='领取糖果修改系统糖果';
+        $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+        if(!$sys_id){
+            Db::rollback();
+            return false;
+        }
+        $r=Db::name('system_money')->update($system_money);
+        if($res&&$r){
+            $detail['u_id']=$user_id;
+            $detail['u_name']=$user['nick_name'];
+            $detail['integral']=$num;
+            $detail['type']=3;//出局赠送
+            $detail['then_integral']=$user['integral'];
+            $detail['createtime']=time();
+            $id=Db::name('integral')->insertGetId($detail);
+            if(!$id){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+            }
+            $re=Db::name('give')->where('id','in',$ids)->update(['status'=>1]);//已领取
+            if(!$re){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+            }
+        }else{
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+        }
+        Db::commit();
+        return $num;
+    }
+    /*
+     * 领取增加糖果
+     */
+    public function receive_log2($user_id,$num,$give_id){
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         Db::startTrans();
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额

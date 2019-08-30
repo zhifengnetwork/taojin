@@ -16,7 +16,7 @@ class RankingLogic
     public function buy_gold_shovel($user_id,$num,$today_start=0){
         $system = Db::name('system')->field('id,name,title,money,logo')->where('id=1')->find();
         $user = Db::name('users')->where(['id'=>$user_id])->find();
-        $balance = $user['balance'];
+        $balance = $user['recharge_balance']+$user['balance'];
         $money=$system['money'] * $num;
         if($balance < $money  ){
             return ['status' => -2, 'msg' => '余额不足！'];
@@ -26,7 +26,15 @@ class RankingLogic
         Db::startTrans();
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
-        $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$money);
+        if($user['recharge_balance']>$money){//充值余额足够扣款
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('recharge_balance',$money);
+        }else{
+            $over_money=$money-$user['recharge_balance'];
+            $user_data['balance']=$user['balance']-$over_money;
+            $user_data['recharge_balance']=0;
+            $re=Db::name('users')->where(['id'=>$user_id])->update($user_data);
+        }
+
         $system_money['balance']=$system_money['balance']+$money;
         $system_data['balance']=$money;
         $system_data['new_balance']=$system_money['balance'];
@@ -136,7 +144,7 @@ class RankingLogic
             }
         }
         $user_name=M('users')->where(['id'=>$user_id])->value('nick_name');
-        if($today_start!=0&&$num>120){
+        if($today_start!=0&&$num>100){
             $data_c['user_id']=$user_id;
             $data_c['user_name']=$user_name;
             $data_c['add_time']=time();
@@ -149,23 +157,39 @@ class RankingLogic
                 return ['status' => -2, 'msg' => '订单生成错误！'];
             }
         }else{
-            for ($i=0;$i<$num;$i++){
-                $data['user_id'] = $user_id;
-                $data['user_name'] = $user_name;
-                if($today_start!=0){
-                    $data['rank_time'] = $today_start;
-                    $today_start=$today_start+60;//+1分钟
-                }else{
-                    $data['rank_time'] = time();
-                }
-                $data['money']=$system['money'];
-                $data['add_time'] = time();
-                $res = Db::name('ranking')->insertGetId($data);
-                if(!$res){
+            if($num>100){
+                $data_u['user_id']=$user_id;
+                $data_u['user_name']=$user_name;
+                $data_u['add_time']=time();
+                $data_u['start_time']=time();
+                $data_u['type']=1;//不是包时间段
+                $data_u['num']=$num;
+                $data_u['money']=$system['money'];
+                $res_u=Db::name('crontab')->insertGetId($data_u);
+                if(!$res_u){
                     Db::rollback();
                     return ['status' => -2, 'msg' => '订单生成错误！'];
                 }
+            }else{
+                for ($i=0;$i<$num;$i++){
+                    $data['user_id'] = $user_id;
+                    $data['user_name'] = $user_name;
+                    if($today_start!=0){
+                        $data['rank_time'] = $today_start;
+                        $today_start=$today_start+60;//+1分钟
+                    }else{
+                        $data['rank_time'] = time();
+                    }
+                    $data['money']=$system['money'];
+                    $data['add_time'] = time();
+                    $res = Db::name('ranking')->insertGetId($data);
+                    if(!$res){
+                        Db::rollback();
+                        return ['status' => -2, 'msg' => '订单生成错误！'];
+                    }
+                }
             }
+
         }
         Db::commit();
         if($user['p_1']){
@@ -267,6 +291,8 @@ class RankingLogic
         $data=[];
         $data['rank_status']=1;//出局
         $data['out_source']='T_'.$triple_out;//出局源
+        $data['out_type']=3;//三倍出局
+        $data['out_time']=time();//出局时间
         $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
         if(!$res||!$r){
             Db::rollback();
@@ -320,6 +346,8 @@ class RankingLogic
         $data=[];
         $data['rank_status']=1;//出局
         $data['out_source']='D_'.$double_out;//出局源
+        $data['out_type']=2;//两倍出局
+        $data['out_time']=time();//出局时间
         $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
         if(!$res||!$r){
             Db::rollback();

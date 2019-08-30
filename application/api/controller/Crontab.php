@@ -64,8 +64,34 @@ class Crontab extends ApiBase
     }
     //测试
     public function text(){
-        sleep(3);
-        $this->ajaxReturn(['status' => -2 , 'msg'=>'测试睡眠']);
+        Db::startTrans();
+        $res=Db::name('goods')->where('id',1)->update(['shop_title'=>'条码超市']);
+        $re=$this->txxxx();
+        if(!$res||!$re){
+            Db::rollback();
+            return '失败';
+        }else{
+            Db::commit();
+            return '成功';
+        }
+
+    }
+    //测试2
+    public function txxxx(){
+        $ids='1,2,3';
+        $re=Db::name('give')->where('id','in',$ids)->update(['status'=>0]);
+        return $re;
+
+//        $data['name']='美国';
+//        $data['pid']=0;
+//        $re=Db::name('area')->insertGetId($data);
+////        $re=Db::name('goods')->where('id',12)->update(['shop_title'=>'条码超市3']);
+//        $res=Db::name('goods')->where('id',2)->update(['shop_title'=>'天猫超市']);
+//        if($res&&$re){
+//            return true;
+//        }else{
+//            return false;
+//        }
     }
     /*
      * 抽奖定时任务
@@ -168,6 +194,7 @@ class Crontab extends ApiBase
             return '不在抽奖时间内';
         }
     }
+    //下单定时任务
     public function time_slot_crontab(){
         $start_time=time();
         for ($i=0;$i<60;$i++){
@@ -175,8 +202,8 @@ class Crontab extends ApiBase
                 return;
             }
             $where['status']=0;
-            $where['type']=0;
-            $cro_list=Db::name('crontab')->where($where)->select();//包时间段
+//            $where['type']=0;
+            $cro_list=Db::name('crontab')->where($where)->select();//定时任务下单
             if($cro_list){
                 foreach ($cro_list as $key=>$value){
                     $num=$value['num'];
@@ -189,8 +216,12 @@ class Crontab extends ApiBase
                         $data['user_id'] = $user_id;
                         $data['user_name'] = $user_name;
                         if($today_start!=0){
-                            $data['rank_time'] = $today_start;
-                            $today_start=$today_start+60;//+1分钟
+                            if($value['type']==1){//正常下单流程
+                                $data['rank_time'] = $today_start;
+                            }else{//包时间段
+                                $data['rank_time'] = $today_start;
+                                $today_start=$today_start+60;//+1分钟
+                            }
                         }else{
                             $data['rank_time'] = time();
                         }

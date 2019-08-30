@@ -219,8 +219,8 @@ class Users extends Common
             Db::startTrans();
             $system_money=Db::name('system_money')->where('id',1)->find();
             if($type=='balance'){
-                $new_balance = $ifadd==0?bcsub($user['balance'],$num,2):bcadd($user['balance'],$num,2);
-                $data = ['balance'=>$new_balance>0?$new_balance:0];
+                $new_balance = $ifadd==0?bcsub($user['recharge_balance'],$num,2):bcadd($user['recharge_balance'],$num,2);
+                $data = ['recharge_balance'=>$new_balance>0?$new_balance:0];
                 $system_money['balance']=$ifadd==1?bcsub($system_money['balance'],$num,2):bcadd($system_money['balance'],$num,2);
                 if($system_money['balance']<0){
                     Db::rollback();
@@ -248,7 +248,7 @@ class Users extends Common
                     'money' => $data_num,
                     'intro' => Session::get('username')."管理员操作{$data_num}",
                     'type' => 6,
-                    'balance' => $user['balance']
+                    'balance' => $user['recharge_balance']
                 ]);
             }elseif($type=='integral'){
                 $new_balance = $ifadd==0?$user['integral']-$num:$user['integral']+$num;

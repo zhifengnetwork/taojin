@@ -287,13 +287,20 @@ class Ranking extends ApiBase
         }
         $start_time=strtotime(date("Y-m-d")." 14:00:00");
         $end_time=strtotime(date("Y-m-d")." 14:01:00");
+        $check_time=I('check_time');
+        if(!$check_time){
+            $check_time=time();
+        }
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
+        }
+        if($check>$start_time&&$end_time>$check){//开奖时间段，不能下单
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请重新选择'.$end_time-time().'秒']);
         }
         $type=I('type');
         switch ($type){
             case 1:
-                $res=$this->time_list($type,$start_time);
+                $res=$this->time_list($type,$start_time,$check_time);
                 if(!$res){
                     $this->ajaxReturn(['status' => -2 , 'msg'=>'距离开奖时间太近，不能购买']);
                 }else{
@@ -305,7 +312,7 @@ class Ranking extends ApiBase
                 }
                 break;
             case 2:
-                $res=$this->time_list($type,$start_time);
+                $res=$this->time_list($type,$start_time,$check_time);
                 if(!$res){
                     $this->ajaxReturn(['status' => -2 , 'msg'=>'距离开奖时间太近，不能购买']);
                 }else{
@@ -316,7 +323,7 @@ class Ranking extends ApiBase
                     $this->ajaxReturn($res);
                 }
             case 4:
-                $res=$this->time_list($type,$start_time);
+                $res=$this->time_list($type,$start_time,$check_time);
                 if(!$res){
                     $this->ajaxReturn(['status' => -2 , 'msg'=>'距离开奖时间太近，不能购买']);
                 }else{
@@ -327,7 +334,7 @@ class Ranking extends ApiBase
                     $this->ajaxReturn($res);
                 }
             case 6:
-                $res=$this->time_list($type,$start_time);
+                $res=$this->time_list($type,$start_time,$check_time);
                 if(!$res){
                     $this->ajaxReturn(['status' => -2 , 'msg'=>'距离开奖时间太近，不能购买']);
                 }else{
@@ -352,16 +359,16 @@ class Ranking extends ApiBase
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'类型错误，不能购买']);
         }
     }
-    public function time_list($type,$start_time){
-        if($start_time>time()){//还没开奖
-            if((time()+3600*$type)>$start_time){
+    public function time_list($type,$start_time,$check_time){
+        if($start_time>$check_time){//还没开奖
+            if(($check_time+3600*$type)>$start_time){
                 return false;
             }else{
-                $today_start=time();
+                $today_start=$check_time;
                 $num=$type*60;
             }
         }else{
-            $today_start=time();
+            $today_start=$check_time;
             $num=$type*60;
         }
         return ['num'=>$num,'time'=>$today_start];
