@@ -207,7 +207,7 @@ class Users extends Common
     public function adminadd(){
         $user_id = input('id/d');
         $type = input('type/s');
-        $user = Db::name('users')->field('nick_name,balance,integral,currency')->where(['id'=>$user_id])->find();
+        $user = Db::name('users')->field('nick_name,balance,recharge_balance,integral,currency')->where(['id'=>$user_id])->find();
         if(request()->isPost()){
 
             $num = input('num');
