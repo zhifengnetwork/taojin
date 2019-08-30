@@ -192,11 +192,11 @@ class RankingLogic
 
         }
         Db::commit();
-        if($user['p_1']){
-            $level_one=Db::name('user_level')->where('level_id',1)->find();//矿队长
-            $level_two=Db::name('user_level')->where('level_id',6)->find();//矿场主
-            $is_dl=$this->select_up($user['p_1'],$level_one,$level_two);
-        }
+//        if($user['p_1']){
+//            $level_one=Db::name('user_level')->where('level_id',1)->find();//矿队长
+//            $level_two=Db::name('user_level')->where('level_id',6)->find();//矿场主
+//            $is_dl=$this->select_up($user['p_1'],$level_one,$level_two);
+//        }
         return ['status' => 1, 'msg' => '购买成功！'];
     }
     /*
