@@ -92,6 +92,7 @@ class Index extends ApiBase
         Db::startTrans();
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $res=Db::name('users')->where(['id'=>$user_id])->setInc('integral',$num);
+        $old_integral=$system_money['integral'];
         $system_money['integral']=$system_money['integral']-$num;
         if($system_money['integral']<0){
             Db::rollback();
@@ -99,6 +100,7 @@ class Index extends ApiBase
         }
         $system_data['integral']=-$num;
         $system_data['new_integral']=$system_money['integral'];
+        $system_data['old_integral']=$old_integral;
         $system_data['add_time']=time();
         $system_data['desc']='领取糖果修改系统糖果';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);
