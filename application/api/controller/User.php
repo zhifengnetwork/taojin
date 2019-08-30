@@ -344,6 +344,14 @@ class User extends ApiBase
         if(!$user){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
         }
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+        }
         $type = input('post.type/d', 0);
         if (!in_array($type, [1, 2])) {
             $this->ajaxReturn(['status' => -2, 'msg' => '提现方式选择错误！']);

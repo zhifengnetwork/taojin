@@ -257,6 +257,10 @@ class Users extends ApiBase
         if($user['balance']<$balance){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'金沙数量不足'.$balance.'，请重新兑换！','data'=>'']);
         }
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+        }
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$user_id])->setInc('currency',$currency);
         $system_money['currency']=$system_money['currency']-$currency;//释放币
@@ -388,10 +392,18 @@ class Users extends ApiBase
         if(!$currency||intval($currency)<0||ceil($currency)!=$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币数量！','data'=>'']);
         }
+        $paypwd=I('paypwd');
+        if(!$paypwd){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+        }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $system_money=Db::name('system_money')->where('id',1)->find();
         if($user['currency']<$currency){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'币数量不足，请重新挂卖！','data'=>'']);
+        }
+        $verify = password_verify($paypwd,$user['paypwd']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
         $currency_money=$this->set_value('currency');
         $balance=$currency_money*$currency;
