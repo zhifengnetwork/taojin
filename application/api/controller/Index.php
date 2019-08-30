@@ -79,7 +79,7 @@ class Index extends ApiBase
             if(!$ids){
                 $ids=$value['id'];
             }else{
-                $ids=','.$value['id'];
+                $ids=$ids.','.$value['id'];
             }
         }
         return $ids;
