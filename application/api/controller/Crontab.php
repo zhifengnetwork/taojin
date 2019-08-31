@@ -149,7 +149,7 @@ class Crontab extends ApiBase
                 $where['rank_time']=['between',[$start_time,$end_time]];
                 $reward_ranking_list=Db::name('ranking')->where($where)->select();
                 if(!$reward_ranking_list){//数据为空，则退出
-                    return '数据空，退出';
+                    return '随机抽奖数据空，退出';
                 }
                 $num=count($reward_ranking_list);//多少排位中奖
                 $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额
@@ -172,7 +172,7 @@ class Crontab extends ApiBase
                 $where['rank_time']=['between',[$start_time,$end_time]];
                 $reward_ranking_list=Db::name('ranking')->where($where)->select();
                 if(!$reward_ranking_list){//数据为空，则退出
-                    return '数据空，退出';
+                    return '固定时间抽奖数据空，退出';
                 }
                 $num=count($reward_ranking_list);//多少排位中奖
                 $jackpot=Db::name('jackpot')->where('id',1)->value('integral_num');//奖池金额

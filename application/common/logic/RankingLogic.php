@@ -457,7 +457,7 @@ class RankingLogic
         $p_1=Db::name('users')->where('id',$users['p_1'])->find();
         //返佣
         if($p_1){
-            if(!$this->user_balance($p_1['id'],$money*2/100,'返佣')){
+            if(!$this->user_balance($p_1['id'],$money*2/100,'直推返利',1)){
                 return false;
             }
             $list=Db::name('user_level')->select();
@@ -469,49 +469,49 @@ class RankingLogic
             $percent_one=$level_list[1];//矿队长返点百分百
             //用上级作为循环查找对象
             if($p_1['level']==6){//上级是矿场主
-                if(!$this->user_balance($p_1['id'],$money*($percent+$percent_one)/100,'代理返点')){
+                if(!$this->user_balance($p_1['id'],$money*($percent+$percent_one)/100,'代理返点',2)){
                     return false;
                 }
                 if($p_1['p_1']){
                     $data=$this->above($p_1['p_1'],$p_1['level']);
                     if($data){
-                        if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                             return false;
                         }
                     }
                 }
             }elseif($p_1['level']==1){//上级是矿队长
-                if(!$this->user_balance($p_1['id'],$money*$percent_one/100,'代理返点')){//上级
+                if(!$this->user_balance($p_1['id'],$money*$percent_one/100,'代理返点',2)){//上级
                     return false;
                 }
                 if($p_1['p_1']){
                     $data=$this->above($p_1['p_1'],$p_1['level']);
                     if($data){
                         if($data['type']==0){//平级
-                            if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                            if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                 return false;
                             }
                             $data_fl=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data_fl){
                                 if ($data_fl['type']==1){
-                                    if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                    if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',2)){//顶级
                                         return false;
                                     }
                                     $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
                                     if($data_fl){
-                                        if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                        if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                             return false;
                                         }
                                     }
                                 }
                             }
                         }elseif($data['type']==1){
-                            if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                            if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',2)){//顶级
                                 return false;
                             }
                             $data=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data){
-                                if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                     return false;
                                 }
                             }
@@ -524,48 +524,48 @@ class RankingLogic
                     $data=$this->above($p_1['p_1'],1);
                     if($data){
                         if($data['type']==0){
-                            if(!$this->user_balance($data['data']['id'],$money*$percent_one/100,'代理返点')){//上级
+                            if(!$this->user_balance($data['data']['id'],$money*$percent_one/100,'代理返点',2)){//上级
                                 return false;
                             }
                             $data_level=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data_level){
                                 if($data_level['type']==0){
-                                    if(!$this->user_balance($data_level['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                    if(!$this->user_balance($data_level['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                         return false;
                                     }
                                     $data_fl=$this->above($data_level['data']['p_1'],$data_level['data']['level']);
                                     if($data_fl){
                                         if ($data_fl['type']==1){
-                                            if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                            if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',2)){//顶级
                                                 return false;
                                             }
                                             $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
                                             if($data_fl){
-                                                if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                                if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                                     return false;
                                                 }
                                             }
                                         }
                                     }
                                 }elseif ($data_level['type']==1){
-                                    if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点')){//顶级
+                                    if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',2)){//顶级
                                         return false;
                                     }
                                     $data=$this->above($data['data']['p_1'],$data['data']['level']);
                                     if($data){
-                                        if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                             return false;
                                         }
                                     }
                                 }
                             }
                         }elseif($data['type']==1){
-                            if(!$this->user_balance($data['data']['id'],$money*($percent+$percent_one)/100,'代理返点')){//顶级
+                            if(!$this->user_balance($data['data']['id'],$money*($percent+$percent_one)/100,'代理返点',2)){//顶级
                                 return false;
                             }
                             $data=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data){
-                                if(!$this->user_balance($data['data']['id'],$money*1/100,'代理返点')){//平级奖
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
                                     return false;
                                 }
                             }
@@ -577,7 +577,7 @@ class RankingLogic
             //上上级计算返佣
             $p_2=Db::name('users')->where('id',$users['p_2'])->find();
             if($p_2){
-                if(!$this->user_balance($p_2['id'],$money*2/100,'返佣')){
+                if(!$this->user_balance($p_2['id'],$money*2/100,'直推返利',1)){
                     return false;
                 }
             }
@@ -605,7 +605,7 @@ class RankingLogic
     /*
      * 代理返佣
      */
-    public function user_balance($user_id,$money,$intro){
+    public function user_balance($user_id,$money,$intro,$type){
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
@@ -631,7 +631,13 @@ class RankingLogic
         }else{
             $detail=[];
             $detail['user_id']=$user_id;
-            $detail['type']=1;//返利
+            if($type==1){
+                $detail['type']=1;//直推返利
+            }elseif($type==2){
+                $detail['type']=11;//级差奖励
+            }else{
+                $detail['type']=12;//平级奖励
+            }
             $detail['money']=$money;
             $detail['createtime']=time();
             $detail['intro']=$intro;

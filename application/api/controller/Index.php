@@ -305,7 +305,7 @@ class Index extends ApiBase
     function balance_type($type){
         switch ($type){
             case 1:
-                return '团队佣金';
+                return '直推奖励';
                 break;
             case 2:
                 return '赠送';
@@ -333,6 +333,12 @@ class Index extends ApiBase
                 break;
             case 10:
                 return '出局';
+                break;
+            case 11:
+                return '级差奖励';
+                break;
+            case 12:
+                return '平级奖励';
                 break;
             default:
                 return '参数不对';
