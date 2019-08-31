@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use app\common\model\Users as UsersModel;
+use app\common\util\jwt\JWT;
 use think\Db;
 use think\Session;
 
@@ -36,15 +37,29 @@ class Users extends Common
                 if(!$list['data'][$key]['level_name']){
                     $list['data'][$key]['level_name']='普通会员';
                 }
+                $list['data'][$key]['token']=$this->create_token($value['id']);
                 $list['data'][$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
 
             }
             return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
         }
-        $this->assign('tpw','2sdsds');
         return $this->fetch();
     }
-
+    /**
+     * 生成token
+     */
+    public function create_token($user_id){
+        $time = time();
+        $payload = array(
+            "iss"=> "QUANMINTAOJIN",
+            "iat"=> $time ,
+            "exp"=> $time + 36000 ,
+            "user_id"=> $user_id
+        );
+        $key = 'QUANMINTAOJIN';
+        $token = JWT::encode($payload, $key, $alg = 'HS256', $keyId = null, $head = null);
+        return $token;
+    }
     //设置会员状态
     public function usersState(){
         $id = input('post.id');
