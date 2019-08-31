@@ -84,6 +84,8 @@ class Index extends Common
         $this->assign("user_admin",$user_admin);
         $withdraw=Db::name('withdraw')->where('status',0)->sum('money');
         $this->assign("withdraw",$withdraw);
+        $money_withdraw=Db::name('withdraw')->where('status',1)->sum('money');
+        $this->assign("money_withdraw",$money_withdraw);
         //leapmary//###############################
         $classification = db('classification')->where("pid",0)->select();
         $classification = convert_arr_kv($classification,'id','title');
