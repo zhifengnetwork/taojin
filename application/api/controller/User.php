@@ -475,6 +475,7 @@ class User extends ApiBase
             'user_id' => $user_id,
             'bank' => $bank,
             'name' => $name,
+            'status' => 1,
             'number' => $number,
             'create_time' => time()
         ]);
