@@ -340,6 +340,9 @@ class Index extends ApiBase
             case 12:
                 return '平级奖励';
                 break;
+            case 13:
+                return '充值';
+                break;
             default:
                 return '参数不对';
                 break;

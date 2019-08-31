@@ -50,40 +50,93 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        $res=Db::name('users')->where(['phone'=>$phone])->setInc('balance',$balance);
-        if($res){
-            $detail['user_id']=$give_user['id'];
-            $detail['type']=5;//被赠送
-            $detail['money']=$balance;
-            $detail['createtime']=time();
-            $detail['intro']=$user['nick_name'].'赠送';
-            $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-            if(!$id){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+        if($user_id==85){//管理员充值
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
+            if($res){
+                $detail['user_id']=$give_user['id'];
+                $detail['type']=13;//充值
+                $detail['money']=$balance;
+                $detail['createtime']=time();
+                $detail['intro']=$user['nick_name'].'充值';
+                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                }
             }
-        }
-        $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
-        if($re){
-            $detail=[];
-            $detail['user_id']=$user_id;
-            $detail['type']=2;//赠送
-            $detail['money']=-$balance;
-            $detail['createtime']=time();
-            $detail['intro']='赠送给'.$give_user['nick_name'];
-            $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-            if(!$ids){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+            if($re){
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['type']=13;//充值
+                $detail['money']=-$balance;
+                $detail['createtime']=time();
+                $detail['intro']='充值给'.$give_user['nick_name'];
+                $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                if(!$ids){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                }
             }
-        }
-        if(!$res||!$re){
-            Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            $system_money=Db::name('system_money')->where('id',1)->find();//总后台系统总额
+            $old_balance=$system_money['balance'];
+//            $system_money['balance']=sprintf("%.2f",$system_money['balance']-$balance);
+            $system_money['balance']=$system_money['balance']-$balance;
+            $system_data['balance']=-$balance;
+            $system_data['old_balance']=$old_balance;
+            $system_data['new_balance']=$system_money['balance'];
+            $system_data['add_time']=time();
+            $system_data['desc']='总账户充值修改系统金额';
+            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+            if(!$sys_id){
+                return false;
+            }
+            $r=Db::name('system_money')->update($system_money);
+            if(!$res||!$re||!$r){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+            }else{
+                Db::commit();
+                $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
+            }
         }else{
-            Db::commit();
-            $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('balance',$balance);
+            if($res){
+                $detail['user_id']=$give_user['id'];
+                $detail['type']=5;//被赠送
+                $detail['money']=$balance;
+                $detail['createtime']=time();
+                $detail['intro']=$user['nick_name'].'赠送';
+                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }
+            }
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+            if($re){
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['type']=2;//赠送
+                $detail['money']=-$balance;
+                $detail['createtime']=time();
+                $detail['intro']='赠送给'.$give_user['nick_name'];
+                $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                if(!$ids){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }
+            }
+            if(!$res||!$re){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            }else{
+                Db::commit();
+                $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+            }
         }
+
     }
     public function give_integral(){
         $user_id=$this->get_user_id();
@@ -193,44 +246,87 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
         Db::startTrans();
-        $res=Db::name('users')->where(['phone'=>$phone])->setInc('currency',$currency);
-        if($res){
-            $detail['user_id']=$give_user['id'];
-            $detail['user_name']=$give_user['nick_name'];
-            $detail['type']=3;//被赠与
-            $detail['currency']=$currency;
-            $detail['old_currency']=$give_user['currency'];
-            $detail['desc']=$user['nick_name'].'赠送';
-            $detail['add_time']=time();
-            $id=Db::name('users_currency')->insertGetId($detail);
-            if(!$id){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+        if($user_id==85){
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('lock_currency',$currency);
+            if($res){
+                $detail['user_id']=$give_user['id'];
+                $detail['user_name']=$give_user['nick_name'];
+                $detail['type']=4;//管理员操作
+                $detail['currency_type']=1;//冻结
+                $detail['currency']=$currency;
+                $detail['old_currency']=$give_user['lock_currency'];
+                $detail['desc']=$user['nick_name'].'充值';
+                $detail['add_time']=time();
+                $id=Db::name('users_currency')->insertGetId($detail);
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                }
             }
-        }
-        $re=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
-        if($re){
-            $detail=[];
-            $detail['user_id']=$user_id;
-            $detail['user_name']=$user['nick_name'];
-            $detail['type']=1;//赠送
-            $detail['currency']=-$currency;
-            $detail['old_currency']=$user['currency'];
-            $detail['desc']='赠送'.$give_user['nick_name'];
-            $detail['add_time']=time();
-            $ids=Db::name('users_currency')->insertGetId($detail);
-            if(!$ids){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
+            if($re){
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['user_name']=$user['nick_name'];
+                $detail['type']=1;//赠送
+                $detail['currency']=-$currency;
+                $detail['old_currency']=$user['currency'];
+                $detail['desc']='充值'.$give_user['nick_name'];
+                $detail['add_time']=time();
+                $ids=Db::name('users_currency')->insertGetId($detail);
+                if(!$ids){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                }
             }
-        }
-        if(!$res||!$re){
-            Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            if(!$res||!$re){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+            }else{
+                Db::commit();
+                $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
+            }
         }else{
-            Db::commit();
-            $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('currency',$currency);
+            if($res){
+                $detail['user_id']=$give_user['id'];
+                $detail['user_name']=$give_user['nick_name'];
+                $detail['type']=3;//被赠与
+                $detail['currency']=$currency;
+                $detail['old_currency']=$give_user['currency'];
+                $detail['desc']=$user['nick_name'].'赠送';
+                $detail['add_time']=time();
+                $id=Db::name('users_currency')->insertGetId($detail);
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }
+            }
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
+            if($re){
+                $detail=[];
+                $detail['user_id']=$user_id;
+                $detail['user_name']=$user['nick_name'];
+                $detail['type']=1;//赠送
+                $detail['currency']=-$currency;
+                $detail['old_currency']=$user['currency'];
+                $detail['desc']='赠送'.$give_user['nick_name'];
+                $detail['add_time']=time();
+                $ids=Db::name('users_currency')->insertGetId($detail);
+                if(!$ids){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }
+            }
+            if(!$res||!$re){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            }else{
+                Db::commit();
+                $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+            }
         }
+
     }
     public function exchange_currency(){
         $user_id=$this->get_user_id();

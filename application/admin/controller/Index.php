@@ -75,9 +75,13 @@ class Index extends Common
         ];
         $system_money=Db::name('system_money')->where('id',1)->find();
         $this->assign("system_money",$system_money);
-        $user_all=Db::name('users')->field('SUM(balance) as balance,SUM(recharge_balance) as recharge_balance,SUM(integral) as integral,SUM(currency) as currency')->find();
+        $user_all=Db::name('users')->field('SUM(balance) as balance,SUM(recharge_balance) as recharge_balance,SUM(integral) as integral,SUM(currency) as currency')
+            ->where('id','neq','85')
+            ->find();
         $user_all['money']=$user_all['balance']+$user_all['recharge_balance'];
         $this->assign("user_all",$user_all);
+        $user_admin=Db::name('users')->field('balance')->where('id',85)->find();
+        $this->assign("user_admin",$user_admin);
         $withdraw=Db::name('withdraw')->where('status',0)->sum('money');
         $this->assign("withdraw",$withdraw);
         //leapmary//###############################
