@@ -59,7 +59,7 @@ class Ranking extends ApiBase
             $where['rank_status']=1;//出局
             $where['is_delete']=0;
             $rank_list=Db::name('ranking')
-                ->field('id,user_id,rank_time')
+                ->field('id,user_id,rank_time,out_time,out_type')
                 ->where($where)
                 ->order('id')
                 ->paginate(10,false,$pageParam);
@@ -67,6 +67,15 @@ class Ranking extends ApiBase
             $rank_list=$rank_list['data'];
             foreach ($rank_list as $k=>$v){
                 $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+                $rank_list[$k]['out_time']=date('Y-m-d H:i:s',$v['out_time']);
+                if($rank_list[$k]['out_type']==2){
+                    $rank_list[$k]['out_type_text']='两倍';
+                }elseif($rank_list[$k]['out_type']==3){
+                    $rank_list[$k]['out_type_text']='三倍';
+                }else{
+                    $rank_list[$k]['out_type_text']='非法';
+                }
+
             }
             $where=[];
             $where['rank_status']=1;
