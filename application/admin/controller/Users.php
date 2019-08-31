@@ -329,6 +329,50 @@ class Users extends Common
 
         return $this->fetch('adminadd');
     }
+    /*
+     * 挂卖币列表
+     */
+    public function user_auction(){
+        if(request()->isPost()){
 
+            $encodekey = config("encodekey");
+
+            $key = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+
+            /*$list=db('users')->alias('u')
+                ->join(config('database.prefix').'user_level ul','u.level = ul.level_id','left')
+                ->field(' decode(u.balance,"'.$encodekey.'") as balance , decode(u.all_balance,"'.$encodekey.'") as all_balance , decode(u.integral,"'.$encodekey.'") as integral , decode(u.all_integral,"'.$encodekey.'") as all_integral , u.email , u.id , u.username , u.is_lock , u.mobile , u.active_time , u.level , u.reg_time ,ul.level_name')
+                ->where('u.email|u.mobile|u.username','like',"%".$key."%")
+                ->order('u.id desc')
+                ->paginate(array('list_rows'=>$pageSize,'page'=>$page))
+                ->toArray();*/
+
+//            $list = db('users')->alias('u')
+//                ->join(config('database.prefix') . 'user_level ul','u.level = ul.level_id','left')
+//                ->where('u.phone|u.nick_name|u.id','like',"%" . $key . "%")
+//                ->order('u.id desc')
+//                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+//                ->toArray();
+//            foreach ($list['data'] as $key=>$value){
+//                if(!$list['data'][$key]['level_name']){
+//                    $list['data'][$key]['level_name']='普通会员';
+//                }
+//                $list['data'][$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+//
+//            }
+            $list=Db::name('auction')->alias('a')
+                ->join('users u','u.id=a.user_id','LEFT')
+                ->field('a.id,a.user_id,a.currency_num,a.currency_money,a.all_money,a.add_time,u.nick_name')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page));
+            $list=$list->toArray();
+            foreach ($list['data'] as $k=>$v){
+                $list['data'][$k]['add_time']=date('Y-m-d H:i:s',$v['add_time']);
+            }
+            return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
+        }
+        return $this->fetch();
+    }
 
 }
