@@ -30,9 +30,12 @@ class Index extends ApiBase
         $jackpot['notice']=$system;
         $bonus_time=strtotime(date("Y-m-d")." ".$jackpot['open_time']);
         if($bonus_time>time()){
+            $jackpot['surplus_time']=$bonus_time-time();
             $jackpot['data_time']=date("Y-m-d");
         }else{
             $jackpot['data_time']=date("Y-m-d",strtotime('+1 day'));
+            $kj_time=strtotime(date("Y-m-d",strtotime('+1 day'))." ".$jackpot['open_time']);
+            $jackpot['surplus_time']=$kj_time-time();
         }
         $jackpot['goods_name']=$goods['name'];
         $jackpot['money']=$goods['money'];
