@@ -218,6 +218,7 @@ class Index extends ApiBase
         $where['typefrom']=0;//排除冻结余额
         $balance_list=Db::name('moneydetail')
             ->where($where)
+            ->order('id DESC')
             ->paginate(10,false,$pageParam);
         $balance_list=$balance_list->toArray();
         $balance_list=$balance_list['data'];
@@ -241,7 +242,9 @@ class Index extends ApiBase
             $where['integral']=['lt',0];
         }
         $where['u_id']=$user_id;
-        $integral_list=Db::name('integral')->where($where)
+        $integral_list=Db::name('integral')
+            ->where($where)
+            ->order('id DESC')
             ->paginate(10,false,$pageParam);
         $integral_list=$integral_list->toArray();
         $integral_list=$integral_list['data'];
@@ -265,7 +268,9 @@ class Index extends ApiBase
             $where['currency']=['lt',0];
         }
         $where['user_id']=$user_id;
-        $users_currency_list=Db::name('users_currency')->where($where)
+        $users_currency_list=Db::name('users_currency')
+            ->where($where)
+            ->order('id DESC')
             ->paginate(10,false,$pageParam);
         $users_currency_list=$users_currency_list->toArray();
         $users_currency_list=$users_currency_list['data'];
@@ -286,6 +291,7 @@ class Index extends ApiBase
             ->where('type=3 or typefrom=1')
             ->where(['user_id'=>$user_id])
             ->field('user_id,money,type,typefrom,intro')
+            ->order('id DESC')
             ->paginate(10,false,$pageParam)
             ->toArray();
         $lock_balance_list=$lock_balance_list['data'];

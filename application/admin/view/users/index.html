@@ -21,11 +21,21 @@
     <!--<a href="{:url('tbkorder/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">订单</a>-->
     <a href="{:url('moneydetail/index')}?id={{d.id}}" class="layui-btn layui-btn-xs">资金</a>
     <a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">等级</a>
+    <?php if($tpw==1){
 
+    }else{
+        ?>
     <a href="{:url('adminadd')}?id={{d.id}}&type=balance" class="layui-btn layui-btn-xs">余额</a>
+    <?php
+    }
+    ?>
+
+
+
+
+
     <a href="{:url('adminadd')}?id={{d.id}}&type=integral" class="layui-btn layui-btn-xs">糖果</a>
     <a href="{:url('adminadd')}?id={{d.id}}&type=currency" class="layui-btn layui-btn-xs">金币</a>
-
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 
 </script>
@@ -51,6 +61,7 @@
                 {field: 'nick_name', title: '{:lang("name")}', width: 120,sort:true},
 
                 {field: 'balance', title: '余额', width: 80,sort:true},
+                {field: 'recharge_balance', title: '充值余额', width: 80,sort:true},
                 {field: 'lock_balance', title: '冻结余额', width: 90,sort:true},
                 {field: 'integral', title: '糖果', width: 80,sort:true},
                 {field: 'currency', title: '币', width: 110,sort:true},
@@ -60,7 +71,7 @@
                 {field: 'phone', title: '{:lang("tel")}', width: 120,sort:true},
                 // {field: 'is_lock', align: 'center',title: '{:lang("status")}', width: 80,toolbar: '#is_lock',sort:true},
                 {field: 'add_time', title: '注册时间', width: 165,sort:true},
-                {width: 300, title: '操作',align: 'center', toolbar: '#action'}
+                {width: 450, title: '操作',align: 'center', toolbar: '#action'}
             ]],
             limit: 10 //每页默认显示的数量
         });

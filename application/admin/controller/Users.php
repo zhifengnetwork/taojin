@@ -41,7 +41,7 @@ class Users extends Common
             }
             return $result = ['code' => 0,'msg' => '获取成功!','data' => $list['data'],'count' => $list['total'],'rel' => 1];
         }
-
+        $this->assign('tpw','2sdsds');
         return $this->fetch();
     }
 

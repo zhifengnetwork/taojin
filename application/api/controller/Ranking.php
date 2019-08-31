@@ -179,7 +179,7 @@ class Ranking extends ApiBase
         $rank_list=Db::name('ranking')
             ->field('id,user_id,rank_time')
             ->where($where)
-            ->order('add_time')
+            ->order('add_time DESC')
             ->paginate(10,false,$pageParam);
         $rank_list=$rank_list->toArray();
         $rank_list=$rank_list['data'];
@@ -290,11 +290,13 @@ class Ranking extends ApiBase
         $check_time=I('check_time');
         if(!$check_time){
             $check_time=time();
+        }else{
+            $check_time=$this->time_manage($check_time);
         }
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
         }
-        if($check>$start_time&&$end_time>$check){//开奖时间段，不能下单
+        if($check_time>$start_time&&$end_time>$check_time){//开奖时间段，不能下单
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请重新选择'.$end_time-time().'秒']);
         }
         $type=I('type');
@@ -357,6 +359,16 @@ class Ranking extends ApiBase
                 }
             default:
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'类型错误，不能购买']);
+        }
+    }
+    public function time_manage($check_time){
+        $ti_time=strtotime(date("Y-m-d ").$check_time.":00");
+        $tomorrow=strtotime(date('Y-m-d ',strtotime('+1 day')).'00:00:00');
+        if($ti_time<$tomorrow){//第二天
+            $ti_time=strtotime(date('Y-m-d ',strtotime('+1 day')).$check_time.':00');
+            return $ti_time;
+        }else{
+            return $ti_time;
         }
     }
     public function time_list($type,$start_time,$check_time){
