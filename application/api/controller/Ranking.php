@@ -202,6 +202,7 @@ class Ranking extends ApiBase
         $rank_list=$rank_list['data'];
         foreach ($rank_list as $k=>$v){
             $rank_list[$k]['rank_time']=date('Y-m-d H:i:s',$v['rank_time']);
+            $rank_list[$k]['order_no']=date('Ymd',$v['rank_time']).$v['id'].date('  H:i:s',$v['rank_time']);
         }
         $data['ranking']=$rank_list;
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$data]);
