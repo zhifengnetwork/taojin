@@ -247,4 +247,13 @@ class Crontab extends ApiBase
         }
         return '执行完毕';
     }
+    public function currency(){
+        $currency=Db::name('config')->where(['inc_type'=>'taojin','name'=>'currency'])->value('value');
+        $res=Db::name('config')->where(['name'=>'yesterday_currency','inc_type'=>'taojin'])->update(['value'=>$currency]);
+        if($res){
+            return '执行完毕';
+        }else{
+            return '修改币值失败';
+        }
+    }
 }

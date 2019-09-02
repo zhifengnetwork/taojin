@@ -330,11 +330,9 @@ class Index extends ApiBase
             ->paginate(10,false,$pageParam)
             ->toArray();
         $lock_balance_list=$lock_balance_list['data'];
-        foreach ($lock_balance_list as $key=>$value){
-            if($value['type']==3&&$value['typefrom']==0){
-                $lock_balance_list['money']=-$value['money'];
-            }
-        }
+//        foreach ($lock_balance_list as $key=>$value){
+//
+//        }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
     function balance_type($type){
