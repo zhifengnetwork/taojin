@@ -66,7 +66,7 @@ class RankingLogic
             if($balance_unlock>$user['lock_balance']){
                 $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
             }
-            if($balance_unlock!=0){
+            if($balance_unlock!=0&&$balance_unlock>=40){
                 $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
                 $ress=Db::name('users')->where(['id'=>$user_id])->setInc('balance',$balance_unlock);
                 $rs=Db::name('users')->where(['id'=>$user_id])->setDec('lock_balance',$balance_unlock);
