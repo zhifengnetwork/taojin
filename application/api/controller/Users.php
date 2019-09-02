@@ -43,7 +43,8 @@ class Users extends ApiBase
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
-        if($user['balance']<$balance){
+        $user_all_balance=$user['balance']+$user['recharge_balance'];
+        if($user_all_balance<$balance){
             $this->ajaxReturn(['status' => -2, 'msg' => '您的余额不足，不能赠送！']);
         }
         if(!$give_user){
@@ -101,7 +102,13 @@ class Users extends ApiBase
                 $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
             }
         }else{
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('balance',$balance);
+            if($user['recharge_balance']>$balance){
+                $user_balance['recharge_balance']=$user['recharge_balance']-$balance;//充值余额足够
+            }else{
+                $user_balance['recharge_balance']=0;
+                $user_balance['balance']=$user['balance']+$user['recharge_balance']-$balance;//充值余额不足
+            }
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
             if($res){
                 $detail['user_id']=$give_user['id'];
                 $detail['type']=5;//被赠送
@@ -114,7 +121,8 @@ class Users extends ApiBase
                     $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
                 }
             }
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+            $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);
+//            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
             if($re){
                 $detail=[];
                 $detail['user_id']=$user_id;

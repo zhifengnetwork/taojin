@@ -300,8 +300,9 @@ class Index extends ApiBase
         $lock_balance_list=$lock_balance_list['data'];
         foreach ($lock_balance_list as $key=>$value){
             if($value['type']==3&&$value['typefrom']==0){
-                $lock_balance_list['money']=-$value['money'];
+                $lock_balance_list[$key]['money']=-$value['money'];
             }
+            $lock_balance_list[$key]['intro']=mb_substr($lock_balance_list[$key]['intro'],0,4,'utf-8');
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
@@ -314,6 +315,27 @@ class Index extends ApiBase
         $user['currency_money']=Db::name('config')->where(['inc_type'=>'taojin','name'=>'currency'])->value('value');
         $user['yesterday_money']=Db::name('config')->where(['inc_type'=>'taojin','name'=>'yesterday_currency'])->value('value');
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$user]);
+    }
+    public function recharge_balance_detailed(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+        $lock_balance_list=Db::name('moneydetail')
+            ->where('type=2 or type=5 or type=13')
+            ->where(['user_id'=>$user_id,'typefrom'=>0])
+            ->field('user_id,money,type,typefrom,intro')
+            ->order('id DESC')
+            ->paginate(10,false,$pageParam)
+            ->toArray();
+        $lock_balance_list=$lock_balance_list['data'];
+        foreach ($lock_balance_list as $key=>$value){
+            if($value['type']==3&&$value['typefrom']==0){
+                $lock_balance_list['money']=-$value['money'];
+            }
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
     function balance_type($type){
         switch ($type){
