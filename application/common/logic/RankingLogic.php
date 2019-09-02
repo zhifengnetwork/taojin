@@ -463,7 +463,7 @@ class RankingLogic
             $list=Db::name('user_level')->select();
             $level_list=[];
             foreach ($list as $key=>$value){
-                $level_list[$value['id']]=$value['percent'];
+                $level_list[$value['level_id']]=$value['percent'];
             }
             $percent=$level_list[6];//矿场主返点百分百
             $percent_one=$level_list[1];//矿队长返点百分百
@@ -590,6 +590,9 @@ class RankingLogic
      */
     public function above($user_id,$level){
         $user=Db::name('users')->field('id,p_1,level')->where('id',$user_id)->find();
+        if(!$user){
+            return false;
+        }
         if($user['level']>$level){
             return ['data'=>$user,'type'=>1];//上级
         }
