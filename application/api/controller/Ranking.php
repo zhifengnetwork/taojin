@@ -82,6 +82,10 @@ class Ranking extends ApiBase
             $count=Db::name('ranking')->where($where)->count();//出局人数
             $data['rank_list']=$rank_list;
             $data['count']=$count;
+            $where['user_id']=$user_id;
+            $data['user_out_count']=Db::name('ranking')->where($where)->count();
+            $where['rank_status']=0;//未出局
+            $data['user_no_count']=Db::name('ranking')->where($where)->count();
         }else{
             $pageParam=[];
             $where=[];
@@ -116,6 +120,10 @@ class Ranking extends ApiBase
             $count=Db::name('ranking')->where($where)->count();//出局人数
             $data['rank_list']=$rank_list;
             $data['count']=$count;
+            $where['user_id']=$user_id;
+            $data['user_out_count']=Db::name('ranking')->where($where)->count();
+            $where['rank_status']=0;//未出局
+            $data['user_no_count']=Db::name('ranking')->where($where)->count();
         }
 
 //        $subQuery = Db::name('ranking')
