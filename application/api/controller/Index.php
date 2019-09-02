@@ -293,7 +293,7 @@ class Index extends ApiBase
         $lock_balance_list=Db::name('moneydetail')
             ->where('type=3 or typefrom=1')
             ->where(['user_id'=>$user_id])
-            ->field('user_id,money,type,typefrom,intro')
+            ->field('id,user_id,money,type,typefrom,intro')
             ->order('id DESC')
             ->paginate(10,false,$pageParam)
             ->toArray();
@@ -325,7 +325,7 @@ class Index extends ApiBase
         $lock_balance_list=Db::name('moneydetail')
             ->where('type=2 or type=5 or type=13')
             ->where(['user_id'=>$user_id,'typefrom'=>0])
-            ->field('user_id,money,type,typefrom,intro')
+            ->field('id,user_id,money,type,typefrom,intro')
             ->order('id DESC')
             ->paginate(10,false,$pageParam)
             ->toArray();
