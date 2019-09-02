@@ -373,7 +373,9 @@ class User extends ApiBase
         if($money<0.01){
             $this->ajaxReturn(['status' => -2, 'msg' => '金额不能小于0.01！']);
         }
-
+        if($this->verify($money)){//判断是否为100的整数倍
+            $this->ajaxReturn(['status' => -2, 'msg' => '提现数量必须是100的倍数！']);
+        }
         $yu = bcsub($user->balance,$money);
         if ($yu < 0) {
             $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
@@ -489,5 +491,12 @@ class User extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '操作失败']);
     }
-
+    public function verify($money){
+        $is_int=$money/100;
+        if(ceil($is_int)!=$is_int){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
