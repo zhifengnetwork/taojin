@@ -412,10 +412,16 @@ class Index extends ApiBase
                 return '赠送';
                 break;
             case 2:
-                return '管理员操作';
+                return '后台操作';
                 break;
             case 3:
                 return '被赠与';
+                break;
+            case 4:
+                return '管理员操作';
+                break;
+            case 5:
+                return '兑换';
                 break;
             default:
                 return '参数不对';
