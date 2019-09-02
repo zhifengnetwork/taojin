@@ -6,7 +6,10 @@ class Crontab extends ApiBase
 {
     public function ranking_crontab(){
         $start_time=time();
-        for ($i=0;$i<60;$i++){
+        while ((time()-$start_time)<58){
+            
+//        }
+//        for ($i=0;$i<60;$i++){
             if((time()-$start_time)>58){//运行时间大于59秒，退出
                 die;
             }
