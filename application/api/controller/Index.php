@@ -305,6 +305,16 @@ class Index extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
+    public function currency_detailed(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $user=Db::name('users')->field('currency,lock_currency')->where('id',$user_id)->find();
+        $user['currency_money']=Db::name('config')->where(['inc_type'=>'taojin','name'=>'currency'])->value('value');
+        $user['yesterday_money']=Db::name('config')->where(['inc_type'=>'taojin','name'=>'yesterday_currency'])->value('value');
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$user]);
+    }
     function balance_type($type){
         switch ($type){
             case 1:
