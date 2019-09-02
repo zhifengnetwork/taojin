@@ -376,6 +376,7 @@ class Users extends ApiBase
             $detail['user_id']=$user_id;
             $detail['user_name']=$user['nick_name'];
             $detail['currency']=$currency;
+            $detail['type']=5;//兑换币
             $detail['old_currency']=$user['currency'];
             $detail['desc']='兑换币';
             $detail['add_time']=time();

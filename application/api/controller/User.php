@@ -24,11 +24,16 @@ class User extends ApiBase
         $user_id = $this->get_user_id();
         if(!empty($user_id)){
             $data = Db::name("users")
-                ->field('id,phone,nick_name,avatar,balance,recharge_balance,lock_balance,integral,currency,add_time,level')
+                ->field('id,phone,nick_name,avatar,balance,recharge_balance,lock_balance,integral,currency,add_time,level,p_1')
                 ->where(['id' => $user_id ,'status'=>1])
                 ->find();
             if(empty($data)){
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'会员不存在！','data'=>'']);
+            }
+            if($data['p_1']){
+                $data['p_1_phone']=Db::name('users')->where('id',$data['p_1'])->value('phone');
+            }else{
+                $data['p_1_phone']='无';
             }
             switch ($data['level']){
                 case 0:
