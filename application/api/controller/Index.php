@@ -253,7 +253,7 @@ class Index extends ApiBase
         $integral_list=$integral_list['data'];
         foreach ($integral_list as $key=>$value){
             $integral_list[$key]['createtime']=date('Y-m-d H:i:s',$value['createtime']);
-            $integral_list[$key]['type_text']=$this->integral_type($value['type']);
+            $integral_list[$key]['type_text']=$this->integral_type($value['type'],$value['for_user_id']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$integral_list]);
     }
@@ -279,7 +279,7 @@ class Index extends ApiBase
         $users_currency_list=$users_currency_list['data'];
         foreach ($users_currency_list as $key=>$value){
             $users_currency_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
-            $users_currency_list[$key]['type_text']=$this->currency_type($value['type']);
+            $users_currency_list[$key]['type_text']=$this->currency_type($value['type'],$value['for_user_id']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$users_currency_list]);
     }
@@ -390,16 +390,26 @@ class Index extends ApiBase
                 break;
         }
     }
-    function integral_type($type){
+    function integral_type($type,$user_id){
         switch ($type){
             case 0:
-                return '赠送';
+                $phone=Db::name('users')->where('id',$user_id)->value('phone');
+                if($phone){
+                    return '赠送给'.$phone;
+                }else {
+                    return '赠送';
+                }
                 break;
             case 1:
                 return '兑换';
                 break;
             case 2:
-                return '被赠与';
+                $phone=Db::name('users')->where('id',$user_id)->value('phone');
+                if($phone){
+                    return $phone.'赠送';
+                }else {
+                    return '别人赠送';
+                }
                 break;
             case 3:
                 return '出局奖励';
@@ -412,19 +422,29 @@ class Index extends ApiBase
                 break;
         }
     }
-    function currency_type($type){
+    function currency_type($type,$user_id){
         switch ($type){
             case 0:
                 return '挂卖';
                 break;
             case 1:
-                return '赠送';
+                $phone=Db::name('users')->where('id',$user_id)->value('phone');
+                if($phone){
+                    return '赠送给'.$phone;
+                }else {
+                    return '赠送';
+                }
                 break;
             case 2:
                 return '后台操作';
                 break;
             case 3:
-                return '被赠与';
+                $phone=Db::name('users')->where('id',$user_id)->value('phone');
+                if($phone){
+                    return $phone.'赠送';
+                }else {
+                    return '别人赠送';
+                }
                 break;
             case 4:
                 return '管理员操作';
