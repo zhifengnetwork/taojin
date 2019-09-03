@@ -61,7 +61,7 @@ class Ranking extends ApiBase
             $rank_list=Db::name('ranking')
                 ->field('id,user_id,rank_time,out_time,out_type')
                 ->where($where)
-                ->order('id DESC')
+                ->order('out_time DESC')
                 ->paginate(10,false,$pageParam);
             $rank_list=$rank_list->toArray();
             $rank_list=$rank_list['data'];
