@@ -207,7 +207,7 @@ class Users extends ApiBase
             $detail=[];
             $detail['u_id']=$user_id;
             $detail['u_name']=$user['nick_name'];
-            $detail['for_user_id']=$give_user;//被赠送者
+            $detail['for_user_id']=$give_user['id'];//被赠送者
             $detail['for_user_name']=$give_user['nick_name'];//被赠送者
             $detail['integral']=-$integral;
             $detail['then_integral']=$user['integral'];
@@ -287,7 +287,7 @@ class Users extends ApiBase
                 $detail['user_id']=$user_id;
                 $detail['user_name']=$user['nick_name'];
                 $detail['type']=1;//赠送
-                $detail['for_user_id']=$give_user;//被赠送者
+                $detail['for_user_id']=$give_user['id'];//被赠送者
                 $detail['for_user_name']=$give_user['nick_name'];//被赠送者
                 $detail['currency']=-$currency;
                 $detail['old_currency']=$user['currency'];
@@ -330,7 +330,7 @@ class Users extends ApiBase
                 $detail['user_id']=$user_id;
                 $detail['user_name']=$user['nick_name'];
                 $detail['type']=1;//赠送
-                $detail['for_user_id']=$give_user;//被赠送者
+                $detail['for_user_id']=$give_user['id'];//被赠送者
                 $detail['for_user_name']=$give_user['nick_name'];//被赠送者
                 $detail['currency']=-$currency;
                 $detail['old_currency']=$user['currency'];
