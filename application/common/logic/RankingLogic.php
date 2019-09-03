@@ -285,7 +285,8 @@ class RankingLogic
         if(!$user){
             return false;
         }
-        $money=sprintf("%.2f",($goods_money*3)-($goods_money*3*$double_percent/100));//三倍、扣除手续费
+        $agent_money=$goods_money*3;
+        $money=sprintf("%.2f",($agent_money)-($agent_money*$double_percent/100));//三倍、扣除手续费
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
@@ -318,7 +319,7 @@ class RankingLogic
             return false;
         }
         //代理分佣
-        if(!$this->agent_money($ranking['user_id'],$money)){
+        if(!$this->agent_money($ranking['user_id'],$agent_money)){
             Db::rollback();
             return false;
         }
@@ -340,7 +341,8 @@ class RankingLogic
         if(!$user){
             return false;
         }
-        $money=sprintf("%.2f",($goods_money*2)-($goods_money*2*$double_percent/100));//两倍、扣除手续费
+        $agent_money=$goods_money*2;
+        $money=sprintf("%.2f",$agent_money-($agent_money*$double_percent/100));//两倍、扣除手续费
         Db::startTrans();
         $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
         $data=[];
@@ -373,7 +375,7 @@ class RankingLogic
             return false;
         }
         //代理分佣
-        if(!$this->agent_money($ranking['user_id'],$money)){
+        if(!$this->agent_money($ranking['user_id'],$agent_money)){//代理费计算
             Db::rollback();
             return false;
         }
