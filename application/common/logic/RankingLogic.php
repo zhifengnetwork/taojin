@@ -300,13 +300,15 @@ class RankingLogic
             return false;
         }
         //赠送糖果
-        $tg_num=floor($goods_money*3/$balance_give_integral);//赠送糖果取整
-        $data=[];
-        $data['num']=$tg_num;
-        $data['user_id']=$ranking['user_id'];
-        $data['end_time']=time()+24*3600;//24小时过期
-        $data['add_time']=time();
-        $ids=Db::name('give')->insertGetId($data);
+        $tg_num=sprintf("%.2f",$goods_money*2/$balance_give_integral);//保留两位小数
+//        $tg_num=floor($goods_money*3/$balance_give_integral);//赠送糖果取整
+//        $data=[];
+//        $data['num']=$tg_num;
+//        $data['user_id']=$ranking['user_id'];
+//        $data['end_time']=time()+24*3600;//24小时过期
+//        $data['add_time']=time();
+//        $ids=Db::name('give')->insertGetId($data);
+        $give=$this->add_give($tg_num,$ranking['user_id']);//糖果生成
         $detail['user_id']=$user['id'];
         $detail['typefrom']=1;
         $detail['type']=10;//出局赠送
@@ -314,7 +316,7 @@ class RankingLogic
         $detail['createtime']=time();
         $detail['intro']='三倍出局获得冻结余额';
         $id=Db::name('moneydetail')->insertGetId($detail);
-        if(!$id||!$ids){
+        if(!$id||!$give){
             Db::rollback();
             return false;
         }
@@ -356,13 +358,15 @@ class RankingLogic
             return false;
         }
         //赠送糖果
-        $tg_num=floor($goods_money*2/$balance_give_integral);//赠送糖果取整
-        $data=[];
-        $data['num']=$tg_num;
-        $data['user_id']=$ranking['user_id'];
-        $data['end_time']=time()+24*3600;//24小时过期
-        $data['add_time']=time();
-        $ids=Db::name('give')->insertGetId($data);
+//        $tg_num=floor($goods_money*2/$balance_give_integral);//赠送糖果取整
+//        $data=[];
+//        $data['num']=$tg_num;
+//        $data['user_id']=$ranking['user_id'];
+//        $data['end_time']=time()+24*3600;//24小时过期
+//        $data['add_time']=time();
+//        $ids=Db::name('give')->insertGetId($data);
+        $tg_num=sprintf("%.2f",$goods_money*2/$balance_give_integral);//保留两位小数
+        $give=$this->add_give($tg_num,$ranking['user_id']);//糖果生成
         $detail['user_id']=$user['id'];
         $detail['typefrom']=1;
         $detail['type']=10;//出局赠送
@@ -370,7 +374,7 @@ class RankingLogic
         $detail['createtime']=time();
         $detail['intro']='双倍出局获得冻结余额';
         $id=Db::name('moneydetail')->insertGetId($detail);
-        if(!$id||!$ids){
+        if(!$id||!$give){
             Db::rollback();
             return false;
         }
@@ -383,9 +387,26 @@ class RankingLogic
         return false;
     }
     /*
+     * 生成糖果
+     */
+    public function add_give($num,$user_id){
+        $data=[];
+        $data['num']=$num;
+        $data['user_id']=$user_id;
+        $data['end_time']=time()+24*3600;//24小时过期
+        $data['add_time']=time();
+        $ids=Db::name('give')->insertGetId($data);
+        if($ids){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+    /*
      * 抽奖
      */
-    public function reward($ranking_id,$user_id,$money,$double_percent,$rank_id,$rank_time,$bonus_time){
+    public function reward($ranking_id,$user_id,$money,$double_percent,$rank_id,$rank_time,$bonus_time,$balance_give_integral){
         $user_money=sprintf("%.2f",$money-($money*$double_percent/100));
         $today_time= strtotime(date("Y-m-d"),time());//今天的日期
         $reward=Db::name('reward')->where(['ranking_id'=>$ranking_id,'user_id'=>$user_id,'reward_day'=>$today_time])->find();//根据ranking_id确定是否抽奖
@@ -433,18 +454,20 @@ class RankingLogic
             Db::rollback();
             return false;
         }
+        $tg_num=sprintf("%.2f",$money/$balance_give_integral);//保留两位小数
+        $give=$this->add_give($tg_num,$user_id);//糖果生成
         $detail['user_id']=$user_id;
         $detail['type']=9;//中奖
         $detail['money']=$user_money;
         $detail['createtime']=time();
         $detail['intro']='中奖获得余额';
         $id=Db::name('moneydetail')->insertGetId($detail);//中奖
-        if(!$id){
+        if(!$id||!$give){
             Db::rollback();
             return false;
         }
         //代理分佣
-        if(!$this->agent_money($user_id,$money)){
+        if(!$this->agent_money($user_id,$money,$balance_give_integral)){
             Db::rollback();
             return false;
         }
@@ -454,14 +477,17 @@ class RankingLogic
     /*
      * 返佣+代理计算
      */
-    public function agent_money($user_id,$money){
+    public function agent_money($user_id,$money,$balance_give_integral){
         $users=Db::name('users')->where('id',$user_id)->find();
         $p_1=Db::name('users')->where('id',$users['p_1'])->find();
+        $user_level=$users['level'];//当前用户级别
         //返佣
+        $surplus_money=10;//%10剩余点
         if($p_1){
             if(!$this->user_balance($p_1['id'],$money*2/100,'直推返利',1)){
                 return false;
             }
+            $surplus_money=$surplus_money-2;//减少见点
             $list=Db::name('user_level')->select();
             $level_list=[];
             foreach ($list as $key=>$value){
@@ -471,51 +497,59 @@ class RankingLogic
             $percent_one=$level_list[1];//矿队长返点百分百
             //用上级作为循环查找对象
             if($p_1['level']==6){//上级是矿场主
-                if(!$this->user_balance($p_1['id'],$money*($percent+$percent_one)/100,'代理返点',4)){//矿场主
+                if(!$this->user_balance($p_1['id'],$money*($percent+$percent_one)/100,'代理返点',4,$balance_give_integral)){//矿场主
                     return false;
                 }
+                $surplus_money=$surplus_money-($percent+$percent_one);
                 if($p_1['p_1']){
                     $data=$this->above($p_1['p_1'],$p_1['level']);
                     if($data){
-                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                             return false;
                         }
+                        $surplus_money=$surplus_money-1;
                     }
                 }
             }elseif($p_1['level']==1){//上级是矿队长
-                if(!$this->user_balance($p_1['id'],$money*$percent_one/100,'代理返点',2)){//上级  矿队长
+                if(!$this->user_balance($p_1['id'],$money*$percent_one/100,'代理返点',2,$balance_give_integral)){//上级  矿队长
                     return false;
                 }
+                $surplus_money=$surplus_money-$percent_one;
                 if($p_1['p_1']){
                     $data=$this->above($p_1['p_1'],$p_1['level']);
                     if($data){
                         if($data['type']==0){//平级
-                            if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                            if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                 return false;
                             }
+                            $surplus_money=$surplus_money-1;
                             $data_fl=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data_fl){
                                 if ($data_fl['type']==1){
-                                    if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',4)){//顶级   矿场主
+                                    if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',4,$balance_give_integral)){//顶级   矿场主
                                         return false;
                                     }
+                                    $surplus_money=$surplus_money-$percent;
                                     $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
                                     if($data_fl){
-                                        if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                        if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                             return false;
                                         }
+                                        $surplus_money=$surplus_money-1;
                                     }
                                 }
                             }
                         }elseif($data['type']==1){
-                            if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',4)){//顶级  矿场主
+                            if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',4,$balance_give_integral)){//顶级  矿场主
                                 return false;
                             }
+                            $surplus_money=$surplus_money-$percent;
                             $data=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data){
-                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                     return false;
                                 }
+                                $surplus_money=$surplus_money-1;
                             }
                         }
 
@@ -526,50 +560,58 @@ class RankingLogic
                     $data=$this->above($p_1['p_1'],1);
                     if($data){
                         if($data['type']==0){
-                            if(!$this->user_balance($data['data']['id'],$money*$percent_one/100,'代理返点',2)){//上级  矿队长
+                            if(!$this->user_balance($data['data']['id'],$money*$percent_one/100,'代理返点',2,$balance_give_integral)){//上级  矿队长
                                 return false;
                             }
+                            $surplus_money=$surplus_money-$percent_one;
                             $data_level=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data_level){
                                 if($data_level['type']==0){
-                                    if(!$this->user_balance($data_level['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                    if(!$this->user_balance($data_level['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                         return false;
                                     }
+                                    $surplus_money=$surplus_money-1;
                                     $data_fl=$this->above($data_level['data']['p_1'],$data_level['data']['level']);
                                     if($data_fl){
                                         if ($data_fl['type']==1){
-                                            if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',4)){//顶级  矿场主
+                                            if(!$this->user_balance($data_fl['data']['id'],$money*$percent/100,'代理返点',4,$balance_give_integral)){//顶级  矿场主
                                                 return false;
                                             }
+                                            $surplus_money=$surplus_money-$percent;
                                             $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
                                             if($data_fl){
-                                                if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                                if(!$this->user_balance($data_fl['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                                     return false;
                                                 }
+                                                $surplus_money=$surplus_money-1;
                                             }
                                         }
                                     }
                                 }elseif ($data_level['type']==1){
-                                    if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',4)){//顶级  矿场主
+                                    if(!$this->user_balance($data['data']['id'],$money*$percent/100,'代理返点',4,$balance_give_integral)){//顶级  矿场主
                                         return false;
                                     }
+                                    $surplus_money=$surplus_money-$percent;
                                     $data=$this->above($data['data']['p_1'],$data['data']['level']);
                                     if($data){
-                                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                        if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                             return false;
                                         }
+                                        $surplus_money=$surplus_money-1;
                                     }
                                 }
                             }
                         }elseif($data['type']==1){
-                            if(!$this->user_balance($data['data']['id'],$money*($percent+$percent_one)/100,'代理返点',4)){//顶级  矿场主
+                            if(!$this->user_balance($data['data']['id'],$money*($percent+$percent_one)/100,'代理返点',4,$balance_give_integral)){//顶级  矿场主
                                 return false;
                             }
+                            $surplus_money=$surplus_money-($percent_one+$percent);
                             $data=$this->above($data['data']['p_1'],$data['data']['level']);
                             if($data){
-                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3)){//平级奖
+                                if(!$this->user_balance($data['data']['id'],$money*1/100,'平级代理返点',3,$balance_give_integral)){//平级奖
                                     return false;
                                 }
+                                $surplus_money=$surplus_money-1;
                             }
                         }
 
@@ -579,7 +621,24 @@ class RankingLogic
             //上上级计算返佣
             $p_2=Db::name('users')->where('id',$users['p_2'])->find();
             if($p_2){
-                if(!$this->user_balance($p_2['id'],$money*2/100,'间推返利',5)){
+                if(!$this->user_balance($p_2['id'],$money*2/100,'间推返利',5,$balance_give_integral)){
+                    return false;
+                }
+                $surplus_money=$surplus_money-2;
+            }
+        }
+        if($surplus_money>0){//未拿完扣取费用，则钱归系统账号
+            $user_admin=Db::name('users')->where('phone',18866666666)->find();
+            if($user_admin){
+                $surplus=$money*$surplus_money/100;
+                $detail=[];
+                $detail['user_id']=$user_admin['id'];
+                $detail['type']=16;//矿场主
+                $detail['money']=$surplus;
+                $detail['createtime']=time();
+                $detail['intro']='返佣未拿完';
+                $ids=Db::name('moneydetail')->insertGetId($detail);
+                if(!$ids){
                     return false;
                 }
             }
@@ -610,7 +669,7 @@ class RankingLogic
     /*
      * 代理返佣
      */
-    public function user_balance($user_id,$money,$intro,$type){
+    public function user_balance($user_id,$money,$intro,$type,$balance_give_integral){
         $balance=Db::name('users')->where(['id'=>$user_id])->value('balance');
         $balance=$balance+$money;
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
@@ -629,9 +688,11 @@ class RankingLogic
         if(!$sys_id){
             return false;
         }
+        $tg_num=sprintf("%.2f",$money/$balance_give_integral);//保留两位小数
+        $give=$this->add_give($tg_num,$user_id);//糖果生成
         $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
         $res=Db::name('system_money')->update($system_money);
-        if(!$re||!$res){
+        if(!$re||!$res||!$give){
             return false;
         }else{
             $detail=[];

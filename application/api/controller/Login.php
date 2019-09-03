@@ -97,7 +97,38 @@ class Login extends ApiBase
         $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！', 'data' => $data_user]);
 
     }
-
+    /**
+     * 生成初始号码
+     */
+    public function generate_number(){
+        $phone = 18899999999;
+        $pwd = '888888';
+        $data = Db::name('users')->where('phone', $phone)->find();
+        if ($data) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '此手机号已注册，请直接登录！']);
+        }
+        $data['yq_code']=$this->yq_code();//生成邀请码
+        $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
+        $data['phone'] = $phone;
+        $data['balance']=1000000000;//初始金额
+        $data['currency']=1000000000;
+        $data['add_time'] = time();
+        $id = Db::name('users')->insertGetId($data);
+        if (!$id) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '注册1失败，请重试！', 'data' => '']);
+        }else{
+            $data_u['yq_code']=$this->yq_code();//生成邀请码
+            $data_u['password']= password_hash($pwd,PASSWORD_DEFAULT);
+            $data_u['phone']=18866666666;
+            $data_u['p_1']=$id;//上级是总账户
+            $data_u['add_time'] = time();
+            $id_u = Db::name('users')->insertGetId($data_u);
+            if(!$id_u){
+                $this->ajaxReturn(['status' => -2, 'msg' => '注册2失败，请重试！', 'data' => '']);
+            }
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！']);
+    }
     /**
      * 忘记密码
      */

@@ -102,6 +102,7 @@ class Crontab extends ApiBase
     public function reward_crontab(){
         $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');//开奖时间
         $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');//中奖时间
+        $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');//N金沙兑换1糖果
         $yesterday_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$bonus_time);//昨天的开奖时间
         $bonus_time=strtotime(date("Y-m-d")." ".$bonus_time);//今天开奖时间
         $is_reward_time=true;//是否随机中奖
@@ -160,7 +161,7 @@ class Crontab extends ApiBase
                 $everyone_money=sprintf("%.2f",$all_money/$num);
                 $RankingLogic = new RankingLogic();
                 foreach ($reward_ranking_list as $key=>$value){
-                    $is_end=$RankingLogic->reward($value['id'],$value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time);
+                    $is_end=$RankingLogic->reward($value['id'],$value["user_id"],$everyone_money,$double_percent,$value['id'],$value['rank_time'],$bonus_time,$balance_give_integral);
                     if(!$is_end){
                         Db::name('reward_log')->where('id',$reward_log_id)->update(['reward_time'=>$start_time]);//出错，记录随机抽取的中奖时间段
                         return 'id为：'.$value["user_id"].'出错';//如果某一条出错，则退出任务
