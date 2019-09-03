@@ -391,6 +391,7 @@ class User extends ApiBase
             'rate' => $rate,
             'fee' => $taxfee,
             'money' => $money,
+            'actual_money'=>($money-$taxfee),
             'status' => 0,
             'create_time' => time(),
         ]);
