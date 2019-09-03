@@ -51,11 +51,12 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        if($user_id==85){//管理员充值
+        if($user['phone']==188999999999){//管理员充值
             $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
             if($res){
                 $detail['user_id']=$give_user['id'];
-                $detail['type']=13;//充值
+                $detail['type']=13;//充值 被赠与
+                $detail['be_user_id']=$user_id;//赠送者
                 $detail['money']=$balance;
                 $detail['createtime']=time();
                 $detail['intro']=$user['nick_name'].'充值';
@@ -70,7 +71,8 @@ class Users extends ApiBase
             if($re){
                 $detail=[];
                 $detail['user_id']=$user_id;
-                $detail['type']=13;//充值
+                $detail['type']=13;//充值  赠送
+                $detail['be_user_id']=$give_user['id'];//赠与者
                 $detail['money']=-$balance;
                 $detail['createtime']=time();
                 $detail['intro']='充值给'.$give_user['nick_name'];
@@ -112,6 +114,7 @@ class Users extends ApiBase
             if($res){
                 $detail['user_id']=$give_user['id'];
                 $detail['type']=5;//被赠送
+                $detail['be_user_id']=$user_id;//赠送者
                 $detail['money']=$balance;
                 $detail['createtime']=time();
                 $detail['intro']=$user['nick_name'].'赠送';
@@ -127,6 +130,7 @@ class Users extends ApiBase
                 $detail=[];
                 $detail['user_id']=$user_id;
                 $detail['type']=2;//赠送
+                $detail['be_user_id']=$give_user['id'];//赠与者
                 $detail['money']=-$balance;
                 $detail['createtime']=time();
                 $detail['intro']='赠送给'.$give_user['nick_name'];
@@ -186,6 +190,8 @@ class Users extends ApiBase
         if($res){
             $detail['u_id']=$give_user['id'];
             $detail['u_name']=$give_user['nick_name'];
+            $detail['for_user_id']=$user_id;//赠送者
+            $detail['for_user_name']=$user['nick_name'];//赠送者
             $detail['integral']=$integral;
             $detail['type']=2;//被赠与
             $detail['then_integral']=$give_user['integral'];
@@ -201,6 +207,8 @@ class Users extends ApiBase
             $detail=[];
             $detail['u_id']=$user_id;
             $detail['u_name']=$user['nick_name'];
+            $detail['for_user_id']=$give_user;//被赠送者
+            $detail['for_user_name']=$give_user['nick_name'];//被赠送者
             $detail['integral']=-$integral;
             $detail['then_integral']=$user['integral'];
             $detail['createtime']=time();
@@ -254,13 +262,15 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
         Db::startTrans();
-        if($user_id==85){
+        if($user['phone']==188999999999){
             $res=Db::name('users')->where(['phone'=>$phone])->setInc('lock_currency',$currency);
             if($res){
                 $detail['user_id']=$give_user['id'];
                 $detail['user_name']=$give_user['nick_name'];
                 $detail['type']=4;//管理员操作
                 $detail['currency_type']=1;//冻结
+                $detail['for_user_id']=$user_id;//赠送者
+                $detail['for_user_name']=$user['nick_name'];//赠送者
                 $detail['currency']=$currency;
                 $detail['old_currency']=$give_user['lock_currency'];
                 $detail['desc']=$user['nick_name'].'充值';
@@ -277,6 +287,8 @@ class Users extends ApiBase
                 $detail['user_id']=$user_id;
                 $detail['user_name']=$user['nick_name'];
                 $detail['type']=1;//赠送
+                $detail['for_user_id']=$give_user;//被赠送者
+                $detail['for_user_name']=$give_user['nick_name'];//被赠送者
                 $detail['currency']=-$currency;
                 $detail['old_currency']=$user['currency'];
                 $detail['desc']='充值'.$give_user['nick_name'];
@@ -300,6 +312,8 @@ class Users extends ApiBase
                 $detail['user_id']=$give_user['id'];
                 $detail['user_name']=$give_user['nick_name'];
                 $detail['type']=3;//被赠与
+                $detail['for_user_id']=$user_id;//赠送者
+                $detail['for_user_name']=$user['nick_name'];//赠送者
                 $detail['currency']=$currency;
                 $detail['old_currency']=$give_user['currency'];
                 $detail['desc']=$user['nick_name'].'赠送';
@@ -316,6 +330,8 @@ class Users extends ApiBase
                 $detail['user_id']=$user_id;
                 $detail['user_name']=$user['nick_name'];
                 $detail['type']=1;//赠送
+                $detail['for_user_id']=$give_user;//被赠送者
+                $detail['for_user_name']=$give_user['nick_name'];//被赠送者
                 $detail['currency']=-$currency;
                 $detail['old_currency']=$user['currency'];
                 $detail['desc']='赠送'.$give_user['nick_name'];
