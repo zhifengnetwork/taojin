@@ -228,6 +228,11 @@ class Index extends ApiBase
         foreach ($balance_list as $key=>$value){
             $balance_list[$key]['createtime']=date('Y-m-d H:i:s',$value['createtime']);
             $balance_list[$key]['type_text']=$this->balance_type($value['type']);
+            if($value['be_user_id']){
+                $balance_list[$key]['phone']=Db::name('users')->where('id',$value['be_user_id'])->value('phone');
+            }else{
+                $balance_list[$key]['phone']='无';
+            }
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$balance_list]);
     }
