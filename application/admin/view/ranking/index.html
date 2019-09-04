@@ -10,9 +10,6 @@
         <div class="layui-inline">
             <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
         </div>
-        <div class="layui-input-inline">
-            <input type="text" class="layui-input" id="time_slot" placeholder=" - ">
-        </div>
 
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
         <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
@@ -24,13 +21,6 @@
 </div>
 
 {include file="common/foot"/}
-<script>
-    laydate.render({
-        elem: '#time_slot'
-        ,type: 'datetime'
-        ,range: true
-    });
-</script>
 <script type="text/html" id="order">
     <input name="{{d.id}}" data-id="{{d.id}}" class="list_order layui-input" value=" {{d.listorder}}" size="10"/>
 </script>

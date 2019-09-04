@@ -229,7 +229,11 @@ class Index extends ApiBase
             $balance_list[$key]['createtime']=date('Y-m-d H:i:s',$value['createtime']);
             $balance_list[$key]['type_text']=$this->balance_type($value['type']);
             if($value['be_user_id']){
-                $balance_list[$key]['phone']=Db::name('users')->where('id',$value['be_user_id'])->value('phone');
+                if($value['type']==2){
+                    $balance_list[$key]['phone']='赠送给'.Db::name('users')->where('id',$value['be_user_id'])->value('phone');
+                }elseif ($value['type']==5){
+                    $balance_list[$key]['phone']=Db::name('users')->where('id',$value['be_user_id'])->value('phone').'赠送';
+                }
             }else{
                 $balance_list[$key]['phone']='无';
             }
