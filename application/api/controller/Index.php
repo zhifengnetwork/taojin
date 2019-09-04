@@ -340,6 +340,58 @@ class Index extends ApiBase
 //        }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
+    public function give_detailed(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+        $where=[];
+        $where['user_id']=$user_id;
+        $where['status']=1;
+        $give_list=Db::name('give')
+            ->where($where)
+            ->order('add_time DESC')
+            ->paginate(10,false,$pageParam)
+            ->toArray();
+        $give_list=$give_list['data'];
+        foreach ($give_list as $key=>$value){
+            $give_list[$key]['type_text']=$this->give_type($value['type']);
+            $give_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$give_list]);
+    }
+    function give_type($type){
+        switch ($type){
+            case 0:
+                return '两倍出局';
+                break;
+            case 1:
+                return '抽奖';
+                break;
+            case 2:
+                return '直推';
+                break;
+            case 3:
+                return '间推';
+                break;
+            case 4:
+                return '队长';
+                break;
+            case 5:
+                return '场主';
+                break;
+            case 6:
+                return '平级';
+                break;
+            case 7:
+                return '间推';
+                break;
+            default:
+                return '参数不对';
+                break;
+        }
+    }
     function balance_type($type){
         switch ($type){
             case 1:
