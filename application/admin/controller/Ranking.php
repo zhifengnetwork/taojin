@@ -108,12 +108,15 @@ class Ranking extends Common
             $where['id'] = array('like','%' . $keyword . '%');
         }
 
-        $count=Db::name('ranking')->field('id,user_id,rank_time,add_time,rank_status')->where($where)->count();;
+        $count=Db::name('ranking')->field('id,user_id,rank_time,add_time,rank_status')->where($where)->count();
         if($count>20000){
             echo '数据量过大，不能导出！数量：'.$count;
             die;
         }
-        $res=Db::name('ranking')->field('id,user_id,rank_time,add_time,rank_status')->where($where)->select();
+        $res=Db::name('ranking')->alias('r')
+            ->join('users u','u.id=r.user_id','LEFT')
+            ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone')
+            ->where($where)->select();
         error_reporting(0);
         vendor('PHPExcel.PHPExcel');
 
@@ -125,11 +128,11 @@ class Ranking extends Common
 
         // 设置表格宽度
         $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(10);
-        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(15);
-        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(50);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(10);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(10);
         $objPHPExcel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
-//        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(5);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
 //        $objPHPExcel->getActiveSheet()->getColumnDimension('G')->setWidth(20);
 
 
@@ -142,10 +145,10 @@ class Ranking extends Common
         // 列名赋值
         $objPHPExcel->getActiveSheet()->setCellValue('A1', '编号');
         $objPHPExcel->getActiveSheet()->setCellValue('B1', '用户id');
-        $objPHPExcel->getActiveSheet()->setCellValue('C1', '排位状态');
-        $objPHPExcel->getActiveSheet()->setCellValue('D1', '排位时间');
-        $objPHPExcel->getActiveSheet()->setCellValue('E1', '下单时间');
-//        $objPHPExcel->getActiveSheet()->setCellValue('F1', '审核');
+        $objPHPExcel->getActiveSheet()->setCellValue('C1', '手机号码');
+        $objPHPExcel->getActiveSheet()->setCellValue('D1', '排位状态');
+        $objPHPExcel->getActiveSheet()->setCellValue('E1', '排位时间');
+        $objPHPExcel->getActiveSheet()->setCellValue('F1', '下单时间');
 //        $objPHPExcel->getActiveSheet()->setCellValue('G1', '审核时间');
 
         // 数据起始行
@@ -166,10 +169,10 @@ class Ranking extends Common
             // 设置单元格数值
             $objPHPExcel->getActiveSheet()->setCellValue('A' . $row_num, $value['id']);
             $objPHPExcel->getActiveSheet()->setCellValue('B' . $row_num, $value['user_id']);
-            $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_num, $value['rank_status'] ? '出局' : '未出局');
-            $objPHPExcel->getActiveSheet()->setCellValue('D' . $row_num, date('Y-m-d h:i:s',$value['rank_time']));
-            $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_num, date('Y-m-d h:i:s',$value['add_time']));
-//            $objPHPExcel->getActiveSheet()->setCellValue('F' . $row_num, $value['state'] ? '√' : '×');
+            $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_num, $value['phone']);
+            $objPHPExcel->getActiveSheet()->setCellValue('D' . $row_num, $value['rank_status'] ? '出局' : '未出局');
+            $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_num, date('Y-m-d h:i:s',$value['rank_time']));
+            $objPHPExcel->getActiveSheet()->setCellValue('F' . $row_num, date('Y-m-d h:i:s',$value['add_time']));
 //            $objPHPExcel->getActiveSheet()->setCellValue('G' . $row_num, date('Y-m-d h:i:s',$value['statetime']));
             $row_num++;
         }

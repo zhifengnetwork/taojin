@@ -15,13 +15,13 @@
         </div>
         <div class="layui-input-inline">
             <!--<input type="text" class="layui-input" id="start_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">-->
-            <input type="text" class="layui-input" id="start_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">
+            <input type="text" class="layui-input" id="start_time" placeholder="开始时间" style="width: 150px;">
         </div>
         <div class="layui-input-inline">
             -
         </div>
         <div class="layui-input-inline">
-            <input type="text" class="layui-input" id="end_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">
+            <input type="text" class="layui-input" id="end_time" placeholder="结束时间" style="width: 150px;">
         </div>
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
         <a href="{:url('index')}" class="layui-btn">显示全部</a>
@@ -75,7 +75,7 @@
                     },sort:true},
                 {field: 'out_source', title: '出局源', width: 100, templet: '#out_source',sort:true},
                 {field: 'out_type', title: '出局类型', width: 100, templet: '#out_type',sort:true},
-                {field: 'add_time', title: '创建时间', width: 150, templet: function(d){
+                {field: 'add_time', title: '下单时间', width: 150, templet: function(d){
                         return FormatDateTime(d.add_time);
                     }, sort:true},
                 // {width: 160, align: 'center', toolbar: '#action', title: '操作'}
