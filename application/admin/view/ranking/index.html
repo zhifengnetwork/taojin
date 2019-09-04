@@ -1,5 +1,5 @@
-{include file="common/head"/}
 
+{include file="common/head"/}
 <script src="/public/static/common/js/jquery.2.1.1.min.js"></script>
 
 <div class="admin-main layui-anim layui-anim-upbit">
@@ -10,6 +10,10 @@
         <div class="layui-inline">
             <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
         </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="time_slot" placeholder=" - ">
+        </div>
+
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
         <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
         <div style="clear: both;"></div>
@@ -20,7 +24,13 @@
 </div>
 
 {include file="common/foot"/}
-
+<script>
+    laydate.render({
+        elem: '#time_slot'
+        ,type: 'datetime'
+        ,range: true
+    });
+</script>
 <script type="text/html" id="order">
     <input name="{{d.id}}" data-id="{{d.id}}" class="list_order layui-input" value=" {{d.listorder}}" size="10"/>
 </script>
@@ -37,7 +47,6 @@
     <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>-->
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
-
 <script>
     layui.use('table', function () {
         var table = layui.table, $ = layui.jquery;
@@ -112,6 +121,7 @@
                 });
             }
         });
+
 
         $('#delAll').click(function () {
             layer.confirm('确认要删除选中的内容吗？', {icon: 3}, function (index) {
