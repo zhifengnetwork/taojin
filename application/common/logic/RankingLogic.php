@@ -484,7 +484,7 @@ class RankingLogic
         //返佣
         $surplus_money=10;//%10剩余点
         if($p_1){
-            if(!$this->user_balance($p_1['id'],$money*2/100,'直推返利',1)){
+            if(!$this->user_balance($p_1['id'],$money*2/100,'直推返利',1,$balance_give_integral)){
                 return false;
             }
             $surplus_money=$surplus_money-2;//减少见点
