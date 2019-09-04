@@ -10,9 +10,23 @@
         <div class="layui-inline">
             <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
         </div>
-
+        <div class="layui-input-inline">
+            下单时间：
+        </div>
+        <div class="layui-input-inline">
+            <!--<input type="text" class="layui-input" id="start_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">-->
+            <input type="text" class="layui-input" id="start_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">
+        </div>
+        <div class="layui-input-inline">
+            -
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="end_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">
+        </div>
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
-        <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
+        <a href="{:url('index')}" class="layui-btn">显示全部</a>
+        <!--<button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>-->
+        <a href="#" id="exportExcel" class="layui-btn ">导出订单</a>
         <div style="clear: both;"></div>
     </div>
     <table class="layui-table" id="list" lay-filter="list">
@@ -21,6 +35,9 @@
 </div>
 
 {include file="common/foot"/}
+<script>
+
+</script>
 <script type="text/html" id="order">
     <input name="{{d.id}}" data-id="{{d.id}}" class="list_order layui-input" value=" {{d.listorder}}" size="10"/>
 </script>
@@ -35,11 +52,11 @@
 <script type="text/html" id="action">
 
     <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>-->
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <!--<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
 </script>
 <script>
-    layui.use('table', function () {
-        var table = layui.table, $ = layui.jquery;
+    layui.use(['table','laydate'], function () {
+        var table = layui.table, $ = layui.jquery,laydate=layui.laydate;
         var tableIn = table.render({
             id: 'content',
             elem: '#list',
@@ -61,19 +78,21 @@
                 {field: 'add_time', title: '创建时间', width: 150, templet: function(d){
                         return FormatDateTime(d.add_time);
                     }, sort:true},
-                {width: 160, align: 'center', toolbar: '#action', title: '操作'}
+                // {width: 160, align: 'center', toolbar: '#action', title: '操作'}
             ]],
             limit: 10
         });
         //搜索
         $('#search').on('click', function () {
             var key = $('#key').val();
-            if ($.trim(key) === '') {
+            var start_time = $('#start_time').val();
+            var end_time = $('#end_time').val();
+            if ($.trim(key) === ''&&start_time==''&&end_time=='') {
                 layer.msg('{:lang("pleaseEnter")}关键字！', {icon: 0});
                 return;
             }
             tableIn.reload({
-                where: {key: key}
+                where: {key: key,start_time:start_time,end_time:end_time}
             });
         });
 
@@ -111,8 +130,6 @@
                 });
             }
         });
-
-
         $('#delAll').click(function () {
             layer.confirm('确认要删除选中的内容吗？', {icon: 3}, function (index) {
                 layer.close(index);
@@ -132,7 +149,21 @@
                     }
                 });
             });
-        })
+        });
+        $('#exportExcel').click(function () {
+            var key = $('#key').val();
+            var start_time = $('#start_time').val();
+            var end_time = $('#end_time').val();
+            window.location.href="{:url('exportExcel_old')}?key="+ key+'&start_time='+start_time+'&end_time='+end_time;
 
+        });
+        laydate.render({
+            elem: '#start_time'
+            ,type: 'datetime'
+        });
+        laydate.render({
+            elem: '#end_time'
+            ,type: 'datetime'
+        });
     });
 </script>
