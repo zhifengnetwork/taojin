@@ -308,7 +308,7 @@ class RankingLogic
 //        $data['end_time']=time()+24*3600;//24小时过期
 //        $data['add_time']=time();
 //        $ids=Db::name('give')->insertGetId($data);
-        $give=$this->add_give($tg_num,$ranking['user_id']);//糖果生成
+        $give=$this->add_give($tg_num,$ranking['user_id'],7,'三倍出局');//糖果生成
         $detail['user_id']=$user['id'];
         $detail['typefrom']=1;
         $detail['type']=10;//出局赠送
@@ -321,7 +321,7 @@ class RankingLogic
             return false;
         }
         //代理分佣
-        if(!$this->agent_money($ranking['user_id'],$agent_money)){
+        if(!$this->agent_money($ranking['user_id'],$agent_money,$balance_give_integral)){
             Db::rollback();
             return false;
         }
@@ -366,7 +366,7 @@ class RankingLogic
 //        $data['add_time']=time();
 //        $ids=Db::name('give')->insertGetId($data);
         $tg_num=sprintf("%.2f",$goods_money*2/$balance_give_integral);//保留两位小数
-        $give=$this->add_give($tg_num,$ranking['user_id']);//糖果生成
+        $give=$this->add_give($tg_num,$ranking['user_id'],0,'两倍出局');//糖果生成
         $detail['user_id']=$user['id'];
         $detail['typefrom']=1;
         $detail['type']=10;//出局赠送
@@ -379,7 +379,7 @@ class RankingLogic
             return false;
         }
         //代理分佣
-        if(!$this->agent_money($ranking['user_id'],$agent_money)){//代理费计算
+        if(!$this->agent_money($ranking['user_id'],$agent_money,$balance_give_integral)){//代理费计算
             Db::rollback();
             return false;
         }
@@ -389,7 +389,7 @@ class RankingLogic
     /*
      * 生成糖果
      */
-    public function add_give($num,$user_id){
+    public function add_give($num,$user_id,$type,$desc){
         $data=[];
         $data['num']=$num;
         $data['user_id']=$user_id;
@@ -455,7 +455,7 @@ class RankingLogic
             return false;
         }
         $tg_num=sprintf("%.2f",$money/$balance_give_integral);//保留两位小数
-        $give=$this->add_give($tg_num,$user_id);//糖果生成
+        $give=$this->add_give($tg_num,$user_id,1,'抽奖赠送');//糖果生成
         $detail['user_id']=$user_id;
         $detail['type']=9;//中奖
         $detail['money']=$user_money;
@@ -689,7 +689,33 @@ class RankingLogic
             return false;
         }
         $tg_num=sprintf("%.2f",$money/$balance_give_integral);//保留两位小数
-        $give=$this->add_give($tg_num,$user_id);//糖果生成
+        if($type==1){
+            $m_type=1;//直推返利
+            $give_type=2;
+            $desc="直推产生糖果";
+        }elseif($type==2){
+            $m_type=11;//矿场主
+            $give_type=5;
+            $desc="矿场主产生糖果";
+        }
+        elseif($type==3){
+            $m_type=12;//平级奖励
+            $give_type=6;
+            $desc="平级产生糖果";
+        }elseif ($type==4){
+            $m_type=14;//矿队长
+            $give_type=4;
+            $desc="矿队长产生糖果";
+        }elseif ($type==5){
+            $m_type=15;//间推
+            $give_type=3;
+            $desc="间推产生糖果";
+        }else{
+            $m_type=1;
+            $give_type=1;
+            $desc="未知类型";
+        }
+        $give=$this->add_give($tg_num,$user_id,$give_type,$desc);//糖果生成
         $re=Db::name('users')->where(['id'=>$user_id])->update(['balance'=>$balance]);
         $res=Db::name('system_money')->update($system_money);
         if(!$re||!$res||!$give){
@@ -697,18 +723,7 @@ class RankingLogic
         }else{
             $detail=[];
             $detail['user_id']=$user_id;
-            if($type==1){
-                $detail['type']=1;//直推返利
-            }elseif($type==2){
-                $detail['type']=11;//矿场主
-            }
-            elseif($type==3){
-                $detail['type']=12;//平级奖励
-            }elseif ($type==4){
-                $detail['type']=14;//矿队长
-            }elseif ($type==5){
-                $detail['type']=15;//间推
-            }
+            $detail['type']=$m_type;
             $detail['money']=$money;
             $detail['createtime']=time();
             $detail['intro']=$intro;
