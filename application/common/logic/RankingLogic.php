@@ -708,7 +708,7 @@ class RankingLogic
             $m_type=1;//直推返利
             $give_type=2;
             $desc="直推产生糖果";
-        }elseif($type==2){
+        }elseif($type==4){
             $m_type=11;//矿场主
             $give_type=5;
             $desc="矿场主产生糖果";
@@ -717,7 +717,7 @@ class RankingLogic
             $m_type=12;//平级奖励
             $give_type=6;
             $desc="平级产生糖果";
-        }elseif ($type==4){
+        }elseif ($type==2){
             $m_type=14;//矿队长
             $give_type=4;
             $desc="矿队长产生糖果";

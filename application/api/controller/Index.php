@@ -382,10 +382,10 @@ class Index extends ApiBase
                 return '抽奖';
                 break;
             case 2:
-                return '直推';
+                return '直';
                 break;
             case 3:
-                return '间推';
+                return '间';
                 break;
             case 4:
                 return '队长';
@@ -394,7 +394,7 @@ class Index extends ApiBase
                 return '场主';
                 break;
             case 6:
-                return '平级';
+                return '平';
                 break;
             case 7:
                 return '三倍出局';
