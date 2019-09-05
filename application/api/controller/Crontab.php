@@ -100,7 +100,8 @@ class Crontab extends ApiBase
      * 抽奖定时任务
      */
     public function reward_crontab(){
-         for($i=0;$i<10;$i++){//运行10次，防止出错
+        set_time_limit (0);
+        for($i=0;$i<10;$i++){//运行10次，防止出错
             $bonus_time = Db::name('config')->where(['name'=>'bonus_time','inc_type'=>'taojin'])->value('value');//开奖时间
             $reward_time = Db::name('config')->where(['name'=>'reward_time','inc_type'=>'taojin'])->value('value');//中奖时间
             $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');//N金沙兑换1糖果
@@ -134,7 +135,7 @@ class Crontab extends ApiBase
                     $is_reward=true;
                 }
             }
-            if(((time()>$bonus_time)&&time()<$bonus_time+3600)&&$is_reward){//在开奖时间一个小时内
+            if(((time()>$bonus_time)&&time()<$bonus_time+7200)&&$is_reward){//在开奖时间一个小时内
                 $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
                 if($is_reward_time){//随机抽取一分钟
                     $where=[];
