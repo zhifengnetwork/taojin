@@ -203,12 +203,12 @@ class Index extends ApiBase
     public function test(){
         $where = [];
         $start_time=1567597020;
-        $end_time=1567597080;
+        $end_time=1567683480;
         $where['r.rank_time'] = ['between', [$start_time, $end_time]];
         $reward_ranking_list = Db::name('ranking')->alias('r')
             ->join('reward re','re.ranking_id=r.id','LEFT')
             ->where('re.ranking_id is null')
-            ->where($where)->select();
+            ->where($where)->limit(100)->select();
         $num=count($reward_ranking_list);
         echo $num."==== ".Db::name('ranking')->getLastSql();
     }
@@ -397,7 +397,7 @@ class Index extends ApiBase
                 return '平级';
                 break;
             case 7:
-                return '间推';
+                return '三倍出局';
                 break;
             default:
                 return '参数不对';
