@@ -9,7 +9,7 @@
         </div>
         <button class="layui-btn" id="search" data-type="reload">搜索</button>
         <a href="{:url('index')}" class="layui-btn">显示全部</a>
-        <button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>
+        <!--<button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>-->
     </div>
     <table class="layui-table" id="list" lay-filter="list"></table>
 </div>
@@ -47,7 +47,7 @@
                 {checkbox:true,fixed: true},
                 {field: 'id', title: '{:lang("id")}', width: 80, fixed: true,sort:true},
                 {field: 'nick_name', title: '{:lang("name")}', width: 120,sort:true},
-
+                {field: 'p_phone', title: '推荐人手机', width: 120},
                 {field: 'balance', title: '余额', width: 80,sort:true},
                 {field: 'recharge_balance', title: '充值余额', width: 80,sort:true},
                 {field: 'lock_balance', title: '冻结余额', width: 90,sort:true},

@@ -29,6 +29,8 @@ class Users extends Common
 
             $list = db('users')->alias('u')
                 ->join(config('database.prefix') . 'user_level ul','u.level = ul.level_id','left')
+                ->join(config('database.prefix') . 'users p','p.id=u.p_1','LEFT')
+                ->field('u.id,u.nick_name,u.balance,u.recharge_balance,u.lock_balance,u.integral,u.currency,ul.level_name,u.phone,u.add_time,p.phone as p_phone')
                 ->where('u.phone|u.nick_name|u.id','like',"%" . $key . "%")
                 ->order('u.id desc')
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
