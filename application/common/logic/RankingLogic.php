@@ -302,7 +302,7 @@ class RankingLogic
             return false;
         }
         //赠送糖果
-        $tg_num=sprintf("%.2f",$goods_money*2/$balance_give_integral);//保留两位小数
+        $tg_num=sprintf("%.2f",$goods_money*3/$balance_give_integral);//保留两位小数
 //        $tg_num=floor($goods_money*3/$balance_give_integral);//赠送糖果取整
 //        $data=[];
 //        $data['num']=$tg_num;
