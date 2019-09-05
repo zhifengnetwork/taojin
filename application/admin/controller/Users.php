@@ -165,7 +165,7 @@ class Users extends Common
     public function groupAdd(){
         if(request()->isPost()){
             $data = input('post.');
-            $data['open'] = input('post.open') ? input('post.open') : 0;
+//            $data['open'] = input('post.open') ? input('post.open') : 0;
             db('user_level')->insert($data);
             $result['msg'] = '代理等级添加成功!';
             $result['url'] = url('userGroup');
