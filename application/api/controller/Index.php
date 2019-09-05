@@ -185,12 +185,15 @@ class Index extends ApiBase
     public function reward_list(){
         $today_time= strtotime(date("Y-m-d"),time());
         $where=[];
+        $pageParam=[];
         $where['r.reward_day']=$today_time;
         $reward=Db::name('reward')->alias('r')
             ->join('users u','u.id=r.user_id','LEFT')
             ->field('r.rank_time,u.phone')
             ->where($where)
-            ->select();
+            ->paginate(10,false,$pageParam)
+            ->toArray();
+        $reward=$reward['data'];
         foreach ($reward as $key=>$value){
             $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
             $reward[$key]['phone']=shadow($reward[$key]['phone']);
@@ -198,11 +201,16 @@ class Index extends ApiBase
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$reward]);
     }
     public function test(){
-        // $user_id = 1;
-        // echo $this->create_token($user_id);
-
-
-        echo $this->get_user_id();
+        $where = [];
+        $start_time=1567597020;
+        $end_time=1567597080;
+        $where['r.rank_time'] = ['between', [$start_time, $end_time]];
+        $reward_ranking_list = Db::name('ranking')->alias('r')
+            ->join('reward re','re.ranking_id=r.id','LEFT')
+            ->where('re.ranking_id is null')
+            ->where($where)->select();
+        $num=count($reward_ranking_list);
+        echo $num."==== ".Db::name('ranking')->getLastSql();
     }
     public function balance_list(){
         $user_id=$this->get_user_id();
