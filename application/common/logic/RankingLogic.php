@@ -425,17 +425,25 @@ class RankingLogic
         $integral_num=Db::name('jackpot')->where('id',1)->value('integral_num');
         $integral_num=$integral_num-$money;
         $r=Db::name('jackpot')->where('id',1)->update(['integral_num'=>$integral_num]);//扣取奖金池的钱
+        if(!$r){
+            Db::rollback();
+            return false;
+        }
 //        $r=Db::name('jackpot')->where('id',1)->setDec('integral_num',$money);//扣取奖金池的钱
 //        $res=Db::name('users')->where('id',$user_id)->setInc('balance',$user_money);
         $user_balance=Db::name('users')->where('id',$user_id)->value('balance');
         $user_balance=$user_balance+$user_money;
         $res=Db::name('users')->where('id',$user_id)->update(['balance'=>$user_balance]);
+        if(!$res){
+            Db::rollback();
+            return false;
+        }
         $system_money['balance']=sprintf("%.2f",$system_money['balance']-$user_money);
         if($system_money['balance']<0){
             Db::rollback();
             return false;
         }
-        $system_data['balance']=-$user_balance;
+        $system_data['balance']=-$user_money;
         $system_data['add_time']=time();
         $system_data['desc']='抽奖修改系统金额';
         $sys_id=Db::name('system_money_log')->insertGetId($system_data);
@@ -444,7 +452,7 @@ class RankingLogic
             return false;
         }
         $re=Db::name('system_money')->update($system_money);//修改
-        if(!$res||!$r||!$re){
+        if(!$re){
             Db::rollback();
             return false;
         }
