@@ -139,7 +139,7 @@ class Crontab extends ApiBase
                     $is_reward = true;
                 }
             }
-            if ((time() > $bonus_time) && $is_reward) {//在开奖时间两个小时内
+            if(((time()>$bonus_time)&&time()<$bonus_time+7200)&&$is_reward){//在开奖时间两个小时内
                 $double_percent = Db::name('config')->where(['name' => 'double_percent', 'inc_type' => 'taojin'])->value('value');
                 if ($is_reward_time) {//随机抽取一分钟
                     $where = [];
@@ -215,7 +215,23 @@ class Crontab extends ApiBase
                 return '抽奖完成';
                 die;
             } else {
-                return '不在抽奖时间内或者抽奖已经完成';
+                if(time()>$bonus_time+7200){//超过抽奖时间两小时
+                    if(!$is_reward){
+                        return '不在抽奖时间内并且抽奖已经完成';
+                    }else{
+                        return '不在抽奖时间内并且抽奖未完成，请管理员查看代码修改！';
+                    }
+                }else{
+                    if(!$is_reward){
+                        return '抽奖已经完成';
+                    }else{
+                        if(time()>$bonus_time){
+                            return '抽奖未完成并且在抽奖时间内，请管理员查看代码修改！';
+                        }else{
+                            return '未到抽奖时间！';
+                        }
+                    }
+                }
                 die;
             }
         }
