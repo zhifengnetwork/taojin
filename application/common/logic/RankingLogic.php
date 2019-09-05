@@ -64,7 +64,9 @@ class RankingLogic
             $buy_prop = Db::name('config')->where(['name'=>'buy_prop','inc_type'=>'taojin'])->value('value');
             $balance_unlock=$buy_prop*$money;
             if($balance_unlock>$user['lock_balance']){
-                $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
+                $num_b=floor($user['lock_balance']/40);//解冻余额除以基数，得到倍数，然后取整
+                $balance_unlock=$num_b*40;//倍数*基数，得到解冻余额
+//                $balance_unlock=$user['lock_balance'];//如果可解冻余额超过本身的冻结余额多，则解冻当前所有冻结余额
             }
             if($balance_unlock!=0&&$balance_unlock>=40){
                 $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
@@ -391,8 +393,13 @@ class RankingLogic
      */
     public function add_give($num,$user_id,$type,$desc){
         $data=[];
+        if($num<0.01){//如果糖果小于0.01，不生成糖果记录
+            return true;
+        }
         $data['num']=$num;
         $data['user_id']=$user_id;
+        $data['type']=$type;
+        $data['desc']=$desc;
         $data['end_time']=time()+24*3600;//24小时过期
         $data['add_time']=time();
         $ids=Db::name('give')->insertGetId($data);
