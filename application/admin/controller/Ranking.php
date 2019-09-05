@@ -14,6 +14,7 @@ class Ranking extends Common
             $pageSize = input('limit') ? input('limit') : config('pageSize');
             $start_time=input('post.start_time');
             $end_time=input('post.end_time');
+            $map=[];
             if(!empty($start_time)){
                 if(!empty($start_time)){
                     if(strtotime($start_time)>strtotime($end_time)){
@@ -29,13 +30,20 @@ class Ranking extends Common
             if(!empty($keyword)){
                 $map['id'] = array('like','%' . $keyword . '%');
             }
-            $map['is_delete'] = 0;
+//            $map['is_delete'] = 0;
 
-            $list = Db::name('ranking')
+            $list=Db::name('ranking')->alias('r')
+                ->join('users u','u.id=r.user_id','LEFT')
+                ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone')
                 ->where($map)
                 ->order('id desc')
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
                 ->toArray();
+//            $list = Db::name('ranking')
+//                ->where($map)
+//                ->order('id desc')
+//                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+//                ->toArray();
 //
             return [
                 'code' => 0,

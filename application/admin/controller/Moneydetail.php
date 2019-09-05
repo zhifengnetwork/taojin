@@ -497,7 +497,7 @@ class Moneydetail extends Common
             }
             $list = Db::name('withdraw')->alias('w')
                 ->join('users u','u.id=w.user_id','')
-                ->field('u.name,u.realname,w.*')
+                ->field('u.name,u.realname,u.phone,w.*')
                 ->order('w.id desc')
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
                 ->toArray();
