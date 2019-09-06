@@ -87,7 +87,7 @@ class Team extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $yq_code=Db::name('users')->where('id',$user_id)->value('yq_code');
-        $yq_url='https://taojin.zhifengwangluo.com/#/Register?yq_code='.$yq_code;
+        $yq_url='https://www.519991.cn/#/Register?yq_code='.$yq_code;
         $data['url']=$yq_url;
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
     }
