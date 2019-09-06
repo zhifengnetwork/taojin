@@ -26,7 +26,7 @@ class Users extends Common
                 ->order('u.id desc')
                 ->paginate(array('list_rows'=>$pageSize,'page'=>$page))
                 ->toArray();*/
-
+            $url=Db::name('config')->where(['name'=>'login_url','inc_type'=>'taojin'])->value('value');
             $list = db('users')->alias('u')
                 ->join(config('database.prefix') . 'user_level ul','u.level = ul.level_id','left')
                 ->join(config('database.prefix') . 'users p','p.id=u.p_1','LEFT')
@@ -39,7 +39,10 @@ class Users extends Common
                 if(!$list['data'][$key]['level_name']){
                     $list['data'][$key]['level_name']='矿工';
                 }
+//                $list['data'][$key]['user_url']=$url;
+//                https://www.519991.cn?SimulatedLoginToken={{d.token}}
                 $list['data'][$key]['token']=$this->create_token($value['id']);
+                $list['data'][$key]['token']=$url.'?SimulatedLoginToken='.$list['data'][$key]['token'];
                 $list['data'][$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
 
             }
