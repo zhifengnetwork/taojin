@@ -37,7 +37,7 @@ class Users extends Common
                 ->toArray();
             foreach ($list['data'] as $key=>$value){
                 if(!$list['data'][$key]['level_name']){
-                    $list['data'][$key]['level_name']='普通会员';
+                    $list['data'][$key]['level_name']='矿工';
                 }
                 $list['data'][$key]['token']=$this->create_token($value['id']);
                 $list['data'][$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
