@@ -51,7 +51,7 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        if($user['phone']==188999999999){//管理员充值
+        if($user['phone']==18899999999){//管理员充值
             $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
             if($res){
                 $detail['user_id']=$give_user['id'];
