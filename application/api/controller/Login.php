@@ -56,7 +56,7 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
         }
         if (!$yq_code) {//没有邀请码，不能注册
-            $this->ajaxReturn(['status' => -2, 'msg' => '邀请码不能为空！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '邀请后才能注册！']);
         }
         if ($pwd != $pwd2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码输入不一样！请重新输入！']);
