@@ -33,9 +33,9 @@ class Users extends ApiBase
         if($balance<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
         }
-//        if($this->verify($balance)){//判断是否为100的整数倍
-//            $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
-//        }
+        if($this->verify($balance)){//判断是否为100的整数倍
+            $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
+        }
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
