@@ -339,17 +339,17 @@ class Index extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $pageParam=[];
-        $lock_balance_list=Db::name('moneydetail')
+        $lock_balance_list = Db::name('moneydetail')
             ->where('type=2 or type=5 or type=13')
             ->where(['user_id'=>$user_id,'typefrom'=>0])
-            ->field('id,user_id,money,type,typefrom,intro')
+            ->field('id,user_id,be_user_id,money,type,typefrom,intro')
             ->order('id DESC')
             ->paginate(10,false,$pageParam)
             ->toArray();
-        $lock_balance_list=$lock_balance_list['data'];
-//        foreach ($lock_balance_list as $key=>$value){
-//
-//        }
+        $lock_balance_list = $lock_balance_list['data'];
+        foreach ($lock_balance_list as $key=>$value){
+            $lock_balance_list[$key]['be_mobile'] = Db::name('users')->where(['id'=>$value['be_user_id']])->value('phone');
+        }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
     }
     public function give_detailed(){
