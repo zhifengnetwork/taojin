@@ -262,7 +262,7 @@ class Users extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
         Db::startTrans();
-        if($user['phone']==188999999999){
+        if($user['phone']==18899999999){
             $res=Db::name('users')->where(['phone'=>$phone])->setInc('lock_currency',$currency);
             if($res){
                 $detail['user_id']=$give_user['id'];
