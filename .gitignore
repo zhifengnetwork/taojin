@@ -4,3 +4,10 @@ composer.lock
 runtime
 application/database.php
 .user.ini
+.well-known
+public/head/*
+public/uploads/
+index.html
+404.html
+*.apk
+

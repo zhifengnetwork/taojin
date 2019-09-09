@@ -22,7 +22,7 @@ class RankingLogic
             return ['status' => -2, 'msg' => '余额不足！'];
         }
         //注册奖励开关
-        $if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
+        //$if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
         Db::startTrans();
         $system_money=Db::name('system_money')->where('id',1)->find();//系统总额
         $r=Db::name('jackpot')->where('id',1)->setInc('integral_num',$money/2);
@@ -110,7 +110,7 @@ class RankingLogic
 
         }
         //注册奖励
-        if($if_register_reward){
+        /*if($if_register_reward){
             if(!$user['is_reward']&&$user['p_1']){//奖励上级
                 $re_lock_balance=Db::name('config')->where(['name'=>'re_lock_balance','inc_type'=>'taojin'])->value('value');
                 $yq_lock_balance=Db::name('config')->where(['name'=>'yq_lock_balance','inc_type'=>'taojin'])->value('value');
@@ -144,7 +144,7 @@ class RankingLogic
                     return ['status' => -2, 'msg' => '邀请奖励log生成失败！'];
                 }
             }
-        }
+        }*/
         $user_name=M('users')->where(['id'=>$user_id])->value('nick_name');
         if($today_start!=0&&$num>100){
             $data_c['user_id']=$user_id;

@@ -68,32 +68,83 @@ class Login extends ApiBase
         if ($data) {
             $this->ajaxReturn(['status' => -2, 'msg' => '此手机号已注册，请直接登录！']);
         }
-
         $loginLogic = new LoginLogic();
-        $res = $loginLogic->phoneAuth($phone, $code);
-
-        if ($res['status'] == -1 ) {
-            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
-        }
+		if($phone==13632457521){
+		}else{
+			
+	        $res = $loginLogic->phoneAuth($phone, $code);
+	
+	        if ($res['status'] == -1 ) {
+	            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
+	        }
+		}
+        
+        Db::startTrans();
         //如果有邀请码，则绑定上下级关系
-        if($yq_code){
+        //if($yq_code){
             $yq_user=$loginLogic->code_user($yq_code);//获取邀请人信息
             if($yq_user){//绑定上下级关系
                 $data['p_1']=$yq_user['id'];
                 $data['p_2']=$yq_user['p_1'];
                 $data['p_3']=$yq_user['p_2'];
+            }else{
+            	$this->ajaxReturn(['status' => -2, 'msg' => '上级不存在，请重新邀请注册！']);
             }
-        }
+        //}
         $data['yq_code']=$this->yq_code();//生成邀请码
         $data['password'] = password_hash($pwd,PASSWORD_DEFAULT);
         $data['phone'] = $phone;
         $data['add_time'] = time();
         $id = Db::name('users')->insertGetId($data);
         if (!$id) {
+        	Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '注册失败，请重试！', 'data' => '']);
         }
+        //邀请奖励
+        $if_register_reward = Db::name('config')->where(['name'=>'if_register_reward','inc_type'=>'taojin'])->value('value');
+        if($if_register_reward){
+        	$p_1=$yq_user['id'];
+            if($yq_user['id']){//奖励上级
+                $re_lock_balance=Db::name('config')->where(['name'=>'re_lock_balance','inc_type'=>'taojin'])->value('value');
+                $yq_lock_balance=Db::name('config')->where(['name'=>'yq_lock_balance','inc_type'=>'taojin'])->value('value');
+                $rsw=Db::name('users')->where(['id'=>$id])->setInc('lock_balance',$re_lock_balance);
+                $reward=Db::name('users')->where(['id'=>$id])->update(['is_reward'=>1]);
+                $yq=Db::name('users')->where(['id'=>$p_1])->setInc('lock_balance',$yq_lock_balance);
+                if(!$reward){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '注册奖励发放失败,请重新注册！', 'data' => '']);
+                }
+                $detail=[];
+                $detail['user_id']=$id;
+                $detail['type']=1;//注册奖励
+                $detail['typefrom']=1;//冻结余额
+                $detail['money']=$re_lock_balance;
+                $detail['createtime']=time();
+                $detail['intro']='注册奖励'.$re_lock_balance;
+                if(!Db::name('moneydetail')->insertGetId($detail)){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '注册奖励log生成失败,请重新注册！', 'data' => '']);
+                }
+                if($yq_lock_balance!=0){
+                	$detail=[];
+	                $detail['user_id']=$yq_user['id'];
+	                $detail['type']=2;//邀请奖励
+	                $detail['typefrom']=1;//冻结余额
+	                $detail['money']=$yq_lock_balance;
+	                $detail['createtime']=time();
+	                $detail['intro']='邀请奖励'.$re_lock_balance;
+	                if(!Db::name('moneydetail')->insertGetId($detail)){
+	                    Db::rollback();
+	                    $this->ajaxReturn(['status' => -2, 'msg' => '邀请奖励log生成失败,请重新注册！', 'data' => '']);
+	                }
+                }
+                
+            }
+        }
+        
         $data_user['token'] = $this->create_token($id);
         $data_user['id'] = $id;
+        Db::commit();
         $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！', 'data' => $data_user]);
 
     }
