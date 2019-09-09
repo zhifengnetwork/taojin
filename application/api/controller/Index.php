@@ -66,7 +66,7 @@ class Index extends ApiBase
             $data['num'] = $sum_num;
             $this->ajaxReturn(['status' => 1, 'msg' => '领取成功！', 'data' => $data]);
         } else{
-            $this->ajaxReturn(['status' => -2, 'msg' => '糖果已过期！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '糖果已领取！']);
         }
 //        if($give_list){
 //            $number=0;
