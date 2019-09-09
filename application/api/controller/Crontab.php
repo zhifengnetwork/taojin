@@ -5,6 +5,7 @@ use app\common\logic\RankingLogic;
 class Crontab extends ApiBase
 {
     public function ranking_crontab(){
+        set_time_limit(0);
         $start_time=time();
         while ((time()-$start_time)<58){
             
@@ -238,6 +239,7 @@ class Crontab extends ApiBase
     }
     //下单定时任务
     public function time_slot_crontab(){
+        set_time_limit(0);
         $start_time=time();
         while ((time()-$start_time)<58){
 //        for ($i=0;$i<60;$i++){
