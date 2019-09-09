@@ -150,6 +150,12 @@ class Users extends ApiBase
         }
 
     }
+    public function text(){
+        $phone=I('phone');
+        $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        var_dump($give_user);
+        die;
+    }
     public function give_integral(){
         $user_id=$this->get_user_id();
         if(!$user_id){
