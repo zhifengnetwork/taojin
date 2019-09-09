@@ -8,7 +8,18 @@
     </fieldset>
     <div class="demoTable">
         <div class="layui-inline">
-            <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
+            <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}订单ID或者手机号">
+        </div>
+        <div class="layui-input-inline">
+            <label class="layui-form-label">状态</label>
+
+        </div>
+        <div class="layui-input-inline">
+            <select name="ranking_status" id="ranking_status" lay-filter="aihao">
+                <option value="">请选择</option>
+                <option value="2">未出局</option>
+                <option value="1" >已出局</option>
+            </select>
         </div>
         <div class="layui-input-inline">
             下单时间：
@@ -82,17 +93,19 @@
             ]],
             limit: 10
         });
+
         //搜索
         $('#search').on('click', function () {
             var key = $('#key').val();
             var start_time = $('#start_time').val();
             var end_time = $('#end_time').val();
-            if ($.trim(key) === ''&&start_time==''&&end_time=='') {
+            var ranking_status=$('#ranking_status option:selected').val();
+            if ($.trim(key) === ''&&start_time==''&&end_time==''&&ranking_status=='') {
                 layer.msg('{:lang("pleaseEnter")}关键字！', {icon: 0});
                 return;
             }
             tableIn.reload({
-                where: {key: key,start_time:start_time,end_time:end_time}
+                where: {key: key,start_time:start_time,end_time:end_time,ranking_status:ranking_status}
             });
         });
 

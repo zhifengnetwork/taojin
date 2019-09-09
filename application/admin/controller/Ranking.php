@@ -14,6 +14,7 @@ class Ranking extends Common
             $pageSize = input('limit') ? input('limit') : config('pageSize');
             $start_time=input('post.start_time');
             $end_time=input('post.end_time');
+            $ranking_status=input('post.ranking_status');
             $map=[];
             if(!empty($start_time)){
                 if(!empty($start_time)){
@@ -26,9 +27,15 @@ class Ranking extends Common
                     $map['rank_time']=['between',[strtotime($start_time),time()]];
                 }
             }
-
+            if(!empty($ranking_status)&&$ranking_status){
+                if($ranking_status==2){
+                    $map['r.rank_status']=0;
+                }else{
+                    $map['r.rank_status']=$ranking_status;
+                }
+            }
             if(!empty($keyword)){
-                $map['id'] = array('like','%' . $keyword . '%');
+                $map['r.id|u.phone'] = array('like','%' . $keyword . '%');
             }
 //            $map['is_delete'] = 0;
 
