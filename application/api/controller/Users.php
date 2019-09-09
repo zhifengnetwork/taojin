@@ -152,6 +152,11 @@ class Users extends ApiBase
     }
     public function text(){
         $phone=I('phone');
+        $num=strlen($phone);
+        echo $num;
+        if($num>11){
+            $phone=substr($phone,3,11);
+        }
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
         var_dump($give_user);
         die;
