@@ -340,7 +340,7 @@ class Index extends ApiBase
         }
         $pageParam=[];
         $lock_balance_list = Db::name('moneydetail')->alias('m')
-//            ->join('users u','u.id=m.be_user_id','LEFT')
+            ->join('users u','u.id=m.be_user_id','LEFT')
             ->where('m.type=2 or m.type=5 or m.type=13')
             ->where(['m.user_id'=>$user_id,'m.typefrom'=>0])
             ->field('m.id,m.user_id,m.be_user_id,m.money,m.type,m.typefrom,m.intro,m.createtime,u.phone be_mobile')
