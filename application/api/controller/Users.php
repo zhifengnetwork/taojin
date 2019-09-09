@@ -59,7 +59,7 @@ class Users extends ApiBase
                 $detail['be_user_id']=$user_id;//赠送者
                 $detail['money']=$balance;
                 $detail['createtime']=time();
-                $detail['intro']=$user['nick_name'].'充值';
+                $detail['intro']=$user['phone'].'转入';
                 $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
                 if(!$id){
                     Db::rollback();
@@ -75,7 +75,7 @@ class Users extends ApiBase
                 $detail['be_user_id']=$give_user['id'];//赠与者
                 $detail['money']=-$balance;
                 $detail['createtime']=time();
-                $detail['intro']='充值给'.$give_user['nick_name'];
+                $detail['intro']='转入'.$give_user['phone'];
                 $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
                 if(!$ids){
                     Db::rollback();
@@ -117,7 +117,7 @@ class Users extends ApiBase
                 $detail['be_user_id']=$user_id;//赠送者
                 $detail['money']=$balance;
                 $detail['createtime']=time();
-                $detail['intro']=$user['nick_name'].'赠送';
+                $detail['intro']=$user['phone'].'赠送';
                 $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
                 if(!$id){
                     Db::rollback();
@@ -133,7 +133,7 @@ class Users extends ApiBase
                 $detail['be_user_id']=$give_user['id'];//赠与者
                 $detail['money']=-$balance;
                 $detail['createtime']=time();
-                $detail['intro']='赠送给'.$give_user['nick_name'];
+                $detail['intro']='赠送给'.$give_user['phone'];
                 $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
                 if(!$ids){
                     Db::rollback();
