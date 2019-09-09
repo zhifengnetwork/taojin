@@ -300,7 +300,7 @@ class Crontab extends ApiBase
         }
     }
     public function user_buy(){
-        $user_id=89;
+        $user_id=880;
         $start_time=strtotime(date("Y-m-d")." 14:00:00");
         $end_time=strtotime(date("Y-m-d")." 14:01:00");
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
