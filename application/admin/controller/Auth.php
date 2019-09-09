@@ -98,7 +98,7 @@ class Auth extends Common
         if(request()->isPost()){
             $data = input('post.');
             $pwd=input('post.pwd');
-
+            unset($data['file']);
             $map['admin_id'] = array('neq',input('post.admin_id'));
             $where['admin_id'] = input('post.admin_id');
             if(input('post.username')){
@@ -113,10 +113,10 @@ class Auth extends Common
             }else{
                 unset($data['pwd']);
             }
-            $msg = $this->validate($data,'Admin');
-            if($msg!='true'){
-                return $result = ['code'=>0,'msg'=>$msg];
-            }
+//            $msg = $this->validate($data,'Admin');
+//            if($msg!='true'){
+//                return $result = ['code'=>0,'msg'=>$msg];
+//            }
             Admin::update($data);
             session('username',$data['username']);
             $avatar = $data['avatar']==''?'/static/admin/images/0.jpg':$data['avatar'];
