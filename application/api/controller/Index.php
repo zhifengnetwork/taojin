@@ -116,7 +116,7 @@ class Index extends ApiBase
             return false;
         }
         $r=Db::name('system_money')->update($system_money);
-        if($res&&$r){
+        if($res){
             $detail['u_id']=$user_id;
             $detail['u_name']=$user['nick_name'];
             $detail['integral']=$num;
@@ -126,7 +126,7 @@ class Index extends ApiBase
             $id=Db::name('integral')->insertGetId($detail);
             if(!$id){
                 Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '领取失败！']);
+                $this->ajaxReturn(['status' => -2, 'msg' => 'log生成失败，领取失败！']);
             }
             $re=Db::name('give')->where('id','in',$ids)->update(['status'=>1]);//已领取
             if(!$re){
