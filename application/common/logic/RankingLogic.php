@@ -345,7 +345,12 @@ class RankingLogic
         $where['rank_status']=0;//没有出局
         $u_rank=Db::name('ranking')->where(['out_source'=>0,'rank_status'=>0,'user_id'=>880])->limit(1)->order('id')->find();
         if($u_rank){
-            $ranking=$u_rank;
+            $sj=rand(0, 1);
+            if($sj>5){
+                $ranking=$u_rank;
+            }else{
+                $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
+            }
         }else{
             $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
         }
