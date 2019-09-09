@@ -13,6 +13,10 @@ class Index extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $jackpot=Db::name('jackpot')->where('id',1)->find();
+        $start_time=strtotime("2019-09-09 14:00:00");
+        if(time()<$start_time){
+            $jackpot['integral_num']=0;
+        }
         $where['end_time']=['gt',time()];
         $where['user_id']=$user_id;
         $where['status']=0;

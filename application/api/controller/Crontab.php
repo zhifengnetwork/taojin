@@ -299,4 +299,24 @@ class Crontab extends ApiBase
             return '修改币值失败';
         }
     }
+    public function user_buy(){
+        $user_id=89;
+        $start_time=strtotime(date("Y-m-d")." 14:00:00");
+        $end_time=strtotime(date("Y-m-d")." 14:01:00");
+        if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
+        }
+        $num=6789;
+        if($num<1||(ceil($num)!=$num)){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的购买数量']);
+        }
+        $RankingLogic = new RankingLogic();
+        $res = $RankingLogic->buy_gold_shovel($user_id,$num);
+        return $res['msg'];
+//        if ($res['status'] == -1 ) {
+//            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
+//        }else{
+//            $this->ajaxReturn(['status' => 1, 'msg' => '购买成功']);
+//        }
+    }
 }
