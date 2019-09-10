@@ -188,7 +188,11 @@ class Index extends ApiBase
      */
     public function reward_list(){
         $user_id=$this->get_user_id();
-        if($user_id){
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $is_reward=I('is_reward',0);
+        if($user_id&&$is_reward==1){
             $where_u=[];
             $where_u['user_id']=$user_id;
             $today_time = strtotime(date("Y-m-d"), time());
