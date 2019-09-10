@@ -382,6 +382,7 @@ class User extends ApiBase
         }
 
         //提现申请
+        Db::startTrans();
         $rate = Withdraw::getWDRate('decimals');
         $taxfee = bcmul($money, $rate, 2);//向下取整
         $withdraw_id = Db::name('withdraw')->insertGetId([
@@ -396,12 +397,14 @@ class User extends ApiBase
             'create_time' => time(),
         ]);
         if (!$withdraw_id) {
+            Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
 
         $balance = $user->balance;
         $res = $user->save(['balance' => $yu]);
         if (!$res) {
+            Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
 
@@ -414,9 +417,10 @@ class User extends ApiBase
             'intro' => '申请提现'
         ]);
         if (!$res) {
+            Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
-
+        Db::commit();
         $this->ajaxReturn(['status' => 1, 'msg' => '申请成功,正在审核中！']);
     }
 
