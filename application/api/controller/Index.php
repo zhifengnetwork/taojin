@@ -221,7 +221,7 @@ class Index extends ApiBase
                     ->toArray();
                 $reward=$reward['data'];
                 foreach ($reward as $key=>$value){
-                    $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
+                    $reward[$key]['rank_time']=date('Y-m-d H:i',$value['rank_time']);
                     $reward[$key]['phone']=shadow($reward[$key]['phone']);
                 }
             }
@@ -238,7 +238,7 @@ class Index extends ApiBase
                 ->toArray();
             $reward=$reward['data'];
             foreach ($reward as $key=>$value){
-                $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
+                $reward[$key]['rank_time']=date('Y-m-d H:i',$value['rank_time']);
                 $reward[$key]['phone']=shadow($reward[$key]['phone']);
             }
         }
