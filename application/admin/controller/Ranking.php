@@ -140,7 +140,7 @@ class Ranking extends Common
                 }else{
                     $val['rank_status']='未出局';
                 }
-                $str .= "\t".$val['id']."\t". ',' . $val['user_id'] . ',' . $val['phone'] . ',' .$val['rank_status'] . ',' . date('Y-m-d h:i:s',$val['rank_time']).','. date('Y-m-d h:i:s',$val['add_time']).',';
+                $str .= "\t".$val['id']."\t". ',' . $val['user_id'] . ',' . $val['phone'] . ',' .$val['rank_status'] . ',' . date('Y-m-d H:i:s',$val['rank_time']).','. date('Y-m-d H:i:s',$val['add_time']).',';
                 $str .= "\n";
             }
         }
