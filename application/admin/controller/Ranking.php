@@ -123,16 +123,9 @@ class Ranking extends Common
             $where['id'] = array('like','%' . $keyword . '%');
         }
 
-        $count=Db::name('ranking')->field('id,user_id,rank_time,add_time,rank_status')->where($where)->count();
-        if($count>20000){
-            echo '数据量过大，不能导出！数量：'.$count;
-            die;
-        }
-        $res=Db::name('ranking')->alias('r')
-            ->join('users u','u.id=r.user_id','LEFT')
-            ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone')
-            ->where($where)->select();
+
         error_reporting(0);
+        set_time_limit(0);
         vendor('PHPExcel.PHPExcel');
 
         //导入Excel文件
@@ -166,31 +159,54 @@ class Ranking extends Common
         $objPHPExcel->getActiveSheet()->setCellValue('F1', '下单时间');
 //        $objPHPExcel->getActiveSheet()->setCellValue('G1', '审核时间');
 
+        $count=Db::name('ranking')->where($where)->count();
+        $start=0;
+        $limit=500;
+        $res_num=0;
+        $is_end=false;
+//        if($count>20000){
+//            echo '数据量过大，不能导出！数量：'.$count;
+//            die;
+//        }
+
+
         // 数据起始行
         $row_num = 2;
-        // 向每行单元格插入数据
-        foreach($res as $value)
-        {
-            // 设置所有垂直居中
-            $objPHPExcel->getActiveSheet()->getStyle('A' . $row_num . ':' . 'J' . $row_num)->getAlignment()
-                ->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
-            // 设置价格为数字格式
-            $objPHPExcel->getActiveSheet()->getStyle('D' . $row_num)->getNumberFormat()
-                ->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_NUMBER_00);
-            // 居中
-            $objPHPExcel->getActiveSheet()->getStyle('E' . $row_num . ':' . 'H' . $row_num)->getAlignment()
-                ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        while (!$is_end){
+            $res=Db::name('ranking')->alias('r')
+                ->join('users u','u.id=r.user_id','LEFT')
+                ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone')
+                ->where($where)->limit($start,$limit)->select();
+            if($res_num>$count){//大于所有。结束
+                $is_end=true;
+            }
+            $start=$start+$limit;//起始数量增加
+            $res_num=$res_num+$limit;//记录现在数据量
+            // 向每行单元格插入数据
+            foreach($res as $value)
+            {
+                // 设置所有垂直居中
+                $objPHPExcel->getActiveSheet()->getStyle('A' . $row_num . ':' . 'J' . $row_num)->getAlignment()
+                    ->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                // 设置价格为数字格式
+                $objPHPExcel->getActiveSheet()->getStyle('D' . $row_num)->getNumberFormat()
+                    ->setFormatCode(\PHPExcel_Style_NumberFormat::FORMAT_NUMBER_00);
+                // 居中
+                $objPHPExcel->getActiveSheet()->getStyle('E' . $row_num . ':' . 'H' . $row_num)->getAlignment()
+                    ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-            // 设置单元格数值
-            $objPHPExcel->getActiveSheet()->setCellValue('A' . $row_num, $value['id']);
-            $objPHPExcel->getActiveSheet()->setCellValue('B' . $row_num, $value['user_id']);
-            $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_num, $value['phone']);
-            $objPHPExcel->getActiveSheet()->setCellValue('D' . $row_num, $value['rank_status'] ? '出局' : '未出局');
-            $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_num, date('Y-m-d h:i:s',$value['rank_time']));
-            $objPHPExcel->getActiveSheet()->setCellValue('F' . $row_num, date('Y-m-d h:i:s',$value['add_time']));
+                // 设置单元格数值
+                $objPHPExcel->getActiveSheet()->setCellValue('A' . $row_num, $value['id']);
+                $objPHPExcel->getActiveSheet()->setCellValue('B' . $row_num, $value['user_id']);
+                $objPHPExcel->getActiveSheet()->setCellValue('C' . $row_num, $value['phone']);
+                $objPHPExcel->getActiveSheet()->setCellValue('D' . $row_num, $value['rank_status'] ? '出局' : '未出局');
+                $objPHPExcel->getActiveSheet()->setCellValue('E' . $row_num, date('Y-m-d h:i:s',$value['rank_time']));
+                $objPHPExcel->getActiveSheet()->setCellValue('F' . $row_num, date('Y-m-d h:i:s',$value['add_time']));
 //            $objPHPExcel->getActiveSheet()->setCellValue('G' . $row_num, date('Y-m-d h:i:s',$value['statetime']));
-            $row_num++;
+                $row_num++;
+            }
         }
+
 
         $outputFileName = '排位订单' . time() . '.xls';
         $xlsWriter = new \PHPExcel_Writer_Excel5($objPHPExcel);
