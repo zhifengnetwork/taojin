@@ -39,6 +39,9 @@ class Users extends ApiBase
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        if($give_user['id']==$user_id){
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+        }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
@@ -152,8 +155,10 @@ class Users extends ApiBase
     }
     public function text(){
         $phone=I('phone');
+        $mb=$phone;
         $num=strlen($phone);
-        echo $num;
+        echo $phone.' ==== '.$num;
+        var_dump($mb);
         if($num>11){
             $phone=substr($phone,3,11);
         }
@@ -186,6 +191,9 @@ class Users extends ApiBase
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        if($give_user['id']==$user_id){
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+        }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
@@ -262,6 +270,9 @@ class Users extends ApiBase
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        if($give_user['id']==$user_id){
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+        }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
