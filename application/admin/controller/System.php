@@ -25,7 +25,7 @@ class System extends Common
             $system = $table->field('id,name,url,title,money,key,des,bah,copyright,ads,tel,email,logo,uid,yxspw,yxs_dx_pwd,weixin,weixin_url,notice')->find($sys_id);
             if($system['logo'])
             {
-                $system['logo']=SITE_URL.__PUBLIC__.$system['logo'];
+                $system['logo_url']=SITE_URL.__PUBLIC__.$system['logo'];
             }
             $this->assign('system', $system);
             return $this->fetch();
