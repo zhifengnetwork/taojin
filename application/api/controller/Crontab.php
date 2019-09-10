@@ -189,7 +189,7 @@ class Crontab extends ApiBase
                     $start_time = strtotime(date('Y-m-d H:i', $reward_time));//中奖开始时间戳
                     $end_time = $start_time + 60;//中奖结束时间戳
                     $where = [];
-                    $where['rank_time'] = ['between', [$start_time, $end_time]];
+                    $where['r.rank_time'] = ['between', [$start_time, $end_time]];
                     $reward_ranking_list = Db::name('ranking')->alias('r')
                         ->join('reward re','re.ranking_id=r.id','LEFT')
                         ->where('re.ranking_id is null')
@@ -302,7 +302,7 @@ class Crontab extends ApiBase
         }
     }
     public function user_buy(){
-        $user_id=880;
+        $user_id=89;
         $start_time=strtotime(date("Y-m-d")." 14:00:00");
         $end_time=strtotime(date("Y-m-d")." 14:01:00");
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
@@ -315,10 +315,5 @@ class Crontab extends ApiBase
         $RankingLogic = new RankingLogic();
         $res = $RankingLogic->buy_gold_shovel($user_id,$num);
         return $res['msg'];
-//        if ($res['status'] == -1 ) {
-//            $this->ajaxReturn(['status' => -2, 'msg' => $res['msg']]);
-//        }else{
-//            $this->ajaxReturn(['status' => 1, 'msg' => '购买成功']);
-//        }
     }
 }
