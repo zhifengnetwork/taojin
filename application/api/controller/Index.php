@@ -187,20 +187,56 @@ class Index extends ApiBase
      * 首页中奖
      */
     public function reward_list(){
-        $today_time= strtotime(date("Y-m-d"),time());
-        $where=[];
-        $pageParam=[];
-        $where['r.reward_day']=$today_time;
-        $reward=Db::name('reward')->alias('r')
-            ->join('users u','u.id=r.user_id','LEFT')
-            ->field('r.rank_time,u.phone')
-            ->where($where)
-            ->paginate(10,false,$pageParam)
-            ->toArray();
-        $reward=$reward['data'];
-        foreach ($reward as $key=>$value){
-            $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
-            $reward[$key]['phone']=shadow($reward[$key]['phone']);
+        $user_id=$this->get_user_id();
+        if($user_id){
+            $where_u=[];
+            $where_u['user_id']=$user_id;
+            $today_time = strtotime(date("Y-m-d"), time());
+            $where_u['data_time']=$today_time;
+            $where_u['status']=1;
+            $user_reward_m=Db::name('user_reward');
+            $user_reward=$user_reward_m->where('user_id',$user_id)->find();
+            if($user_reward){
+                $reward=[];//发过消息，返回空数据
+            }else{
+                $data=[];
+                $data['user_id']=$user_id;
+                $data['add_time']=time();
+                $data['data_time']=$today_time;
+                $data['status']=1;
+                $ids=$user_reward_m->insertGetId($data);
+                $today_time= strtotime(date("Y-m-d"),time());
+                $where=[];
+                $pageParam=[];
+                $where['r.reward_day']=$today_time;
+                $reward=Db::name('reward')->alias('r')
+                    ->join('users u','u.id=r.user_id','LEFT')
+                    ->field('r.rank_time,u.phone')
+                    ->where($where)
+                    ->paginate(10,false,$pageParam)
+                    ->toArray();
+                $reward=$reward['data'];
+                foreach ($reward as $key=>$value){
+                    $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
+                    $reward[$key]['phone']=shadow($reward[$key]['phone']);
+                }
+            }
+        }else{
+            $today_time= strtotime(date("Y-m-d"),time());
+            $where=[];
+            $pageParam=[];
+            $where['r.reward_day']=$today_time;
+            $reward=Db::name('reward')->alias('r')
+                ->join('users u','u.id=r.user_id','LEFT')
+                ->field('r.rank_time,u.phone')
+                ->where($where)
+                ->paginate(10,false,$pageParam)
+                ->toArray();
+            $reward=$reward['data'];
+            foreach ($reward as $key=>$value){
+                $reward[$key]['rank_time']=date('Y-m-d H:i:s',$value['rank_time']);
+                $reward[$key]['phone']=shadow($reward[$key]['phone']);
+            }
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$reward]);
     }
