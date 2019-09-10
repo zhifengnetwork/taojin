@@ -161,7 +161,7 @@ class Ranking extends Common
 
         $count=Db::name('ranking')->where($where)->count();
         $start=0;
-        $limit=500;
+        $limit=3000;
         $res_num=0;
         $is_end=false;
 //        if($count>20000){
