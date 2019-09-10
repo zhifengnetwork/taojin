@@ -278,14 +278,14 @@ class RankingLogic
         }
         $where['out_source']=0;//没有抽奖
         $where['rank_status']=0;//没有出局
-        $u_rank=Db::name('ranking')->where(['out_source'=>0,'rank_status'=>0,'user_id'=>880])->limit(1)->order('id')->find();
-        if($u_rank){
-            $ranking=$u_rank;
-        }else{
-            $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
-        }
+//        $u_rank=Db::name('ranking')->where(['out_source'=>0,'rank_status'=>0,'user_id'=>880])->limit(1)->order('id')->find();
+//        if($u_rank){
+//            $ranking=$u_rank;
+//        }else{
+//            $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
+//        }
         //随机抽取一条符合条件的数据
-//        $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
+        $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
         if(!$ranking){
             return true;//已经没有符合条件的数据了。返回已经完成
         }
