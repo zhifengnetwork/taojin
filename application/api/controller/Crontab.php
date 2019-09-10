@@ -164,6 +164,7 @@ class Crontab extends ApiBase
                     $where['r.rank_time'] = ['between', [$start_time, $end_time]];
                     //查一百条数据处理
                     $reward_ranking_list = Db::name('ranking')->alias('r')
+                        ->field('r.id,r.user_id,r.rank_time')
                         ->join('reward re','re.ranking_id=r.id','LEFT')
                         ->where('re.ranking_id is null')
                         ->where($where)->limit(100)->select();
@@ -193,6 +194,7 @@ class Crontab extends ApiBase
                     $where = [];
                     $where['r.rank_time'] = ['between', [$start_time, $end_time]];
                     $reward_ranking_list = Db::name('ranking')->alias('r')
+                        ->field('r.id,r.user_id,r.rank_time')
                         ->join('reward re','re.ranking_id=r.id','LEFT')
                         ->where('re.ranking_id is null')
                         ->where($where)->limit(100)->select();
