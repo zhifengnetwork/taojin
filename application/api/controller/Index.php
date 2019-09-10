@@ -29,7 +29,7 @@ class Index extends ApiBase
         $goods=Db::name('system')
             ->field('id,name,money,title,logo')
             ->find();
-        $goods['logo']=SITE_URL.'/public'.$goods['logo'];
+        $goods['logo']=$goods['logo'];
         $system = Db::name('system')->where('id=1')->value('notice');
         $jackpot['notice']=$system;
         $bonus_time=strtotime(date("Y-m-d")." ".$jackpot['open_time']);
