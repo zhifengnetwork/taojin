@@ -91,6 +91,81 @@ class Ranking extends Common
             return ['code'=>0,'msg' => '排序失败！','url' => url('index')];
         }
     }
+    /*
+     * 导出
+     *
+     */
+    public function exportExcel(){
+        set_time_limit(0);
+        $keyword=input('key');
+        $start_time=input('start_time');
+        $end_time=input('end_time');
+        if(!empty($keyword)){
+            $where['id'] = array('like','%' . $keyword . '%');
+        }
+        $where=[];
+        if(!empty($start_time)){
+            if(!empty($start_time)){
+                if(strtotime($start_time)>strtotime($end_time)){
+                    $where['rank_time']=['between',[strtotime($start_time),time()]];
+                }else{
+                    $where['rank_time']=['between',[strtotime($start_time),strtotime($end_time)]];
+                }
+            }else{
+                $where['rank_time']=['between',[strtotime($start_time),time()]];
+            }
+        }
+        $count=Db::name('ranking')->where($where)->count();
+        $start=0;
+        $limit=3000;
+        $res_num=0;
+        $is_end=false;
+        $str="\t编号\t,用户id,手机号码,排位状态,排位时间,下单时间";
+        $str .= "\n";
+        while (!$is_end){
+            $res=Db::name('ranking')->alias('r')
+                ->join('users u','u.id=r.user_id','LEFT')
+                ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone')
+                ->where($where)->limit($start,$limit)->select();
+            if($res_num>$count){//大于所有。结束
+                $is_end=true;
+            }
+            $start=$start+$limit;//起始数量增加
+            $res_num=$res_num+$limit;//记录现在数据量
+            // 向每行单元格插入数据
+            foreach($res as $val)
+            {
+                if($val['rank_status']){
+                    $val['rank_status']='出局';
+                }else{
+                    $val['rank_status']='未出局';
+                }
+                $str .= "\t".$val['id']."\t". ',' . $val['user_id'] . ',' . $val['phone'] . ',' .$val['rank_status'] . ',' . date('Y-m-d h:i:s',$val['rank_time']).','. date('Y-m-d h:i:s',$val['add_time']).',';
+                $str .= "\n";
+            }
+        }
+        $exportParam['tplType'] = 'export';
+        $this->export_to_csv($str, '订单列表', $exportParam);
+
+
+    }
+    function export_to_csv($str, $filename, $data_time)
+    {
+        /*表头时间*/
+        $s_date = isset($data_time['start_date']) && $data_time['start_date'] ? date('Ymd', strtotime($data_time['start_date'])) : date('Ymd');
+        $e_date = isset($data_time['end_date']) && $data_time['end_date'] ? date('Ymd', strtotime($data_time['end_date'])) : date('Ymd');
+        $time_str = ($s_date == $e_date) ? $s_date : ($s_date . '-' . $e_date);
+
+        $str = mb_convert_encoding($str, "GBK", "UTF-8");
+        $filename = $time_str . $filename . '.csv'; //设置文件 ?
+        header("Content-type:text/csv;");
+        header("Content-Disposition:attachment;filename=" . $filename);
+        header('Cache-Control:must-revalidate,post-check=0,pre-check=0');
+        header('Expires:0');
+        header('Pragma:public');
+        echo $str;
+        exit;
+    }
 
     /**
      * 导出
@@ -185,6 +260,7 @@ class Ranking extends Common
             // 向每行单元格插入数据
             foreach($res as $value)
             {
+
                 // 设置所有垂直居中
                 $objPHPExcel->getActiveSheet()->getStyle('A' . $row_num . ':' . 'J' . $row_num)->getAlignment()
                     ->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
