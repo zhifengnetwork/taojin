@@ -365,7 +365,7 @@ class Ranking extends ApiBase
                     $this->ajaxReturn($res);
                 }
             case 24:
-                $is_time=strtotime(date("Y-m-d",strtotime('+1 day'))." 00:00:59");
+                $is_time=strtotime(date("Y-m-d",strtotime('+1 day'))." 00:00:00");
                 if($is_time>time()&&time()>$start_time){
                     $today_start=$end_time+1;
                     $num=1439;
