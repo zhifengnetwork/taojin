@@ -251,6 +251,7 @@ class Index extends ApiBase
                 ->join('users u','u.id=r.user_id','LEFT')
                 ->field('r.rank_time,u.phone')
                 ->where($where)
+                ->order('r.id DESC')
                 ->paginate(10,false,$pageParam)
                 ->toArray();
             $reward=$reward['data'];
