@@ -365,7 +365,7 @@ class Ranking extends ApiBase
                     $this->ajaxReturn($res);
                 }
             case 24:
-                $is_time=strtotime(date("Y-m-d")." 15:00:00");
+                $is_time=strtotime(date("Y-m-d",strtotime('+1 day'))." 00:00:59");
                 if($is_time>time()&&time()>$start_time){
                     $today_start=$end_time+1;
                     $num=1439;
@@ -373,7 +373,7 @@ class Ranking extends ApiBase
                     $res = $RankingLogic->buy_gold_shovel($user_id,$num,$today_start);
                     $this->ajaxReturn($res);
                 }else{
-                    $this->ajaxReturn(['status' => -2 , 'msg'=>'包24小时请在14:00-15:00之间下单']);
+                    $this->ajaxReturn(['status' => -2 , 'msg'=>'包24小时请在14:00-00:00之间下单']);
                 }
             default:
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'类型错误，不能购买']);
