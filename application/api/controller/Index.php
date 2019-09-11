@@ -26,6 +26,20 @@ class Index extends ApiBase
         }else{
             $jackpot['is_give']=0;
         }
+        $where_u=[];
+        $where_u['user_id']=$user_id;
+        $where_u['status']=0;
+        $user_reward_m=Db::name('user_reward');
+        $user_reward=$user_reward_m->where($where_u)->find();
+        if(!$user_reward){
+            $jackpot['update']=1;
+            $data_r['user_id']=$user_id;
+            $data_r['status']=0;
+            $data_r['add_time']=time();
+            $user_reward_m->insert($data_r);
+        }else{
+            $jackpot['update']=0;
+        }
         $goods=Db::name('system')
             ->field('id,name,money,title,logo,key')
             ->find();
@@ -200,7 +214,7 @@ class Index extends ApiBase
             $where_u['data_time']=$today_time;
             $where_u['status']=1;
             $user_reward_m=Db::name('user_reward');
-            $user_reward=$user_reward_m->where('user_id',$user_id)->find();
+            $user_reward=$user_reward_m->where($where_u)->find();
             if($user_reward){
                 $reward=[];//发过消息，返回空数据
             }else{
