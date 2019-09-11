@@ -42,7 +42,12 @@
                 <textarea class="layui-textarea" name="notice" rows="5" cols="40">{$system.notice}</textarea>
             </div>
         </div>
-
+        <div class="layui-form-item">
+            <label class="layui-form-label">APP版本</label>
+            <div class="layui-input-4">
+                <input type="text"name="key" value="{$system.key}"lay-verify="required" placeholder="{:lang('pleaseEnter')}版本号" class="layui-input">
+            </div>
+        </div>
 
 
         <div class="layui-form-item">

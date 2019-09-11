@@ -27,7 +27,7 @@ class Index extends ApiBase
             $jackpot['is_give']=0;
         }
         $goods=Db::name('system')
-            ->field('id,name,money,title,logo')
+            ->field('id,name,money,title,logo,key')
             ->find();
         $goods['logo']=$goods['logo'];
         $system = Db::name('system')->where('id=1')->value('notice');
@@ -45,6 +45,7 @@ class Index extends ApiBase
         $jackpot['money']=$goods['money'];
         $jackpot['title']=$goods['title'];
         $jackpot['logo']=$goods['logo'];
+        $jackpot['version']=$goods['key'];
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$jackpot]);
     }
     /*
