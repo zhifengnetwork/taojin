@@ -218,13 +218,7 @@ class Index extends ApiBase
             if($user_reward){
                 $reward=[];//发过消息，返回空数据
             }else{
-                $data=[];
-                $data['user_id']=$user_id;
-                $data['add_time']=time();
-                $data['data_time']=$today_time;
-                $data['status']=1;
-                $ids=$user_reward_m->insertGetId($data);
-                $today_time= strtotime(date("Y-m-d"),time());
+//                $today_time= strtotime(date("Y-m-d"),time());
                 $where=[];
                 $pageParam=[];
                 $where['r.reward_day']=$today_time;
@@ -239,12 +233,20 @@ class Index extends ApiBase
                     $reward[$key]['rank_time']=date('Y-m-d H:i',$value['rank_time']);
                     $reward[$key]['phone']=shadow($reward[$key]['phone']);
                 }
+                if($reward){
+                    $data=[];
+                    $data['user_id']=$user_id;
+                    $data['add_time']=time();
+                    $data['data_time']=$today_time;
+                    $data['status']=1;
+                    $ids=$user_reward_m->insertGetId($data);
+                }
             }
         }else{
-            $today_time= strtotime(date("Y-m-d"),time());
+            $today_time= strtotime(date("Y-m-d",strtotime("-10 day")),time());
             $where=[];
             $pageParam=[];
-            $where['r.reward_day']=$today_time;
+            $where['r.reward_day']=['gt',$today_time];
             $reward=Db::name('reward')->alias('r')
                 ->join('users u','u.id=r.user_id','LEFT')
                 ->field('r.rank_time,u.phone')
