@@ -168,7 +168,9 @@ class Crontab extends ApiBase
                         ->join('reward re','re.ranking_id=r.id','LEFT')
                         ->where('re.ranking_id is null')
                         ->where($where)->limit(100)->select();
-                    if (!$reward_ranking_list) {//数据为空，则退出
+                    if (!$reward_ranking_list) {//数据为空，无人中奖则退出
+                        Db::name('reward_log')
+                            ->where('id', $reward_log_id)->update(['status' => 1, 'reward_time' => $start_time,'num'=>0,'all_money'=>0]);
                         return '随机抽奖数据空，退出';
                     }
                     $where = [];
@@ -198,7 +200,9 @@ class Crontab extends ApiBase
                         ->join('reward re','re.ranking_id=r.id','LEFT')
                         ->where('re.ranking_id is null')
                         ->where($where)->limit(100)->select();
-                    if (!$reward_ranking_list) {//数据为空，则退出
+                    if (!$reward_ranking_list) {//数据为空，无人中奖,则退出
+                        Db::name('reward_log')
+                            ->where('id', $reward_log_id)->update(['status' => 1, 'reward_time' => $start_time,'num'=>0,'all_money'=>0]);
                         return '固定时间抽奖数据空，退出';
                     }
                     $where = [];
