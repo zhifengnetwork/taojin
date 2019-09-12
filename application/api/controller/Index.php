@@ -243,7 +243,8 @@ class Index extends ApiBase
                     $data['status']=1;
                     $ids=$user_reward_m->insertGetId($data);
                     if(!$reward){//无人中奖
-                        $this->ajaxReturn(['status' => 2, 'msg' => '获取成功！','data'=>'无人中奖--再接再厉']);
+                        $reward_log['reward_time']=date('Y-m-d H:i',$reward_log['reward_time']);
+                        $this->ajaxReturn(['status' => 2, 'msg' => '获取成功！','data'=>$reward_log['reward_time']]);
                     }else{
                         foreach ($reward as $key=>$value){
                             $reward[$key]['rank_time']=date('Y-m-d H:i',$value['rank_time']);
