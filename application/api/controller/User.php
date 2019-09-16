@@ -330,7 +330,7 @@ class User extends ApiBase
                     'number'=>$user->ali_account,
                     'name'=>$user->name
                 ],
-                'card'=>Db::name('card')->field('id,bank,name,number')->where(['user_id'=>$user_id,'status'=>1])->select()
+                'card'=>Db::name('card')->field('id,bank,name,number')->where(['user_id'=>$user_id,'status'=>1])->order('id DESC')->select()
             ]
         ]);
     }
