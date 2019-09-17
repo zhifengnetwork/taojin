@@ -207,13 +207,32 @@ class Index extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $today_time = strtotime(date("Y-m-d"), time());
+        $is_reward=I('is_reward',0);
+        if($is_reward==0){//中奖列表
+            $today_time= strtotime(date("Y-m-d",strtotime("-10 day")),time());
+            $where=[];
+            $pageParam=[];
+            $where['r.reward_day']=['gt',$today_time];
+            $reward=Db::name('reward')->alias('r')
+                ->join('users u','u.id=r.user_id','LEFT')
+                ->field('r.rank_time,u.phone')
+                ->where($where)
+                ->order('r.id DESC')
+                ->paginate(10,false,$pageParam)
+                ->toArray();
+            $reward=$reward['data'];
+            foreach ($reward as $key=>$value){
+                $reward[$key]['rank_time']=date('Y-m-d H:i',$value['rank_time']);
+                $reward[$key]['phone']=shadow($reward[$key]['phone']);
+            }
+            $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$reward]);
+        }
         $where['reward_day'] = $today_time;
         $where['status']=1;
         $reward_log = Db::name('reward_log')->where($where)->find();
         if(!$reward_log){
             $reward=[];
         }else{
-            $is_reward=I('is_reward',0);
             if($user_id&&$is_reward==1){
                 $where_u=[];
                 $where_u['user_id']=$user_id;
