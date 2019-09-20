@@ -309,7 +309,13 @@ class Ranking extends ApiBase
         if(!$check_time){
             $check_time=time();
         }else{
-            $check_time=$this->time_manage($check_time);
+            $check_time=$this->time_manage($check_time,$end_time);
+            if($check_time==3){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'只能购买14点前的铲子！']);
+            }
+            if($check_time==2){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'只能购买当前时间之后的铲子！']);
+            }
         }
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
@@ -379,15 +385,32 @@ class Ranking extends ApiBase
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'类型错误，不能购买']);
         }
     }
-    public function time_manage($check_time){
+    public function time_manage($check_time,$start_time){
         $ti_time=strtotime(date("Y-m-d ").$check_time.":00");
-        $tomorrow=strtotime(date('Y-m-d ',strtotime('+1 day')).'00:00:00');
-        if($ti_time<$tomorrow){//第二天
-            $ti_time=strtotime(date('Y-m-d ',strtotime('+1 day')).$check_time.':00');
-            return $ti_time;
+//        $tomorrow=strtotime(date('Y-m-d ',strtotime('+1 day')).'00:00:00');
+        if(time()>$start_time){
+            if($ti_time>$start_time){//当天
+                return $ti_time;
+            }else{//第二天
+                $ti_time=strtotime(date('Y-m-d ',strtotime('+1 day')).$check_time.':00');
+                return $ti_time;
+            }
         }else{
+            if($ti_time>$start_time){
+                return 3;
+            }
+            if($ti_time+120<time()){
+                return 2;
+            }
             return $ti_time;
         }
+
+//        if($ti_time<$tomorrow){//第二天
+//            $ti_time=strtotime(date('Y-m-d ',strtotime('+1 day')).$check_time.':00');
+//            return $ti_time;
+//        }else{
+//            return $ti_time;
+//        }
     }
     public function time_list($type,$start_time,$check_time){
         if($start_time>$check_time){//还没开奖
