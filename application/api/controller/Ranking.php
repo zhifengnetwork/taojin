@@ -317,6 +317,7 @@ class Ranking extends ApiBase
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'只能购买当前时间之后的铲子！']);
             }
         }
+
         if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
             $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
         }
@@ -413,16 +414,32 @@ class Ranking extends ApiBase
 //        }
     }
     public function time_list($type,$start_time,$check_time){
-        if($start_time>$check_time){//还没开奖
-            if(($check_time+3600*$type)>$start_time){
-                return false;
+        $is_time=strtotime(date("Y-m-d",strtotime('+1 day'))." 00:00:00");
+        if($check_time>$is_time){//第二天的时间
+            $end_time=strtotime(date("Y-m-d",strtotime('+1 day'))." 14:00:00");
+            if($end_time>$check_time){//还没开奖
+                if(($check_time+3600*$type)>$end_time){
+                    return false;
+                }else{
+                    $today_start=$check_time;
+                    $num=$type*60;
+                }
             }else{
                 $today_start=$check_time;
                 $num=$type*60;
             }
         }else{
-            $today_start=$check_time;
-            $num=$type*60;
+            if($start_time>$check_time){//还没开奖
+                if(($check_time+3600*$type)>$start_time){
+                    return false;
+                }else{
+                    $today_start=$check_time;
+                    $num=$type*60;
+                }
+            }else{
+                $today_start=$check_time;
+                $num=$type*60;
+            }
         }
         return ['num'=>$num,'time'=>$today_start];
     }
