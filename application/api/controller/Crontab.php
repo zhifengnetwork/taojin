@@ -149,12 +149,12 @@ class Crontab extends ApiBase
                     $where['rank_time'] = ['between', [$start, $end]];
                     if ($reward['reward_time']) {//抽奖中断
                         $start_time = $reward['reward_time'];
-                        $end_time = $start_time + 60;
+                        $end_time = $start_time + 59;
                     } else {
                         //随机抽取一条昨天的数据
                         $ranking = Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
                         $start_time = strtotime(date('Y-m-d H:i', $ranking['rank_time']));
-                        $end_time = $start_time + 60;
+                        $end_time = $start_time + 59;
                     }
                     $where = [];
 //                    $reward_ranking_list = Db::name('ranking')->alias('r')
@@ -192,7 +192,7 @@ class Crontab extends ApiBase
                     //今天中奖时间
 //                $reward_time=strtotime(date("Y-m-d",strtotime("-1 day"))." ".$reward_time);
                     $start_time = strtotime(date('Y-m-d H:i', $reward_time));//中奖开始时间戳
-                    $end_time = $start_time + 60;//中奖结束时间戳
+                    $end_time = $start_time + 59;//中奖结束时间戳
                     $where = [];
                     $where['r.rank_time'] = ['between', [$start_time, $end_time]];
                     $reward_ranking_list = Db::name('ranking')->alias('r')
