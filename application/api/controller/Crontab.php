@@ -30,9 +30,9 @@ class Crontab extends ApiBase
                 $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
                 $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
                 $luck_time=strtotime($luck_time);
-                if($luck_time>time()){
-                    $luck_time=0;
-                }
+//                if($luck_time>time()){
+//                    $luck_time=0;
+//                }
                 if($triple_num<100){
                     $for_count=100-$triple_num;
                     for($i=0;$i<$for_count;$i++){

@@ -274,7 +274,8 @@ class RankingLogic
      */
     public function triple_out($balance_give_integral,$double_percent,$triple_out,$luck_time,$goods_money=20){
         if($luck_time!=0){
-            $where['add_time']=['gt',$luck_time];
+//            $where['add_time']=['gt',$luck_time];
+            $where['rank_time']=['lt',$luck_time];//大于改成小于
         }
         $where['out_source']=0;//没有抽奖
         $where['rank_status']=0;//没有出局
