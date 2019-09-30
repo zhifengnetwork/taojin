@@ -693,7 +693,7 @@ class RankingLogic
             return ['data'=>$user,'type'=>0];//平级
         }
         if($user['p_1']){//还有上级
-            $this->above($user['p_1'],$level);//递归寻找上级或平级
+            return $this->above($user['p_1'],$level);//递归寻找上级或平级
         }else{
             return false;
         }
