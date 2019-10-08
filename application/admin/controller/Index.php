@@ -80,7 +80,7 @@ class Index extends Common
             ->find();
         $user_all['money']=$user_all['balance']+$user_all['recharge_balance'];
         $this->assign("user_all",$user_all);
-        $user_admin=Db::name('users')->field('balance')->where('id',85)->find();
+        $user_admin=Db::name('users')->field('balance')->where('id',880)->find();
         $this->assign("user_admin",$user_admin);
         $withdraw=Db::name('withdraw')->where('status',0)->sum('money');
         $this->assign("withdraw",$withdraw);

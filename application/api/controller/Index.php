@@ -322,7 +322,7 @@ class Index extends ApiBase
         $where['typefrom']=0;//排除冻结余额
         $balance_list=Db::name('moneydetail')
             ->where($where)
-            ->order('id DESC')
+            ->order('createtime DESC')
             ->paginate(10,false,$pageParam);
         $balance_list=$balance_list->toArray();
         $balance_list=$balance_list['data'];

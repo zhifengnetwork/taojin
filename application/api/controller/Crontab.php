@@ -29,10 +29,12 @@ class Crontab extends ApiBase
                 $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
                 $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
                 $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
-                $luck_time=strtotime($luck_time);
-//                if($luck_time>time()){
-//                    $luck_time=0;
-//                }
+            	if(!$luck_time){
+            		 $luck_time=time();
+            	}else{
+            		$luck_time=strtotime($luck_time);
+            	}
+                
                 if($triple_num<100){
                     $for_count=100-$triple_num;
                     for($i=0;$i<$for_count;$i++){
@@ -68,16 +70,14 @@ class Crontab extends ApiBase
     }
     //测试
     public function text(){
-        Db::startTrans();
-        $res=Db::name('goods')->where('id',1)->update(['shop_title'=>'条码超市']);
-        $re=$this->txxxx();
-        if(!$res||!$re){
-            Db::rollback();
-            return '失败';
-        }else{
-            Db::commit();
-            return '成功';
-        }
+       //$RankingLogic = new RankingLogic();
+       //$res=$RankingLogic->user_balance(84,6026.78*4/100,'代理返点',4,10);
+       //$re=$RankingLogic->user_balance(72,6026.78*1/100,'平级代理返点',3,10);
+       // if(!$res||!$re){
+       //     return '失败';
+       // }else{
+       //     return '成功';
+       // }
 
     }
     //测试2
