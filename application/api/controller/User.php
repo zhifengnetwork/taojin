@@ -67,7 +67,16 @@ class User extends ApiBase
         }
 
     }
-
+    /*
+     * 中奖音乐
+     */
+    public function music(){
+        $data['music_url'] =  Db::name('config')->where(['inc_type'=>'taojin','name'=>'music_url'])->value('value');
+        if($data['music_url']){
+            $data['music_url']=SITE_URL.'/public'.$data['music_url'];
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
+    }
     // “我的”
     public function index()
     {
