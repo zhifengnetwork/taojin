@@ -270,6 +270,59 @@ class RankingLogic
         }
     }
     /*
+    * 固定抽奖
+    */
+    public function user_triple_out($balance_give_integral,$double_percent,$triple_out,$user_id,$goods_money=20){
+        $where['user_id']=$user_id;
+        $where['out_source']=0;//没有抽奖
+        $where['rank_status']=0;//没有出局
+        //随机抽取一条符合条件的数据
+        $ranking=Db::name('ranking')->where($where)->limit(1)->orderRaw('rand()')->find();
+        if(!$ranking){
+            return true;//已经没有符合条件的数据了。返回已经完成
+        }
+        $user=Db::name('users')->where(['id'=>$ranking['user_id']])->find();
+        if(!$user){
+            return false;
+        }
+        $agent_money=$goods_money*3;
+        $money=sprintf("%.2f",($agent_money)-($agent_money*$double_percent/100));//三倍、扣除手续费
+        Db::startTrans();
+        $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('lock_balance',$money);
+        $data=[];
+        $data['rank_status']=1;//出局
+        $data['out_source']='T_'.$triple_out;//出局源
+        $data['out_type']=3;//三倍出局
+        $data['triple_status']=1;//固定三倍出局标志
+        $data['out_time']=time();//出局时间
+        $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
+        if(!$res||!$r){
+            Db::rollback();
+            return false;
+        }
+        //赠送糖果
+        $tg_num=sprintf("%.2f",$goods_money*3/$balance_give_integral);//保留两位小数
+        $give=$this->add_give($tg_num,$ranking['user_id'],7,'三倍出局');//糖果生成
+        $detail['user_id']=$user['id'];
+        $detail['typefrom']=1;
+        $detail['type']=10;//出局赠送
+        $detail['money']=$money;
+        $detail['createtime']=time();
+        $detail['intro']='三倍出局获得冻结余额';
+        $id=Db::name('moneydetail')->insertGetId($detail);
+        if(!$id||!$give){
+            Db::rollback();
+            return false;
+        }
+        //代理分佣
+        if(!$this->agent_money($ranking['user_id'],$agent_money,$balance_give_integral)){
+            Db::rollback();
+            return false;
+        }
+        Db::commit();
+        return false;
+    }
+    /*
      * 三倍出局随机选取某个值
      */
     public function triple_out($balance_give_integral,$double_percent,$triple_out,$luck_time,$goods_money=20){

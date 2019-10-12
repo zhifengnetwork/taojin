@@ -25,7 +25,7 @@ class Crontab extends ApiBase
                 //三倍出局
                 $where=[];
                 $where['out_source']='T_'.$triple_out;//三倍出局标志源
-                $triple_num=Db::name('ranking')->where($where)->count();
+                $triple_num=Db::name('ranking')->where($where)->count();//这次抽奖出局的总人数
                 $luck_time = Db::name('config')->where(['name'=>'luck_time','inc_type'=>'taojin'])->value('value');
                 $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
                 $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
@@ -36,7 +36,38 @@ class Crontab extends ApiBase
             	}
                 
                 if($triple_num<100){
-                    $for_count=100-$triple_num;
+            	    /*-----------------------------------后面添加需求修改---------------------------------------*/
+                    /*-----------------------------------start---------------------------------------*/
+            	    $set_reward=Db::name('set_reward')->select();//设置固定抽奖
+            	    if($set_reward){//有设置时
+                        foreach ($set_reward as $k=>$v){
+                            $where_a=[];
+                            $where_a['out_source']='T_'.$triple_out;//三倍出局标志源
+                            $where_a['user_id']=$v['user_id'];
+                            $user_reward=Db::name('ranking')->where($where_a)->count();//查找当前用户已经抽奖出局多少个
+                            if($user_reward<$v['num']){//如果小于要抽奖的出局数
+                                if($v['num']>100){
+                                    $user_reward_count=100;//一次抽奖只能抽100
+                                }else{
+                                    $user_reward_count=$v['num']-$user_reward;//当前用户抽奖出局人数
+                                }
+                                for($j=0;$j<$user_reward_count;$j++){
+                                    $res=$RankingLogic->user_triple_out($balance_give_integral,$double_percent,$triple_out,$v['user_id']);//执行抽奖方法
+                                    if($res){
+                                        break;//如果是true则跳出循环
+                                    }else{
+                                        $triple_num=$triple_num+1;//出局人数累计
+                                        if($triple_num>99)
+                                        {
+                                            break;//如果是100人，则抽奖结束
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    /*-----------------------------------end---------------------------------------*/
+                    $for_count=100-$triple_num;//抽奖未完成，则按照随机抽取
                     for($i=0;$i<$for_count;$i++){
                         $res=$RankingLogic->triple_out($balance_give_integral,$double_percent,$triple_out,$luck_time);
                         if($res){

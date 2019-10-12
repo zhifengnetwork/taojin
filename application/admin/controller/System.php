@@ -165,6 +165,132 @@ class System extends Common
             return $this->fetch();
         }
     }
+    /**
+     *中奖设置
+     **/
+    public function reward(){
+        $table = db('config');
+        if(request()->isPost()) {
 
+            cache('reward', null);
 
+            $datas = input('post.');
+            unset($datas['file']);
+
+            foreach ($datas as $k=>$v){
+                $table->where(['name'=>$k,'inc_type'=>'reward'])->update(['value'=>$v]);
+            }
+            return json(['code' => 1, 'msg' => '设置成功!', 'url' => url('system/reward')]);
+        }else{
+            $smtp = $table->where(['inc_type'=>'taojin'])->select();
+            $info = convert_arr_kv($smtp,'name','value');
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+    }
+    /**
+     *中奖设置
+     **/
+//    public function user_reward(){
+//        $table = db('config');
+//        if(request()->isPost()) {
+//
+//            cache('reward', null);
+//
+//            $datas = input('post.');
+//            unset($datas['file']);
+//
+//            foreach ($datas as $k=>$v){
+//                $table->where(['name'=>$k,'inc_type'=>'reward'])->update(['value'=>$v]);
+//            }
+//            return json(['code' => 1, 'msg' => '设置成功!', 'url' => url('system/reward')]);
+//        }else{
+//            $smtp = $table->where(['inc_type'=>'taojin'])->select();
+//            $info = convert_arr_kv($smtp,'name','value');
+//            $this->assign('info', $info);
+//            return $this->fetch();
+//        }
+//    }
+    public function user_reward(){
+        if(request()->isPost()){
+            $userLevel = db('set_reward');
+            $list = $userLevel->order('id')->select();
+            return $result = ['code' => 0,'msg' => '获取成功!','data' => $list,'rel' => 1];
+        }
+        return $this->fetch();
+    }
+    public function rewardAdd(){
+        if(request()->isPost()){
+            $data = input('post.');
+            $user=M('users')->where('id',$data['user_id'])->find();
+            if(!$user){
+                $result['msg'] = '用户id不存在，请重新输入!';
+                $result['code'] = 0;
+                return $result;
+            }
+            $set_reward=M('set_reward')->where('user_id',$data['user_id'])->find();
+            if($set_reward){
+                $result['msg'] = '该用户已存在，请去修改!';
+                $result['code'] = 0;
+                return $result;
+            }
+            if($data['num']<0){
+                $result['msg'] = '中奖数量不能为负数!';
+                $result['code'] = 0;
+                return $result;
+            }
+            if($data['num']>100){
+                $result['msg'] = '中奖数量不能大于100!';
+                $result['code'] = 0;
+                return $result;
+            }
+            db('set_reward')->insert($data);
+            $result['msg'] = '添加成功!';
+            $result['url'] = url('user_reward');
+            $result['code'] = 1;
+            return $result;
+        }else{
+            $this->assign('title',lang('add') . "中奖ID");
+            $this->assign('info','null');
+            return $this->fetch('reward_edit');
+        }
+    }
+    public function rewardEdit(){
+        if(request()->isPost()){
+            $data = input('post.');
+            $user=M('users')->where('id',$data['user_id'])->find();
+            if(!$user){
+                $result['msg'] = '用户id不存在，请重新输入!';
+                $result['code'] = 0;
+                return $result;
+            }
+            $set_reward=M('set_reward')->where('user_id',$data['user_id'])->find();
+            if($set_reward&&$set_reward['id']!=$data['id']){
+                $result['msg'] = '该用户已存在，请去该用户下修改!';
+                $result['code'] = 0;
+                return $result;
+            }
+            if($data['num']<0){
+                $result['msg'] = '中奖数量不能为负数!';
+                $result['code'] = 0;
+                return $result;
+            }
+            if($data['num']>100){
+                $result['msg'] = '中奖数量不能大于100!';
+                $result['code'] = 0;
+                return $result;
+            }
+            db('set_reward')->update($data);
+            $result['msg'] = '修改成功!';
+            $result['url'] = url('user_reward');
+            $result['code'] = 1;
+            return $result;
+        }else{
+            $map['id'] = input('param.id');
+            $info = db('set_reward')->where($map)->find();
+            $this->assign('title',lang('edit') . "中奖ID");
+            $this->assign('info',json_encode($info,true));
+            return $this->fetch('reward_edit');
+        }
+    }
 }
