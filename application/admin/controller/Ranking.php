@@ -16,6 +16,7 @@ class Ranking extends Common
             $end_time=input('post.end_time');
             $ranking_status=input('post.ranking_status');
             $map=[];
+            $order='id desc';
             if(!empty($start_time)){
                 if(!empty($start_time)){
                     if(strtotime($start_time)>strtotime($end_time)){
@@ -32,6 +33,7 @@ class Ranking extends Common
                     $map['r.rank_status']=0;
                 }else{
                     $map['r.rank_status']=$ranking_status;
+                    $order='out_time desc';
                 }
             }
             if(!empty($keyword)){
@@ -43,7 +45,7 @@ class Ranking extends Common
                 ->join('users u','u.id=r.user_id','LEFT')
                 ->field('r.id,r.user_id,r.rank_time,r.add_time,r.rank_status,u.phone,r.out_source,r.out_time')
                 ->where($map)
-                ->order('id desc')
+                ->order($order)
                 ->paginate(array('list_rows' => $pageSize,'page' => $page))
                 ->toArray();
 //            $list = Db::name('ranking')
