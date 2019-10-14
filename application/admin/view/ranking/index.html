@@ -85,6 +85,13 @@
                         return FormatDateTime(d.rank_time);
                     },sort:true},
                 {field: 'out_source', title: '出局源', width: 100, templet: '#out_source',sort:true},
+                {field: 'out_time', title: '出局时间', width: 150, templet: function(d){
+                    if(!d.out_time){
+                            return 0;
+                        }else{
+                            return FormatDateTime(d.out_time);
+                        }
+                    }, sort:true},
                 {field: 'out_type', title: '出局类型', width: 100, templet: '#out_type',sort:true},
                 {field: 'add_time', title: '下单时间', width: 150, templet: function(d){
                         return FormatDateTime(d.add_time);
