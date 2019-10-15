@@ -25,12 +25,14 @@ class Login extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'password为空','data'=>null]);
         }
 
-        $data = Db::name("users")->where('phone',$phone)->field('password,id')->find();
+        $data = Db::name("users")->where('phone',$phone)->field('password,id,status')->find();
 
         if(!$data){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'手机phone不存在或错误','data'=>null]);
         }
-        
+        if($data['status']==0){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'您的账号已被管理员禁止登陆','data'=>null]);
+        }
         $verify = password_verify($password,$data['password']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'登录密码错误','data'=>null]);
