@@ -293,4 +293,27 @@ class System extends Common
             return $this->fetch('reward_edit');
         }
     }
+    public function chicken(){
+        $table = db('config');
+        if(request()->isPost()) {
+
+            cache('chicken', null);
+
+            $datas = input('post.');
+            unset($datas['file']);
+            foreach ($datas as $k=>$v){
+                $table->where(['name'=>$k,'inc_type'=>'chicken'])->update(['value'=>$v]);
+            }
+            return json(['code' => 1, 'msg' => '设置成功!', 'url' => url('system/chicken')]);
+        }else{
+            $smtp = $table->where(['inc_type'=>'chicken'])->select();
+            $info = convert_arr_kv($smtp,'name','value');
+            if($info['qr_code'])
+            {
+                $info['qr_code_url']=SITE_URL.__PUBLIC__.$info['qr_code'];
+            }
+            $this->assign('info', $info);
+            return $this->fetch();
+        }
+    }
 }

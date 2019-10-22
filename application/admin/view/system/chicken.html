@@ -1,0 +1,139 @@
+{include file="common/head"/}
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>养殖场设置</legend>
+    </fieldset>
+    <form class="layui-form layui-form-pane">
+
+        <style>
+            .layui-form-label{
+                width: 200px !important;
+            }
+        </style>
+        <div class="layui-form-item">
+            <label class="layui-form-label">养殖场公告</label>
+            <div class="layui-input-4">
+                <textarea class="layui-textarea" name="notice" rows="5" cols="40">{$info.notice}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">每次投放饲料总数</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="feed_num" placeholder="" value="{$info.feed_num}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">糖果红包总数</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="red_num" placeholder="" value="{$info.red_num}" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">剩余红包数</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$info.user_red_num}</label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">二维码图片</label>
+            <input type="hidden" name="qr_code" id="qr_code" value="{$system.qr_code}">
+            <div class="layui-input-block">
+                <div class="layui-upload">
+                    <button type="button" class="layui-btn layui-btn-primary" id="logoBtn"><i class="icon icon-upload3"></i>点击上传</button>
+                    <div class="layui-upload-list">
+                        <img class="layui-upload-img" id="cltLogo">
+                        <p id="demoText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客服1</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="customer_service_one" placeholder="" value="{$info.customer_service_one}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客服2</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="customer_service_two" placeholder="" value="{$info.customer_service_two}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客服3</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="customer_service_three" placeholder="" value="{$info.customer_service_three}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">地址钱包</label>
+            <div class="layui-input-4">
+                <input type="text" lay-verify="required" name="recharge_link" placeholder="" value="{$info.recharge_link}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" lay-submit="" lay-filter="submit">提交</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+{include file="common/foot"/}
+<script>
+
+    layui.use(['form', 'layer','upload'], function () {
+        // var form = layui.form,layer = layui.layer,$= layui.jquery,upload = layui.upload;
+        var form = layui.form,layer = layui.layer,upload = layui.upload,$ = layui.jquery;
+        //提交监听
+        if("{$info.qr_code}"){
+            cltLogo.src = "{$info.qr_code_url}";
+        }
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#logoBtn'
+            ,url: '{:url("UpFiles/upload")}'
+            ,before: function(obj){
+                //预读本地文件示例，不支持ie8
+                obj.preview(function(index, file, result){
+                    $('#cltLogo').attr('src', result); //图片链接（base64）
+                });
+            }
+            ,done: function(res){
+                //上传成功
+                if(res.code>0){
+                    $('#qr_code').val(res.url);
+                }else{
+                    //如果上传失败
+                    return layer.msg('上传失败');
+                }
+            }
+            ,error: function(){
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function(){
+                    uploadInst.upload();
+                });
+            }
+        });
+        form.on('submit(submit)', function (data) {
+            loading =layer.load(1, {shade: [0.1,'#fff']});
+            $.post("{:url('system/chicken')}",data.field,function(res){
+                layer.close(loading);
+                if(res.code > 0){
+                    layer.msg(res.msg,{icon: 1, time: 1000},function(){
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{icon: 2, time: 1000});
+                }
+            });
+        })
+    })
+</script>
+</body>
+</html>
