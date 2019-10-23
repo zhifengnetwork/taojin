@@ -86,7 +86,7 @@ class ChickenLogic
             return array('status'=>-2,'msg'=>'购买失败！');
         }
         if($type==1){
-            if($this->chicken_balance_log($user_id,0,0,-$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
+            if($this->chicken_balance_log($user_id,0,0,$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_balance',$money);
                 if(!$re){
                     Db::rollback();
@@ -97,7 +97,7 @@ class ChickenLogic
                 return array('status'=>-2,'msg'=>'购买失败！');
             }
         }elseif ($type==2){
-            if($this->recharge_balance_log($user_id,0,0,-$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
+            if($this->recharge_balance_log($user_id,0,18,$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_recharge_balance',$money);
                 if(!$re){
                     Db::rollback();
@@ -166,7 +166,7 @@ class ChickenLogic
         $user=$usersM->where('id',$user_id)->find();
         Db::startTrans();
         if($type==1){
-            if($this->chicken_balance_log($user_id,0,0,-$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
+            if($this->chicken_balance_log($user_id,0,0,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_balance',$money);
                 if(!$re){
                     Db::rollback();
@@ -177,7 +177,7 @@ class ChickenLogic
                 return array('status'=>-2,'msg'=>'购买失败！');
             }
         }elseif ($type==2){
-            if($this->recharge_balance_log($user_id,0,0,-$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
+            if($this->recharge_balance_log($user_id,0,17,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_recharge_balance',$money);
                 if(!$re){
                     Db::rollback();
@@ -252,6 +252,299 @@ class ChickenLogic
         $where['status']=1;//喂养了
         $where['chicken_status']=0;
         $chicken_list=$chickenM->where($where)->select();//当前用户已经喂养过的所有鸡
+        if(!$chicken_list){
+            return array('status'=>-2,'msg'=>'收取失败,您没有需要收取的鸡蛋！');
+        }
+        $egg_num=0;//鸡蛋数
+        $chicken_num=0;//鸡数
+        $ids='';//过期鸡id
+        $ids_c='';//产蛋鸡id
+        Db::startTrans();
+        foreach ($chicken_list as $key=>$value){
+            if((120-$value['num'])>1){//超过1只蛋
+                $egg_num=$egg_num+1;
+                if(!$ids_c){
+                    $ids_c=$value['chicken_id'];
+                }else{
+                    $ids_c=$ids_c.','.$value['chicken_id'];
+                }
+                $data=[];
+                $data['num']=$value['num']+1;
+                $data['status']=0;
+                $data_s=$chickenM->where('chicken_id',$value['chicken_id'])->update($data);
+                if(!$data_s){
+                    Db::rollback();
+                    return array('status'=>-2,'msg'=>'收取失败,鸡更新错误！');
+                }
+            }else{
+                if(120-$value['num']>0){
+                    $egg_num=$egg_num+(120-$value['num']);
+                }
+                if(!$ids){
+                    $ids=$value['chicken_id'];
+                }else{
+                    $ids=$ids.','.$value['chicken_id'];
+                }
+                $chicken_coop=Db::name('chicken_coop')->where('coop_id',$value['$value'])->setDec('num',1);
+                if(!$chicken_coop){
+                    Db::rollback();
+                    return array('status'=>-2,'msg'=>'收取失败,鸡窝更新错误！');
+                }
+            }
+            $chicken_num=$chicken_num+1;
+        }
+        $user=Db::name('users')->where('id',$user_id)->find();
+        if($ids){
+            $where=[];
+            $where['chicken_id']=array('in',$ids);
+            $data=[];
+            $data['num']=120;//产蛋
+            $data['chicken_status']=1;//过期
+            $data['status']=0;
+            $r=Db::name('chicken')->where($where)->update($data);
+            if(!$r){
+                Db::rollback();
+                return array('status'=>-2,'msg'=>'收取失败，蛋过期处理失败！');
+            }
+        }
+        $user_balance['egg_num']=$user['egg_num']+$egg_num*2;//鸡蛋收益
+        $user_balance['chicken_integral']=$user['chicken_integral']+$egg_num;//一个蛋一个糖果
+        $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);//用户获得收益
+        $egg_log=$this->egg_log($user_id,0,3,$egg_num*2,$user['egg_num'],'鸡蛋收益');
+        $chicken_integral=$this->chicken_integral_log($user_id,0,3,$egg_num,$user['chicken_integral'],'鸡蛋收益获得糖果');
+        if(!$re||!$egg_log||!$chicken_integral){
+            Db::rollback();
+            return array('status'=>-2,'msg'=>'收取失败！');
+        }
+        if(!$this->agent_money($user_id,$egg_num,$chicken_num)){
+            Db::rollback();
+            return array('status'=>-2,'msg'=>'收取失败,代理收益错误！');
+        }
+        Db::commit();
+        return array('status'=>1,'msg'=>'收取成功！');
+    }
+    /*
+    * 返佣+代理计算
+    */
+    public function agent_money($user_id,$egg_num,$chicken_num){
+        $users=Db::name('users')->where('id',$user_id)->find();
+        $p_1=Db::name('users')->where('id',$users['p_1'])->find();
+//        $user_level=$users['level'];//当前用户级别
+        //返佣
+        if($p_1){
+
+            if(!$this->user_balance($p_1['id'],$egg_num,20,'直推返利',4,$chicken_num)){
+                return false;
+            }
+            //用上级作为循环查找对象
+            if($p_1['level']==6){//上级是矿场主
+                if(!$this->user_balance($p_1['id'],$egg_num,20,'代理返点',7,$chicken_num)){//矿场主
+                    return false;
+                }
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],$p_1['level']);
+                    if($data){
+                        if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                            return false;
+                        }
+                    }
+                }
+            }elseif($p_1['level']==1){//上级是矿队长
+                if(!$this->user_balance($p_1['id'],$egg_num,5,'代理返点',6,$chicken_num)){//上级  矿队长
+                    return false;
+                }
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],$p_1['level']);
+                    if($data){
+                        if($data['type']==0){//平级
+                            if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                return false;
+                            }
+                            $data_fl=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data_fl){
+                                if ($data_fl['type']==1){
+                                    if(!$this->user_balance($p_1['id'],$egg_num,15,'代理返点',7,$chicken_num)){//顶级   矿场主
+                                        return false;
+                                    }
+                                    $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
+                                    if($data_fl){
+                                        if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }elseif($data['type']==1){
+                            if(!$this->user_balance($p_1['id'],$egg_num,15,'代理返点',7,$chicken_num)){//顶级   矿场主
+                                return false;
+                            }
+                            $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data){
+                                if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                    return false;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }else{//上级没有代理返点
+                if($p_1['p_1']){
+                    $data=$this->above($p_1['p_1'],1);
+                    if($data){
+                        if($data['type']==0){
+                            if(!$this->user_balance($p_1['id'],$egg_num,5,'代理返点',6,$chicken_num)){//上级  矿队长
+                                return false;
+                            }
+                            $data_level=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data_level){
+                                if($data_level['type']==0){
+                                    if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                        return false;
+                                    }
+                                    $data_fl=$this->above($data_level['data']['p_1'],$data_level['data']['level']);
+                                    if($data_fl){
+                                        if ($data_fl['type']==1){
+                                            if(!$this->user_balance($p_1['id'],$egg_num,15,'代理返点',7,$chicken_num)){//顶级   矿场主
+                                                return false;
+                                            }
+                                            $data_fl=$this->above($data_fl['data']['p_1'],$data_fl['data']['level']);
+                                            if($data_fl){
+                                                if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }elseif ($data_level['type']==1){
+                                    if(!$this->user_balance($p_1['id'],$egg_num,15,'代理返点',7,$chicken_num)){//顶级   矿场主
+                                        return false;
+                                    }
+                                    $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                                    if($data){
+                                        if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }elseif($data['type']==1){
+                            if(!$this->user_balance($p_1['id'],$egg_num,20,'代理返点',7,$chicken_num)){//顶级   矿场主
+                                return false;
+                            }
+                            $data=$this->above($data['data']['p_1'],$data['data']['level']);
+                            if($data){
+                                if(!$this->user_balance($p_1['id'],$egg_num,5,'平级代理返点',8,$chicken_num)){//平级奖
+                                    return false;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            //上上级计算返佣
+            $p_2=Db::name('users')->where('id',$users['p_2'])->find();
+            if($p_2){
+                if(!$this->user_balance($p_1['id'],$egg_num,20,'间推返利',5,$chicken_num)){
+                    return false;
+                }
+            }
+        }
+//        if($surplus_money>0){//未拿完扣取费用，则钱归系统账号
+//            $user_admin=Db::name('users')->where('phone',18866666666)->find();
+//            if($user_admin){
+//                $surplus=$money*$surplus_money/100;
+//                $detail=[];
+//                $detail['user_id']=$user_admin['id'];
+//                $detail['type']=16;//矿场主
+//                $detail['money']=$surplus;
+//                $detail['createtime']=time();
+//                $detail['intro']='返佣未拿完';
+//                $ids=Db::name('moneydetail')->insertGetId($detail);
+//                if(!$ids){
+//                    return false;
+//                }
+//            }
+//        }
+        return true;
+
+    }
+    /*
+     * 查找上级代理等级
+     */
+    public function above($user_id,$level){
+        $user=Db::name('users')->field('id,p_1,level')->where('id',$user_id)->find();
+        if(!$user){
+            return false;
+        }
+        if($user['level']>$level){
+            return ['data'=>$user,'type'=>1];//上级
+        }
+        if($level==$user['level']){
+            return ['data'=>$user,'type'=>0];//平级
+        }
+        if($user['p_1']){//还有上级
+            return $this->above($user['p_1'],$level);//递归寻找上级或平级
+        }else{
+            return false;
+        }
+    }
+    /*
+     * 代理返佣
+     */
+    public function user_balance($user_id,$egg_num,$percent,$intro,$type,$chicken_num){
+        $user=Db::name('users')->where('id',$user_id)->find();
+        $where['user_id']=$user_id;
+        $where['chicken_status']=0;
+        $user_chicken=Db::name('chicken')->where($where)->select();//当前用户鸡数量
+        $user_chicken_num=count($user_chicken);
+        if($user_chicken_num==0){
+            return true;
+        }
+        if($user_chicken_num>=$chicken_num){
+            $user_chicken_num=$chicken_num;
+
+        }
+        if($egg_num>$user_chicken_num){
+            $money=$user_chicken_num*$percent/100*2;//收益
+            $chicken_integral=$user_chicken_num;
+        }else{
+            $money=$egg_num*$percent/100*2;//收益
+            $chicken_integral=$egg_num;
+        }
+        $user_balance['egg_num']=$money;//鸡蛋收益
+        $user_balance['chicken_integral']=$chicken_integral;//一个蛋一个糖果
+        $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);//用户获得收益
+        $egg_log=$this->egg_log($user_id,0,$type,$money,$user['egg_num'],$intro);
+        $chicken_integral=$this->chicken_integral_log($user_id,0,$type,$egg_num,$user['chicken_integral'],$intro);
+        if(!$re||!$egg_log||!$chicken_integral){
+            return false;
+        }
+        foreach ($user_chicken as $key=>$value){
+            $where['chicken_id']=$value['$value'];
+            if($chicken_integral>(120-$value['num'])){//鸡蛋数量大于当前鸡剩余量
+                $data=[];
+                $data['num']=120;//产蛋
+                $data['chicken_status']=1;//过期
+                $data['status']=0;
+                $r=Db::name('chicken')->where($where)->update($data);
+                if(!$r){
+                    return false;
+                }
+            }else{
+                $data=[];
+                $data['num']=$value['num']+$chicken_integral;
+                $data['status']=0;
+                $data_s=Db::name('chicken')->where($where)->update($data);//鸡下蛋
+                if(!$data_s){
+                    return false;
+                }
+                break;//下蛋完成，跳出循环
+            }
+        }
+
+        return true;
     }
     /**
      * 鸡笼金沙
@@ -266,7 +559,7 @@ class ChickenLogic
         $data['user_id']=$user_id;
         $data['to_user_id']=$to_user_id;
         $data['type']=$type;
-        $data['money']=$money;
+        $data['money']=-$money;
         $data['balance']=$balance;
         $data['desc']=$desc;
         $data['add_time']=time();
@@ -288,14 +581,14 @@ class ChickenLogic
      * @return boolean
      */
     public function recharge_balance_log($user_id,$to_user_id,$type,$money,$balance,$desc){
-        $data['user_id']=$user_id;
-        $data['to_user_id']=$to_user_id;
-        $data['type']=$type;
-        $data['money']=$money;
-        $data['balance']=$balance;
-        $data['desc']=$desc;
-        $data['add_time']=time();
-        $id=Db::name('recharge_balance_log')->insertGetId($data);
+        $detail['user_id']=$user_id;
+        $detail['type']=$type;//买道具
+        $detail['money']=-$money;
+        $detail['balance']=$balance;
+        $detail['be_user_id']=$to_user_id;
+        $detail['createtime']=time();
+        $detail['intro']=$desc;
+        $id=Db::name('moneydetail')->insertGetId($detail);
         if($id){
             return true;
         }else{
@@ -303,7 +596,7 @@ class ChickenLogic
         }
     }
     /**
-     * 鸡蛋log
+     * 鸡蛋收益log
      * @param $user_id  用户id
      * @param $to_user_id  赠送用户id
      * @param $type    类型
@@ -327,7 +620,31 @@ class ChickenLogic
             return false;
         }
     }
-
+    /**
+     * 鸡笼糖果
+     * @param $user_id  用户id
+     * @param $to_user_id  赠送用户id
+     * @param $type    类型
+     * @param $money   改变糖果
+     * @param $balance  原有金沙
+     * @param $desc  说明描述
+     * @return boolean
+     */
+    public function chicken_integral_log($user_id,$to_user_id,$type,$money,$balance,$desc){
+        $data['user_id']=$user_id;
+        $data['to_user_id']=$to_user_id;
+        $data['type']=$type;
+        $data['money']=$money;
+        $data['balance']=$balance;
+        $data['desc']=$desc;
+        $data['add_time']=time();
+        $id=Db::name('chicken_integral_log')->insertGetId($data);
+        if($id){
+            return true;
+        }else{
+            return false;
+        }
+    }
     /**
      * @param $user_id  用户id
      * @param $num   购买数量
