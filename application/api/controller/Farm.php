@@ -163,10 +163,10 @@ class Farm extends ApiBase
         }
         $chicken_num=Db::name('chicken')->where('user_id',$user_id)->count();
         if($chicken_num==0){
-            return array('status'=>-2,'msg'=>'请先购买鸡，再抢红包！');
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请先购买鸡，再抢红包']);
         }
         $one_time=strtotime(date("Y-m-d")." 12:00:00");
-        $two_time=strtotime(date("Y-m-d")." 19:00:10");
+        $two_time=strtotime(date("Y-m-d")." 12:00:10");
         $time=time();
         if($time>$one_time&&$time<$two_time){
             $source=strtotime(date("Y-m-d")." 00:00:00");
@@ -174,35 +174,39 @@ class Farm extends ApiBase
             $count=Db::name('red_log')->where($where)->count();
             $sys_count=$this->set_value('user_red_num');//红包数量
             if($count>=$sys_count){
-                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+                $this->ajaxReturn(['status' => 1 , 'msg'=>'红包是空的，请再接再厉！','data'=>0]);
             }
             $sys_chicken_integral=$this->set_value('red_num');//糖果数量
             $chicken_integral=Db::name('red_log')->where($where)->sum('chicken_integral');
             if($chicken_integral>=$sys_chicken_integral){
-                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+                $this->ajaxReturn(['status' => 1 , 'msg'=>'红包是空的，请再接再厉！','data'=>0]);
             }
             $max=($sys_chicken_integral-$chicken_integral)-($sys_count-$count);
+            $luck=$max;
             if($max<=0){
-                $red_num=$this->red_pack(1);
+                $red_num=$this->red_pack(1,$luck);
             }else{
-                $red_num=$this->red_pack($max+1);
+                $max=ceil(($sys_chicken_integral-$chicken_integral)/($sys_count-$count));
+                $red_num=$this->red_pack($max,$luck);
             }
             if($red_num==0){
-                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+                $this->ajaxReturn(['status' => 1 , 'msg'=>'红包是空的，请再接再厉！','data'=>0]);
             }else{//抽到红包
                 Db::startTrans();
+                $data=[];
                 $data['user_id']=$user_id;
                 $data['source']=$source;
                 $data['chicken_integral']=$red_num;
                 $data['add_time']=time();
                 $ids=Db::name('red_log')->insertGetId($data);
+                $data=[];
                 $data['user_id']=$user_id;
                 $data['type']=1;
                 $data['money']=$red_num;
                 $data['desc']='抢红包获得'.$red_num;
                 $data['add_time']=time();
                 $id=Db::name('chicken_integral_log')->insertGetId($data);
-                $re=Db::name('users')->where('user_id',$user_id)->setInc('chicken_integral',$red_num);
+                $re=Db::name('users')->where('id',$user_id)->setInc('chicken_integral',$red_num);
                 if(!$re||!$id||!$ids){
                     Db::rollback();
                     $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，抢失败了！']);
@@ -215,12 +219,21 @@ class Farm extends ApiBase
         }
     }
     //随机抽取糖果
-    public function red_pack($max){
+    public function red_pack($max,$luck){
         $code = mt_rand(0,100);
         if($code<50){
             return 0;
+        }elseif($code>50&&$code<75){
+            $re=mt_rand(0,$max);
+            if($code==66){
+                return mt_rand(1,$luck);
+            }else{
+                return $re;
+            }
+        }elseif($code>95){
+            return mt_rand(1,$luck);
         }else{
-            return mt_rand(0,$max);
+            return 1;
         }
     }
 
