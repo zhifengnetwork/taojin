@@ -95,8 +95,10 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $one_time=strtotime(date("Y-m-d")." 15:00:00");
+        $two_time=strtotime(date("Y-m-d")." 16:00:00");
+//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
         $three_time=strtotime(date("Y-m-d")." 18:00:00");
         $four_time=strtotime(date("Y-m-d")." 19:00:00");
         $chickenLogic=new ChickenLogic();
@@ -118,8 +120,10 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $one_time=strtotime(date("Y-m-d")." 15:00:00");
+        $two_time=strtotime(date("Y-m-d")." 16:00:00");
+//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
         $three_time=strtotime(date("Y-m-d")." 18:00:00");
         $four_time=strtotime(date("Y-m-d")." 19:00:00");
         $chickenLogic=new ChickenLogic();
@@ -141,8 +145,10 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $one_time=strtotime(date("Y-m-d")." 15:00:00");
+        $two_time=strtotime(date("Y-m-d")." 16:00:00");
+//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
         $three_time=strtotime(date("Y-m-d")." 18:00:00");
         $four_time=strtotime(date("Y-m-d")." 19:00:00");
         $chickenLogic=new ChickenLogic();
