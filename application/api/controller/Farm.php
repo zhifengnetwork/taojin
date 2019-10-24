@@ -25,6 +25,12 @@ class Farm extends ApiBase
         if(!$user['nick_name']){
             $user['nick_name']='未命名';
         }
+        $chicken_coop_count=Db::name('chicken_coop')->where('user_id',$user_id)->count();
+        if($chicken_coop_count==0){
+            $data['user_id']=$user_id;
+            $data['add_time']=time();
+            Db::name('chicken_coop')->insertGetId($data);
+        }
         $where['user_id']=$user_id;
         $user['egg_num']=Db::name('chicken')->where($where)->sum('num');
         $where['chicken_status']=0;
