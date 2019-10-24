@@ -18,7 +18,7 @@ class Farm extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $user=Db::name('users')->field('avatar,nick_name,recharge_balance,chicken_balance')->where('id',$user_id)->find();
+        $user=Db::name('users')->field('avatar,nick_name,recharge_balance,chicken_balance,egg_num,chicken_integral')->where('id',$user_id)->find();
         if(!$user['avatar']){
             $user['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
         }

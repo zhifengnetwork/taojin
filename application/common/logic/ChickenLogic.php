@@ -98,7 +98,7 @@ class ChickenLogic
             }
         }elseif ($type==2){
             if($this->recharge_balance_log($user_id,0,18,$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
-                $re=$usersM->where('id',$user_id)->setDec('chicken_recharge_balance',$money);
+                $re=$usersM->where('id',$user_id)->setDec('recharge_balance',$money);
                 if(!$re){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');
@@ -178,7 +178,7 @@ class ChickenLogic
             }
         }elseif ($type==2){
             if($this->recharge_balance_log($user_id,0,17,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
-                $re=$usersM->where('id',$user_id)->setDec('chicken_recharge_balance',$money);
+                $re=$usersM->where('id',$user_id)->setDec('recharge_balance',$money);
                 if(!$re){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');

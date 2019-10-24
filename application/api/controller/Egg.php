@@ -42,7 +42,7 @@ class Egg extends ApiBase
         if($type==1&&$money>$user['chicken_balance']){
             $this->ajaxReturn(['status' => -2, 'msg' => '金沙不足，请重新选择！']);
         }
-        if($type==2&&$money>$user['chicken_recharge_balance']){
+        if($type==2&&$money>$user['recharge_balance']){
             $this->ajaxReturn(['status' => -2, 'msg' => '余额不足，请充值！']);
         }
         $chickenLogic=new ChickenLogic();
@@ -80,7 +80,7 @@ class Egg extends ApiBase
         if($type==1&&$money>$user['chicken_balance']){
             $this->ajaxReturn(['status' => -2, 'msg' => '金沙不足，请重新选择！']);
         }
-        if($type==2&&$money>$user['chicken_recharge_balance']){
+        if($type==2&&$money>$user['recharge_balance']){
             $this->ajaxReturn(['status' => -2, 'msg' => '余额不足，请充值！']);
         }
         $chickenLogic=new ChickenLogic();
