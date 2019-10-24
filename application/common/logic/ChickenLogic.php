@@ -81,7 +81,7 @@ class ChickenLogic
         if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
             return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
         }
-        if(!$this->chicken_log($user_id,$num)){
+        if(!$this->chicken_log($user_id,$num,$money,0,$type)){
             Db::rollback();
             return array('status'=>-2,'msg'=>'购买失败！');
         }
@@ -165,6 +165,10 @@ class ChickenLogic
         $usersM=Db::name('users');
         $user=$usersM->where('id',$user_id)->find();
         Db::startTrans();
+        if(!$this->chicken_log($user_id,$num,$money,1,$type)){
+            Db::rollback();
+            return array('status'=>-2,'msg'=>'购买失败！');
+        }
         if($type==1){
             if($this->chicken_balance_log($user_id,0,0,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_balance',$money);
@@ -650,9 +654,12 @@ class ChickenLogic
      * @param $num   购买数量
      * @return bool
      */
-    public function chicken_log($user_id,$num){
+    public function chicken_log($user_id,$num,$money,$type,$pay_type){
         $data['user_id']=$user_id;
         $data['num']=$num;
+        $data['money']=$money;
+        $data['type']=$type;
+        $data['pay_type']=$pay_type;
         $data['add_time']=time();
         $id=Db::name('chicken_log')->insertGetId($data);
         if($id){
