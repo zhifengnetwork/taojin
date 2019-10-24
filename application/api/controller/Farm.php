@@ -56,7 +56,7 @@ class Farm extends ApiBase
             ->limit($start,$limit)
             ->select();
         foreach ($coop_list as $key=>$value){
-            $coop_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+            $coop_list[$key]['add_time']=date('Y-m-d',$value['add_time']);
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$coop_list]);
     }
@@ -76,7 +76,7 @@ class Farm extends ApiBase
             ->order('add_time desc')
             ->select();
         foreach ($chicken_list as $key=>$value){
-            $chicken_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+            $chicken_list[$key]['add_time']=date('Y-m-d',$value['add_time']);
             if($value['chicken_status']==1){
                 $chicken_list[$key]['chicken_status_text']='死亡';
             }else{
