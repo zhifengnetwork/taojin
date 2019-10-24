@@ -557,6 +557,7 @@ class ChickenLogic
      * @param $type    类型
      * @param $money   改变金沙
      * @param $balance  原有金沙
+     * @param $desc  说明描述
      * @return boolean
      */
     public function chicken_balance_log($user_id,$to_user_id,$type,$money,$balance,$desc){

@@ -19,6 +19,7 @@ class Users extends ApiBase
 //        $u_id=I('u_id');
         $balance=I('money');
         $phone=I('phone');
+        $type=I('type',1);
         $paypwd=I('paypwd');
         if(!$paypwd){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
@@ -33,101 +34,154 @@ class Users extends ApiBase
         if($balance<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
         }
+        if($balance>=100){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'金额必须大于100']);
+        }
 //        if($this->verify($balance)){//判断是否为100的整数倍
 //            $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
 //        }
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
-        if($give_user['id']==$user_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+        if($type==1){//转淘金
+            if($give_user['id']==$user_id){
+                $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+            }
         }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
-        $user_all_balance=$user['balance']+$user['recharge_balance'];
-        if($user_all_balance<$balance){
-            $this->ajaxReturn(['status' => -2, 'msg' => '您的余额不足，不能赠送！']);
+        if($type==1){
+            $user_all_balance=$user['balance']+$user['recharge_balance'];
+            if($user_all_balance<$balance){
+                $this->ajaxReturn(['status' => -2, 'msg' => '您的余额不足，不能赠送！']);
+            }
+        }else{
+            $user_all_balance=$user['balance'];
+            if($user_all_balance<$balance){
+                $this->ajaxReturn(['status' => -2, 'msg' => '您的金沙不足，不能转账！']);
+            }
         }
+
         if(!$give_user){
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        if($user['phone']==18899999999){//管理员充值
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
-            if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['type']=13;//充值 被赠与
-                $detail['be_user_id']=$user_id;//赠送者
-                $detail['money']=$balance;
-                $detail['createtime']=time();
-                $detail['intro']=$user['phone'].'转入';
-                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$id){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+        if($type==1){
+            if($user['phone']==18899999999){//管理员充值
+                $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
+                if($res){
+                    $detail['user_id']=$give_user['id'];
+                    $detail['type']=13;//充值 被赠与
+                    $detail['be_user_id']=$user_id;//赠送者
+                    $detail['money']=$balance;
+                    $detail['createtime']=time();
+                    $detail['intro']=$user['phone'].'转入';
+                    $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                    if(!$id){
+                        Db::rollback();
+                        $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                    }
                 }
-            }
 
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
-            if($re){
-                $detail=[];
-                $detail['user_id']=$user_id;
-                $detail['type']=13;//充值  赠送
-                $detail['be_user_id']=$give_user['id'];//赠与者
-                $detail['money']=-$balance;
-                $detail['createtime']=time();
-                $detail['intro']='转入'.$give_user['phone'];
-                $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$ids){
+                $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+                if($re){
+                    $detail=[];
+                    $detail['user_id']=$user_id;
+                    $detail['type']=13;//充值  赠送
+                    $detail['be_user_id']=$give_user['id'];//赠与者
+                    $detail['money']=-$balance;
+                    $detail['createtime']=time();
+                    $detail['intro']='转入'.$give_user['phone'];
+                    $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                    if(!$ids){
+                        Db::rollback();
+                        $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                    }
+                }
+                $system_money=Db::name('system_money')->where('id',1)->find();//总后台系统总额
+                $old_balance=$system_money['balance'];
+//            $system_money['balance']=sprintf("%.2f",$system_money['balance']-$balance);
+                $system_money['balance']=$system_money['balance']-$balance;
+                $system_data['balance']=-$balance;
+                $system_data['old_balance']=$old_balance;
+                $system_data['new_balance']=$system_money['balance'];
+                $system_data['add_time']=time();
+                $system_data['desc']='总账户充值修改系统金额';
+                $sys_id=Db::name('system_money_log')->insertGetId($system_data);
+                if(!$sys_id){
+                    return false;
+                }
+                $r=Db::name('system_money')->update($system_money);
+                if(!$res||!$re||!$r){
                     Db::rollback();
                     $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
+                }else{
+                    Db::commit();
+                    $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
                 }
-            }
-            $system_money=Db::name('system_money')->where('id',1)->find();//总后台系统总额
-            $old_balance=$system_money['balance'];
-//            $system_money['balance']=sprintf("%.2f",$system_money['balance']-$balance);
-            $system_money['balance']=$system_money['balance']-$balance;
-            $system_data['balance']=-$balance;
-            $system_data['old_balance']=$old_balance;
-            $system_data['new_balance']=$system_money['balance'];
-            $system_data['add_time']=time();
-            $system_data['desc']='总账户充值修改系统金额';
-            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
-            if(!$sys_id){
-                return false;
-            }
-            $r=Db::name('system_money')->update($system_money);
-            if(!$res||!$re||!$r){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
             }else{
-                Db::commit();
-                $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
+                if($user['recharge_balance']>$balance){
+                    $user_balance['recharge_balance']=$user['recharge_balance']-$balance;//充值余额足够
+                }else{
+                    $user_balance['recharge_balance']=0;
+                    $user_balance['balance']=$user['balance']+$user['recharge_balance']-$balance;//充值余额不足
+                }
+                $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
+                if($res){
+                    $detail['user_id']=$give_user['id'];
+                    $detail['type']=5;//被赠送
+                    $detail['be_user_id']=$user_id;//赠送者
+                    $detail['money']=$balance;
+                    $detail['createtime']=time();
+                    $detail['intro']=$user['phone'].'赠送';
+                    $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                    if(!$id){
+                        Db::rollback();
+                        $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                    }
+                }
+                $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);
+//            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
+                if($re){
+                    $detail=[];
+                    $detail['user_id']=$user_id;
+                    $detail['type']=2;//赠送
+                    $detail['be_user_id']=$give_user['id'];//赠与者
+                    $detail['money']=-$balance;
+                    $detail['createtime']=time();
+                    $detail['intro']='赠送给'.$give_user['phone'];
+                    $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                    if(!$ids){
+                        Db::rollback();
+                        $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                    }
+                }
+                if(!$res||!$re){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }else{
+                    Db::commit();
+                    $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+                }
             }
         }else{
-            if($user['recharge_balance']>$balance){
-                $user_balance['recharge_balance']=$user['recharge_balance']-$balance;//充值余额足够
-            }else{
-                $user_balance['recharge_balance']=0;
-                $user_balance['balance']=$user['balance']+$user['recharge_balance']-$balance;//充值余额不足
-            }
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_balance',$balance);
             if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['type']=5;//被赠送
-                $detail['be_user_id']=$user_id;//赠送者
-                $detail['money']=$balance;
-                $detail['createtime']=time();
-                $detail['intro']=$user['phone'].'赠送';
-                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
+                $data['user_id']=$give_user['id'];
+                $data['to_user_id']=$user_id;
+                $data['type']=2;
+                $data['money']=$balance;
+                $data['desc']=$user['phone'].'赠送';
+                $data['add_time']=time();
+                $id=Db::name('chicken_balance_log')->insertGetId($data);
                 if(!$id){
                     Db::rollback();
                     $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
                 }
             }
-            $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('recharge_balance',$balance);
 //            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
             if($re){
                 $detail=[];
@@ -152,6 +206,32 @@ class Users extends ApiBase
             }
         }
 
+
+    }
+    /**
+     * 鸡笼金沙
+     * @param $user_id  用户id
+     * @param $to_user_id  赠送用户id
+     * @param $type    类型
+     * @param $money   改变金沙
+     * @param $balance  原有金沙
+     * @param $desc  说明描述
+     * @return boolean
+     */
+    public function chicken_balance_log($user_id,$to_user_id,$type,$money,$balance,$desc){
+        $data['user_id']=$user_id;
+        $data['to_user_id']=$to_user_id;
+        $data['type']=$type;
+        $data['money']=-$money;
+        $data['balance']=$balance;
+        $data['desc']=$desc;
+        $data['add_time']=time();
+        $id=Db::name('chicken_balance_log')->insertGetId($data);
+        if($id){
+            return true;
+        }else{
+            return false;
+        }
     }
     public function text(){
         $phone=I('phone');

@@ -40,6 +40,7 @@ class Farm extends ApiBase
             if($chicken_num){
                 $feed_logM=Db::name('feed_log');
                 $source=strtotime(date("Y-m-d")." 00:00:00");
+                $where=[];
                 $where['source']=$source;
                 if(($time>$one_time&&$time<$two_time)){
                     $where['type']=1;
@@ -54,9 +55,13 @@ class Farm extends ApiBase
             }
             $feed=Db::name('feed');
             $user_feed=$feed->where('user_id',$user_id)->find();
-            if($user_feed){
+            if($user_feed['num']>0){
                 $user['is_feed_chicken']=1;//可用
             }
+            $where=[];
+            $where['user_id']=$user_id;
+            $where['status']=1;//喂养了
+            $where['chicken_status']=0;
             $chicken_list=$chickenM->where($where)->select();//当前用户已经喂养过的所有鸡
             if($chicken_list){
                 $user['is_chicken']=1;//可用
@@ -122,6 +127,9 @@ class Farm extends ApiBase
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$chicken_list]);
     }
+    /*
+     * 购买列表
+     */
     public function purchase(){
         $user_id=$this->get_user_id();
         if(!$user_id){
@@ -147,6 +155,74 @@ class Farm extends ApiBase
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$purchase_list]);
     }
+    public function random_red(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $chicken_num=Db::name('chicken')->where('user_id',$user_id)->count();
+        if($chicken_num==0){
+            return array('status'=>-2,'msg'=>'请先购买鸡，再抢红包！');
+        }
+        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+        $two_time=strtotime(date("Y-m-d")." 19:00:10");
+        $time=time();
+        if($time>$one_time&&$time<$two_time){
+            $source=strtotime(date("Y-m-d")." 00:00:00");
+            $where['source']=$source;
+            $count=Db::name('red_log')->where($where)->count();
+            $sys_count=$this->set_value('user_red_num');//红包数量
+            if($count>=$sys_count){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+            }
+            $sys_chicken_integral=$this->set_value('red_num');//糖果数量
+            $chicken_integral=Db::name('red_log')->where($where)->sum('chicken_integral');
+            if($chicken_integral>=$sys_chicken_integral){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+            }
+            $max=($sys_chicken_integral-$chicken_integral)-($sys_count-$count);
+            if($max<=0){
+                $red_num=$this->red_pack(1);
+            }else{
+                $red_num=$this->red_pack($max+1);
+            }
+            if($red_num==0){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，请再接再厉！']);
+            }else{//抽到红包
+                Db::startTrans();
+                $data['user_id']=$user_id;
+                $data['source']=$source;
+                $data['chicken_integral']=$red_num;
+                $data['add_time']=time();
+                $ids=Db::name('red_log')->insertGetId($data);
+                $data['user_id']=$user_id;
+                $data['type']=1;
+                $data['money']=$red_num;
+                $data['desc']='抢红包获得'.$red_num;
+                $data['add_time']=time();
+                $id=Db::name('chicken_integral_log')->insertGetId($data);
+                $re=Db::name('users')->where('user_id',$user_id)->setInc('chicken_integral',$red_num);
+                if(!$re||!$id||!$ids){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2 , 'msg'=>'红包是空的，抢失败了！']);
+                }
+                Db::commit();
+                $this->ajaxReturn(['status' => 1 , 'msg'=>'抢到了','data'=>$red_num]);
+            }
+        }else{
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'抢红包时间过了！']);
+        }
+    }
+    //随机抽取糖果
+    public function red_pack($max){
+        $code = mt_rand(0,100);
+        if($code<50){
+            return 0;
+        }else{
+            return mt_rand(0,$max);
+        }
+    }
+
     public function set_value($key){
         $taojin =  Db::name('config')->where(['inc_type'=>'chicken'])->select();
         $info = convert_arr_kv($taojin,'name','value');
