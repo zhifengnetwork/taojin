@@ -20,16 +20,16 @@ class Egg extends ApiBase
         }
         $type=I('type');//支付类型  1  金沙  2 余额
         $money=I('money');
-        $paypwd=I('paypwd');
+//        $paypwd=I('paypwd');
         $num=I('num');
-        if(!$paypwd){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
-        }
+//        if(!$paypwd){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+//        }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $verify = password_verify($paypwd,$user['paypwd']);
-        if ($verify == false) {
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
-        }
+//        $verify = password_verify($paypwd,$user['paypwd']);
+//        if ($verify == false) {
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+//        }
         if(!$type){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入类型']);
         }
@@ -58,16 +58,16 @@ class Egg extends ApiBase
         }
         $type=I('type');//支付类型  1  金沙  2 余额
         $money=I('money');
-        $paypwd=I('paypwd');
+//        $paypwd=I('paypwd');
         $num=I('num');
-        if(!$paypwd){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
-        }
+//        if(!$paypwd){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
+//        }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
-        $verify = password_verify($paypwd,$user['paypwd']);
-        if ($verify == false) {
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
-        }
+//        $verify = password_verify($paypwd,$user['paypwd']);
+//        if ($verify == false) {
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
+//        }
         if(!$type){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入类型']);
         }
