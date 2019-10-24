@@ -25,6 +25,43 @@ class Farm extends ApiBase
         if(!$user['nick_name']){
             $user['nick_name']='未命名';
         }
+        $time=time();
+        $t_time=$this->get_time();
+        $one_time=$t_time['one_time'];
+        $two_time=$t_time['two_time'];
+        $three_time=$t_time['three_time'];
+        $four_time=$t_time['four_time'];
+        $user['is_chicken']=0;//收取蛋不可用
+        $user['is_feed']=0;//领取饲料不可用
+        $user['is_feed_chicken']=0;//喂养不可用
+        if(($time>$one_time&&$time<$two_time)||($time>$three_time&&$time<$four_time)){
+            $chickenM=Db::name('chicken');
+            $chicken_num=$chickenM->where('user_id',$user_id)->count();
+            if($chicken_num){
+                $feed_logM=Db::name('feed_log');
+                $source=strtotime(date("Y-m-d")." 00:00:00");
+                $where['source']=$source;
+                if(($time>$one_time&&$time<$two_time)){
+                    $where['type']=1;
+                }else{
+                    $where['type']=2;
+                }
+                $where['user_id']=$user_id;
+                $feed_log=$feed_logM->where($where)->find();
+                if(!$feed_log){
+                    $user['is_feed']=1;//可用
+                }
+            }
+            $feed=Db::name('feed');
+            $user_feed=$feed->where('user_id',$user_id)->find();
+            if($user_feed){
+                $user['is_feed_chicken']=1;//可用
+            }
+            $chicken_list=$chickenM->where($where)->select();//当前用户已经喂养过的所有鸡
+            if($chicken_list){
+                $user['is_chicken']=1;//可用
+            }
+        }
         $chicken_coop_count=Db::name('chicken_coop')->where('user_id',$user_id)->count();
         if($chicken_coop_count==0){
             $data['user_id']=$user_id;
@@ -85,6 +122,31 @@ class Farm extends ApiBase
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$chicken_list]);
     }
+    public function purchase(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $page=I('page',1);
+        $limit=I('limit',10);
+        $start= ($page-1)*$limit;
+        $purchase_list=Db::name('chicken_log')->where('user_id',$user_id)
+            ->limit($start,$limit)->select();
+        foreach ($purchase_list as $key=>$value){
+            $purchase_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+            if($value['pay_type']==1){
+                $purchase_list[$key]['pay_text']='金沙';
+            }else{
+                $purchase_list[$key]['pay_text']='余额';
+            }
+            if($value['type']==1){
+                $purchase_list[$key]['type_text']='鸡窝';
+            }else{
+                $purchase_list[$key]['type_text']='鸡';
+            }
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$purchase_list]);
+    }
     public function set_value($key){
         $taojin =  Db::name('config')->where(['inc_type'=>'chicken'])->select();
         $info = convert_arr_kv($taojin,'name','value');
@@ -97,5 +159,16 @@ class Farm extends ApiBase
         }else{
             return false;
         }
+    }
+    public function get_time(){
+        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $three_time=strtotime(date("Y-m-d")." 18:00:00");
+        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+        $data['one_time']=$one_time;
+        $data['two_time']=$two_time;
+        $data['three_time']=$three_time;
+        $data['four_time']=$four_time;
+        return $data;
     }
 }

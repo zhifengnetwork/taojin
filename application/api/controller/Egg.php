@@ -95,12 +95,12 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 15:00:00");
-        $two_time=strtotime(date("Y-m-d")." 16:00:00");
-//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
-        $three_time=strtotime(date("Y-m-d")." 18:00:00");
-        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+
+        $t_time=$this->get_time();
+        $one_time=$t_time['one_time'];
+        $two_time=$t_time['two_time'];
+        $three_time=$t_time['three_time'];
+        $four_time=$t_time['four_time'];
         $chickenLogic=new ChickenLogic();
         if(($time>$one_time&&$time<$two_time)){
             $this->ajaxReturn($chickenLogic->rob_feed($user_id,1));
@@ -120,12 +120,12 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 15:00:00");
-        $two_time=strtotime(date("Y-m-d")." 16:00:00");
-//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
-        $three_time=strtotime(date("Y-m-d")." 18:00:00");
-        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+
+        $t_time=$this->get_time();
+        $one_time=$t_time['one_time'];
+        $two_time=$t_time['two_time'];
+        $three_time=$t_time['three_time'];
+        $four_time=$t_time['four_time'];
         $chickenLogic=new ChickenLogic();
         if(($time>$one_time&&$time<$two_time)){
             $this->ajaxReturn($chickenLogic->feed_chicken($user_id));
@@ -145,12 +145,11 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $time=time();
-        $one_time=strtotime(date("Y-m-d")." 15:00:00");
-        $two_time=strtotime(date("Y-m-d")." 16:00:00");
-//        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-//        $two_time=strtotime(date("Y-m-d")." 13:00:00");
-        $three_time=strtotime(date("Y-m-d")." 18:00:00");
-        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+        $t_time=$this->get_time();
+        $one_time=$t_time['one_time'];
+        $two_time=$t_time['two_time'];
+        $three_time=$t_time['three_time'];
+        $four_time=$t_time['four_time'];
         $chickenLogic=new ChickenLogic();
         if(($time>$one_time&&$time<$two_time)){
             $this->ajaxReturn($chickenLogic->harvest_egg($user_id));
@@ -161,6 +160,18 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请在12:00-13:00、18:00-19:00，两个时间段收取鸡蛋！']);
         }
     }
+    public function get_time(){
+        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $three_time=strtotime(date("Y-m-d")." 18:00:00");
+        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+        $data['one_time']=$one_time;
+        $data['two_time']=$two_time;
+        $data['three_time']=$three_time;
+        $data['four_time']=$four_time;
+        return $data;
+    }
+
     public function give_balance(){
         $user_id=$this->get_user_id();
         if(!$user_id){
