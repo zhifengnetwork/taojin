@@ -73,6 +73,7 @@ class Farm extends ApiBase
             $data['add_time']=time();
             Db::name('chicken_coop')->insertGetId($data);
         }
+        $where=[];
         $where['user_id']=$user_id;
         $user['egg_num']=Db::name('chicken')->where($where)->sum('num');
         $where['chicken_status']=0;
