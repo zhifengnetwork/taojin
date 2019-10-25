@@ -156,6 +156,84 @@ class Farm extends ApiBase
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$purchase_list]);
     }
+    /*
+     * 养殖场金沙详细
+     */
+    public function chicken_balance_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $page=I('page',1);
+        $limit=I('limit',10);
+        $start= ($page-1)*$limit;
+        $chicken_balance_list=Db::name('chicken_balance_log')->where('user_id',$user_id)
+            ->limit($start,$limit)->select();
+        foreach ($chicken_balance_list as $key=>$value){
+            $chicken_balance_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$chicken_balance_list]);
+    }
+    /*
+     * 养殖场鸡蛋收益详细
+     */
+    public function egg_num_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $page=I('page',1);
+        $limit=I('limit',10);
+        $start= ($page-1)*$limit;
+        $egg_num_list=Db::name('egg_log')->where('user_id',$user_id)
+            ->limit($start,$limit)->select();
+        foreach ($egg_num_list as $key=>$value){
+            $egg_num_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$egg_num_list]);
+    }
+    /*
+     * 养殖场糖果详细
+     */
+    public function chicken_integral_list(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $page=I('page',1);
+        $limit=I('limit',10);
+        $start= ($page-1)*$limit;
+        $egg_num_list=Db::name('chicken_integral_log')->where('user_id',$user_id)
+            ->limit($start,$limit)->select();
+        foreach ($egg_num_list as $key=>$value){
+            $egg_num_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$egg_num_list]);
+    }
+    public function recharge_balance_detailed(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $pageParam=[];
+        $lock_balance_list = Db::name('moneydetail')->alias('m')
+            ->join('users u','u.id=m.be_user_id','LEFT')
+            ->where('m.type=2 or m.type=5 or m.type=13 or m.type=17 or m.type=18 or m.type=19')
+            ->where(['m.user_id'=>$user_id,'m.typefrom'=>0])
+            ->field('m.id,m.user_id,m.be_user_id,m.money,m.type,m.typefrom,m.intro,m.createtime,u.phone be_mobile')
+            ->order('id DESC')
+            ->paginate(10,false,$pageParam)
+            ->toArray();
+        $lock_balance_list = $lock_balance_list['data'];
+        foreach ($lock_balance_list as $key=>$value){
+//            $lock_balance_list[$key]['be_mobile'] = Db::name('users')->where(['id'=>$value['be_user_id']])->value('phone');
+            $lock_balance_list[$key]['createtime'] = date('Y-m-d H:i:s',$value['createtime']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功！','data'=>$lock_balance_list]);
+    }
+    /*
+     * 红包抽奖
+     */
     public function random_red(){
         $user_id=$this->get_user_id();
         if(!$user_id){
