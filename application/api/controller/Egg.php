@@ -426,7 +426,7 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能为空！']);
         }
         if(!$egg_num){
-            $this->ajaxReturn(['status' => -2, 'msg' => 'egg_num不能为空！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => 'money不能为空！']);
         }
         if($egg_num<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币']);
@@ -451,12 +451,12 @@ class Egg extends ApiBase
         }
         Db::startTrans();
         $chickenLogic=new ChickenLogic();
-        $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$egg_num);
         if($res){
             $detail['user_id']=$give_user['id'];
             $detail['type']=5;//被赠送
             $detail['be_user_id']=$user_id;//赠送者
-            $detail['money']=$balance;
+            $detail['money']=$egg_num;
             $detail['createtime']=time();
             $detail['intro']=$user['phone'].'赠送';
             $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
@@ -475,7 +475,7 @@ class Egg extends ApiBase
 //        }
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('egg_num',$egg_num);
         if($re){
-            $ids=$chickenLogic->egg_log($give_user['id'],$user_id,1,$egg_num,$user['egg_num'],'转账给'.$give_user['phone']);
+            $ids=$chickenLogic->egg_log($give_user['id'],$user_id,1,-$egg_num,$user['egg_num'],'转账给'.$give_user['phone']);
             if(!$ids){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
@@ -483,7 +483,7 @@ class Egg extends ApiBase
         }
         if(!$res||!$re){
             Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账1失败！']);
         }else{
             Db::commit();
             $this->ajaxReturn(['status' => 1, 'msg' => '转账成功！']);
