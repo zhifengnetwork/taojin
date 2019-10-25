@@ -243,8 +243,8 @@ class Farm extends ApiBase
         if($chicken_num==0){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请先购买鸡，再抢红包']);
         }
-        $one_time=strtotime(date("Y-m-d")." 12:00:00");
-        $two_time=strtotime(date("Y-m-d")." 12:00:10");
+        $one_time=strtotime(date("Y-m-d")." 17:00:00");
+        $two_time=strtotime(date("Y-m-d")." 19:00:10");
         $time=time();
         if($time>$one_time&&$time<$two_time){
             $source=strtotime(date("Y-m-d")." 00:00:00");
