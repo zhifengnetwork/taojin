@@ -348,7 +348,7 @@ class Egg extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $integral=I('chicken_integral');
+        $integral=I('money');
         $phone=I('phone');
         $paypwd=I('paypwd');
         if(!$paypwd){
@@ -416,7 +416,7 @@ class Egg extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $egg_num=I('egg_num');
+        $egg_num=I('money');
         $phone=I('phone');
         $paypwd=I('paypwd');
         if(!$paypwd){
