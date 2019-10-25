@@ -83,6 +83,19 @@ class Farm extends ApiBase
 
     }
     /*
+     * 客服列表
+     */
+    public function receivables(){
+        $chicken =  Db::name('config')->where(['inc_type'=>'chicken'])->select();
+        $info = convert_arr_kv($chicken,'name','value');
+        $data['qr_code']=SITE_URL.'/public'.$info['qr_code'];
+        $data['customer_service_one']=$info['customer_service_one'];
+        $data['customer_service_two']=$info['customer_service_two'];
+        $data['customer_service_three']=$info['customer_service_three'];
+        $data['recharge_link']=$info['recharge_link'];
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
+    }
+    /*
      * 鸡窝列表
      */
     public function chicken_coop_list(){
@@ -210,6 +223,9 @@ class Farm extends ApiBase
         }
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$egg_num_list]);
     }
+    /*
+     * 余额明细
+     */
     public function recharge_balance_detailed(){
         $user_id=$this->get_user_id();
         if(!$user_id){
