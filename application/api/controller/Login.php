@@ -182,6 +182,24 @@ class Login extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！']);
     }
+
+    public function cr_user(){
+        $phone = 18812345678;
+        $pwd = '888888';
+        $data = Db::name('users')->where('phone', $phone)->find();
+        if ($data) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '此手机号已注册，请直接登录！']);
+        }
+        $data_u['yq_code']=$this->yq_code();//生成邀请码
+        $data_u['password']= password_hash($pwd,PASSWORD_DEFAULT);
+        $data_u['phone']=18812345678;
+        $data_u['add_time'] = time();
+        $id_u = Db::name('users')->insertGetId($data_u);
+        if(!$id_u){
+            $this->ajaxReturn(['status' => -2, 'msg' => '注册2失败，请重试！', 'data' => '']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '注册成功！']);
+    }
     /**
      * 忘记密码
      */

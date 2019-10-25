@@ -88,7 +88,8 @@ class ChickenLogic
         if($type==1){
             if($this->chicken_balance_log($user_id,0,0,$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_balance',$money);
-                if(!$re){
+                $r=$usersM->where('phone',18812345678)->setInc('chicken_balance',$money);//购买金沙回收系统账号
+                if(!$re||!$r){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');
                 }
@@ -99,7 +100,8 @@ class ChickenLogic
         }elseif ($type==2){
             if($this->recharge_balance_log($user_id,0,18,$money,$user['chicken_balance'],'购买'.$num.'只鸡')){
                 $re=$usersM->where('id',$user_id)->setDec('recharge_balance',$money);
-                if(!$re){
+                $r=$usersM->where('phone',18812345678)->setInc('recharge_balance',$money);//购买金沙回收系统账号
+                if(!$re||!$r){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');
                 }
@@ -172,7 +174,8 @@ class ChickenLogic
         if($type==1){
             if($this->chicken_balance_log($user_id,0,0,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
                 $re=$usersM->where('id',$user_id)->setDec('chicken_balance',$money);
-                if(!$re){
+                $r=$usersM->where('phone',18812345678)->setInc('chicken_balance',$money);//购买金沙回收系统账号
+                if(!$re||!$r){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');
                 }
@@ -183,7 +186,8 @@ class ChickenLogic
         }elseif ($type==2){
             if($this->recharge_balance_log($user_id,0,17,$money,$user['chicken_balance'],'购买'.$num.'个鸡窝')){
                 $re=$usersM->where('id',$user_id)->setDec('recharge_balance',$money);
-                if(!$re){
+                $r=$usersM->where('phone',18812345678)->setInc('recharge_balance',$money);//购买金沙回收系统账号
+                if(!$re||!$r){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'扣款失败，购买失败！');
                 }

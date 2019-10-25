@@ -333,6 +333,7 @@ class User extends ApiBase
             'msg' => '获取成功',
             'data' => [
                 'money' => $user->balance,
+                'egg_num'=>$user->egg_num,
                 'rate_percent' => Withdraw::getWDRate(),
                 'rate_decimals' => Withdraw::getWDRate('decimals'),
                 'alipay'=>[
@@ -358,6 +359,7 @@ class User extends ApiBase
         if(!$user){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
         }
+        $pay_type=I('pay_type',1);//1:淘金金沙  2:鸡蛋收益
         $paypwd=I('paypwd');
         if(!$paypwd){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
@@ -385,11 +387,17 @@ class User extends ApiBase
         if($this->verify($money)){//判断是否为100的整数倍
             $this->ajaxReturn(['status' => -2, 'msg' => '提现数量必须是100的倍数！']);
         }
-        $yu = bcsub($user->balance,$money);
-        if ($yu < 0) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
+        if($pay_type==1){//淘金金沙
+            $yu = bcsub($user->balance,$money);
+            if ($yu < 0) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
+            }
+        }else{//鸡蛋收益
+            $yu = bcsub($user->egg_num,$money);
+            if ($yu < 0) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现收益！']);
+            }
         }
-
         //提现申请
         Db::startTrans();
         $rate = Withdraw::getWDRate('decimals');
@@ -409,26 +417,48 @@ class User extends ApiBase
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
-
-        $balance = $user->balance;
-        $res = $user->save(['balance' => $yu]);
-        if (!$res) {
-            Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+        if($pay_type==1){//淘金金沙
+            $balance = $user->balance;
+            $res = $user->save(['balance' => $yu]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+            }
+            $res = Db::name('moneydetail')->insert([
+                'user_id' => $user_id,
+                'type' => 4,
+                'money' => $money,
+                'balance' => $balance,
+                'createtime' => time(),
+                'intro' => '申请提现'
+            ]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+            }
+        }else{//鸡蛋收益
+            $balance = $user->egg_num;
+            $res = $user->save(['egg_num' => $yu]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+            }
+            $res = Db::name('egg_log')->insert([
+                'user_id' => $user_id,
+                'type' => 9,
+                'money' => $money,
+                'balance' => $balance,
+                'add_time' => time(),
+                'desc' => '申请提现'
+            ]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+            }
         }
 
-        $res = Db::name('moneydetail')->insert([
-            'user_id' => $user_id,
-            'type' => 4,
-            'money' => $money,
-            'balance' => $balance,
-            'createtime' => time(),
-            'intro' => '申请提现'
-        ]);
-        if (!$res) {
-            Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
-        }
+
+
         Db::commit();
         $this->ajaxReturn(['status' => 1, 'msg' => '申请成功,正在审核中！']);
     }
