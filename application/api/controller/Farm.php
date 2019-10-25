@@ -75,7 +75,7 @@ class Farm extends ApiBase
         }
         $where=[];
         $where['user_id']=$user_id;
-        $user['egg_num']=Db::name('chicken')->where($where)->sum('num');
+        $user['egg']=Db::name('chicken')->where($where)->sum('num');
         $where['chicken_status']=0;
         $user['chicken_num']=Db::name('chicken')->where($where)->count();
         $user['notice']=$this->set_value('notice');
