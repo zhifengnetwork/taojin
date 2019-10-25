@@ -34,7 +34,7 @@ class Users extends ApiBase
         if($balance<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
         }
-        if($balance>=100){
+        if($balance<100){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'金额必须大于100']);
         }
 //        if($this->verify($balance)){//判断是否为100的整数倍
