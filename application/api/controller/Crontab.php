@@ -357,4 +357,44 @@ class Crontab extends ApiBase
         $res = $RankingLogic->buy_gold_shovel($user_id,$num);
         return $res['msg'];
     }
+    //清理没有使用的饲料和没有收取的蛋
+    public function clean_coop(){
+        $t_time=$this->get_time();
+        $one_time=$t_time['one_time'];
+        $two_time=$t_time['two_time'];
+        $three_time=$t_time['three_time'];
+        $four_time=$t_time['four_time'];
+        $time=time();
+        if(($time>$one_time&&$time<$two_time)||($time>$three_time&&$time<$four_time)){
+            //在可操作时间内，不做处理
+            return '暂不可清理';
+        }else{
+            $feed_sum=Db::name('feed')->sum('num');//鸡窝饲料
+            $chicken_count=Db::name('chicken')->where('status',1)->count();//鸡可收蛋状态
+            if($feed_sum>0||$chicken_count>0){
+                $data['num']=0;
+                $re=Db::name('feed')->where('num>0')->update($data);
+                $data_s['status']=0;
+                $res=Db::name('chicken')->where('status=1')->update($data_s);
+                if(!$re&&!$res){
+                    return '饲料和收蛋处理失败';
+                }else{
+                    return '成功';
+                }
+            }else{
+                return '无需清理';
+            }
+        }
+    }
+    public function get_time(){
+        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+        $two_time=strtotime(date("Y-m-d")." 13:00:00");
+        $three_time=strtotime(date("Y-m-d")." 18:00:00");
+        $four_time=strtotime(date("Y-m-d")." 19:00:00");
+        $data['one_time']=$one_time;
+        $data['two_time']=$two_time;
+        $data['three_time']=$three_time;
+        $data['four_time']=$four_time;
+        return $data;
+    }
 }

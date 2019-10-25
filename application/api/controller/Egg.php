@@ -171,13 +171,12 @@ class Egg extends ApiBase
         $data['four_time']=$four_time;
         return $data;
     }
-
-    public function give_balance(){
+    //养殖场金沙转账
+    public function give_chicken_balance(){
         $user_id=$this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-//        $u_id=I('u_id');
         $balance=I('money');
         $phone=I('phone');
         $paypwd=I('paypwd');
@@ -194,145 +193,72 @@ class Egg extends ApiBase
         if($balance<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
         }
-//        if($this->verify($balance)){//判断是否为100的整数倍
-//            $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
-//        }
+        if($balance<100){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
+        }
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
         if($give_user['id']==$user_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己！']);
         }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
-        $user_all_balance=$user['balance']+$user['recharge_balance'];
+        $user_all_balance=$user['chicken_balance'];
         if($user_all_balance<$balance){
-            $this->ajaxReturn(['status' => -2, 'msg' => '您的余额不足，不能赠送！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '您的金沙不足，不能转账！']);
         }
         if(!$give_user){
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        if($user['phone']==18899999999){//管理员充值
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
-            if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['type']=13;//充值 被赠与
-                $detail['be_user_id']=$user_id;//赠送者
-                $detail['money']=$balance;
-                $detail['createtime']=time();
-                $detail['intro']=$user['phone'].'转入';
-                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$id){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-                }
-            }
-
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
-            if($re){
-                $detail=[];
-                $detail['user_id']=$user_id;
-                $detail['type']=13;//充值  赠送
-                $detail['be_user_id']=$give_user['id'];//赠与者
-                $detail['money']=-$balance;
-                $detail['createtime']=time();
-                $detail['intro']='转入'.$give_user['phone'];
-                $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$ids){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-                }
-            }
-            $system_money=Db::name('system_money')->where('id',1)->find();//总后台系统总额
-            $old_balance=$system_money['balance'];
-//            $system_money['balance']=sprintf("%.2f",$system_money['balance']-$balance);
-            $system_money['balance']=$system_money['balance']-$balance;
-            $system_data['balance']=-$balance;
-            $system_data['old_balance']=$old_balance;
-            $system_data['new_balance']=$system_money['balance'];
-            $system_data['add_time']=time();
-            $system_data['desc']='总账户充值修改系统金额';
-            $sys_id=Db::name('system_money_log')->insertGetId($system_data);
-            if(!$sys_id){
-                return false;
-            }
-            $r=Db::name('system_money')->update($system_money);
-            if(!$res||!$re||!$r){
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_balance',$balance);
+        if($res){
+            $data['user_id']=$give_user['id'];
+            $data['to_user_id']=$user_id;
+            $data['type']=2;
+            $data['money']=$balance;
+            $data['desc']=$user['phone'].'赠送';
+            $data['add_time']=time();
+            $id=Db::name('chicken_balance_log')->insertGetId($data);
+            if(!$id){
                 Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-            }else{
-                Db::commit();
-                $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
             }
+        }
+        $re=Db::name('users')->where(['id'=>$user_id])->setDec('chicken_balance',$balance);
+        if($re){
+            $detail=[];
+            $detail['user_id']=$user_id;
+            $detail['to_user_id']=$give_user['id'];
+            $detail['type']=1;
+            $detail['money']=-$balance;
+            $detail['desc']='赠送给'.$give_user['phone'];
+            $detail['add_time']=time();
+            $id=Db::name('chicken_balance_log')->insertGetId($detail);
+            if(!$id){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
+            }
+        }
+        if(!$res||!$re){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
         }else{
-            if($user['recharge_balance']>$balance){
-                $user_balance['recharge_balance']=$user['recharge_balance']-$balance;//充值余额足够
-            }else{
-                $user_balance['recharge_balance']=0;
-                $user_balance['balance']=$user['balance']+$user['recharge_balance']-$balance;//充值余额不足
-            }
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('recharge_balance',$balance);
-            if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['type']=5;//被赠送
-                $detail['be_user_id']=$user_id;//赠送者
-                $detail['money']=$balance;
-                $detail['createtime']=time();
-                $detail['intro']=$user['phone'].'赠送';
-                $id=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$id){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-                }
-            }
-            $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);
-//            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
-            if($re){
-                $detail=[];
-                $detail['user_id']=$user_id;
-                $detail['type']=2;//赠送
-                $detail['be_user_id']=$give_user['id'];//赠与者
-                $detail['money']=-$balance;
-                $detail['createtime']=time();
-                $detail['intro']='赠送给'.$give_user['phone'];
-                $ids=Db::name('moneydetail')->insertGetId($detail);//用户之间交易，无需处理
-                if(!$ids){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-                }
-            }
-            if(!$res||!$re){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-            }else{
-                Db::commit();
-                $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
-            }
+            Db::commit();
+            $this->ajaxReturn(['status' => 1, 'msg' => '转账成功！']);
         }
 
     }
-    public function text(){
-        $phone=I('phone');
-        $mb=$phone;
-        $num=strlen($phone);
-        echo $phone.' ==== '.$num;
-        var_dump($mb);
-        if($num>11){
-            $phone=substr($phone,3,11);
-        }
-        $give_user=Db::name('users')->where(['phone'=>$phone])->find();
-        var_dump($give_user);
-        die;
-    }
-    public function give_integral(){
+    //糖果转账
+    public function give_chicken_integral(){
         $user_id=$this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $integral=I('integral');
+        $integral=I('chicken_integral');
         $phone=I('phone');
         $paypwd=I('paypwd');
         if(!$paypwd){
@@ -359,59 +285,48 @@ class Egg extends ApiBase
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
-        if($user['integral']<$integral){
+        if($user['chicken_integral']<$integral){
             $this->ajaxReturn(['status' => -2, 'msg' => '您的糖果不足，不能赠送！']);
         }
         if(!$give_user){
             $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
         }
+        if($this->verify($integral)){//判断是否为100的整数倍
+            $this->ajaxReturn(['status' => -2, 'msg' => '糖果必须是100的倍数！']);
+        }
         Db::startTrans();
-        $res=Db::name('users')->where(['phone'=>$phone])->setInc('integral',$integral);
+        $chickenLogic=new ChickenLogic();
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_integral',$integral);
         if($res){
-            $detail['u_id']=$give_user['id'];
-            $detail['u_name']=$give_user['nick_name'];
-            $detail['for_user_id']=$user_id;//赠送者
-            $detail['for_user_name']=$user['nick_name'];//赠送者
-            $detail['integral']=$integral;
-            $detail['type']=2;//被赠与
-            $detail['then_integral']=$give_user['integral'];
-            $detail['createtime']=time();
-            $id=Db::name('integral')->insertGetId($detail);
+            $id=$chickenLogic->chicken_integral_log($give_user['id'],$user_id,0,$integral,$give_user['chicken_integral'],$user['phone'].'转入');
             if(!$id){
                 Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
             }
         }
-        $re=Db::name('users')->where(['id'=>$user_id])->setDec('integral',$integral);
+        $re=Db::name('users')->where(['id'=>$user_id])->setDec('chicken_integral',$integral);
         if($re){
-            $detail=[];
-            $detail['u_id']=$user_id;
-            $detail['u_name']=$user['nick_name'];
-            $detail['for_user_id']=$give_user['id'];//被赠送者
-            $detail['for_user_name']=$give_user['nick_name'];//被赠送者
-            $detail['integral']=-$integral;
-            $detail['then_integral']=$user['integral'];
-            $detail['createtime']=time();
-            $ids=Db::name('integral')->insertGetId($detail);
+            $ids=$chickenLogic->chicken_integral_log($user_id,$give_user['id'],2,$integral,$user['chicken_integral'],'转账给'.$give_user['phone']);
             if(!$ids){
                 Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
             }
         }
         if(!$res||!$re){
             Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
         }else{
             Db::commit();
-            $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
+            $this->ajaxReturn(['status' => 1, 'msg' => '转账成功！']);
         }
     }
-    public function give_currency(){
+    //鸡蛋收益转账
+    public function give_egg_num(){
         $user_id=$this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $currency=I('currency');
+        $egg_num=I('egg_num');
         $phone=I('phone');
         $paypwd=I('paypwd');
         if(!$paypwd){
@@ -420,118 +335,54 @@ class Egg extends ApiBase
         if(!$phone){
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能为空！']);
         }
-        if(!$currency){
-            $this->ajaxReturn(['status' => -2, 'msg' => 'currency不能为空！']);
+        if(!$egg_num){
+            $this->ajaxReturn(['status' => -2, 'msg' => 'egg_num不能为空！']);
         }
-        if($currency<1){
+        if($egg_num<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的币']);
         }
-        if($this->verify($currency)){//判断是否为100的整数倍
-            $this->ajaxReturn(['status' => -2, 'msg' => '币数量必须是100的倍数！']);
+        if($this->verify($egg_num)){//判断是否为100的整数倍
+            $this->ajaxReturn(['status' => -2, 'msg' => '鸡蛋收益必须是100的倍数！']);
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
         if($give_user['id']==$user_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己！']);
         }
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
         }
-        if($user['currency']<$currency){
-            $this->ajaxReturn(['status' => -2, 'msg' => '您的币不足，不能赠送！']);
+        if($user['egg_num']<$egg_num){
+            $this->ajaxReturn(['status' => -2, 'msg' => '您的鸡蛋收益不足，不能转账！']);
         }
         if(!$give_user){
-            $this->ajaxReturn(['status' => -2, 'msg' => '赠送用户不存在，请输入正确的用户id！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账用户不存在，请输入正确的用户手机号！']);
         }
         Db::startTrans();
-        if($user['phone']==18899999999){
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('lock_currency',$currency);
-            if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['user_name']=$give_user['nick_name'];
-                $detail['type']=4;//管理员操作
-                $detail['currency_type']=1;//冻结
-                $detail['for_user_id']=$user_id;//赠送者
-                $detail['for_user_name']=$user['nick_name'];//赠送者
-                $detail['currency']=$currency;
-                $detail['old_currency']=$give_user['lock_currency'];
-                $detail['desc']=$user['nick_name'].'充值';
-                $detail['add_time']=time();
-                $id=Db::name('users_currency')->insertGetId($detail);
-                if(!$id){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-                }
-            }
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
-            if($re){
-                $detail=[];
-                $detail['user_id']=$user_id;
-                $detail['user_name']=$user['nick_name'];
-                $detail['type']=1;//赠送
-                $detail['for_user_id']=$give_user['id'];//被赠送者
-                $detail['for_user_name']=$give_user['nick_name'];//被赠送者
-                $detail['currency']=-$currency;
-                $detail['old_currency']=$user['currency'];
-                $detail['desc']='充值'.$give_user['nick_name'];
-                $detail['add_time']=time();
-                $ids=Db::name('users_currency')->insertGetId($detail);
-                if(!$ids){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-                }
-            }
-            if(!$res||!$re){
+        $chickenLogic=new ChickenLogic();
+        $res=Db::name('users')->where(['phone'=>$phone])->setInc('egg_num',$egg_num);
+        if($res){
+            $id=$chickenLogic->egg_log($give_user['id'],$user_id,2,$egg_num,$give_user['egg_num'],$user['phone'].'转账');
+            if(!$id){
                 Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '充值失败！']);
-            }else{
-                Db::commit();
-                $this->ajaxReturn(['status' => 1, 'msg' => '充值成功！']);
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
             }
+        }
+        $re=Db::name('users')->where(['id'=>$user_id])->setDec('egg_num',$egg_num);
+        if($re){
+            $ids=$chickenLogic->egg_log($give_user['id'],$user_id,1,$egg_num,$user['egg_num'],'转账给'.$give_user['phone']);
+            if(!$ids){
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
+            }
+        }
+        if(!$res||!$re){
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
         }else{
-            $res=Db::name('users')->where(['phone'=>$phone])->setInc('currency',$currency);
-            if($res){
-                $detail['user_id']=$give_user['id'];
-                $detail['user_name']=$give_user['nick_name'];
-                $detail['type']=3;//被赠与
-                $detail['for_user_id']=$user_id;//赠送者
-                $detail['for_user_name']=$user['nick_name'];//赠送者
-                $detail['currency']=$currency;
-                $detail['old_currency']=$give_user['currency'];
-                $detail['desc']=$user['nick_name'].'赠送';
-                $detail['add_time']=time();
-                $id=Db::name('users_currency')->insertGetId($detail);
-                if(!$id){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-                }
-            }
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('currency',$currency);
-            if($re){
-                $detail=[];
-                $detail['user_id']=$user_id;
-                $detail['user_name']=$user['nick_name'];
-                $detail['type']=1;//赠送
-                $detail['for_user_id']=$give_user['id'];//被赠送者
-                $detail['for_user_name']=$give_user['nick_name'];//被赠送者
-                $detail['currency']=-$currency;
-                $detail['old_currency']=$user['currency'];
-                $detail['desc']='赠送'.$give_user['nick_name'];
-                $detail['add_time']=time();
-                $ids=Db::name('users_currency')->insertGetId($detail);
-                if(!$ids){
-                    Db::rollback();
-                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-                }
-            }
-            if(!$res||!$re){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
-            }else{
-                Db::commit();
-                $this->ajaxReturn(['status' => 1, 'msg' => '赠送成功！']);
-            }
+            Db::commit();
+            $this->ajaxReturn(['status' => 1, 'msg' => '转账成功！']);
         }
 
     }
