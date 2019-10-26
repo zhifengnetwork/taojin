@@ -94,6 +94,25 @@ class Ranking extends Common
         }
     }
     /*
+     * 当天增加数量
+     */
+    public function add_chicken(){
+
+        if(request()->isPost()) {
+            $time=input('time');
+
+            return $time;
+        }else{
+            $start_time=strtotime(date("Y-m-d")." 00:00:00");
+            $where['add_time'] = ['between', [$start_time, time()]];
+            $data['chicken_coop_num']=Db::name('chicken_coop')->where($where)->count();
+            $data['chicken_num']=Db::name('chicken')->where($where)->count();
+            $data['egg_num']=Db::name('egg')->where($where)->sum('num');
+            $this->assign('info', $data);
+            return $this->fetch();
+        }
+    }
+    /*
      * 导出
      *
      */

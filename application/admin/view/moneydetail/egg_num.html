@@ -2,19 +2,17 @@
 
 <div class="admin-main layui-anim layui-anim-upbit">
     <fieldset class="layui-elem-field layui-field-title">
-        <legend>提现列表</legend>
+        <legend>列表</legend>
     </fieldset>
     <div class="demoTable">
         <div class="layui-inline">
             <input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">
         </div>
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
-<!--        <a href="{:url('withdraw')}" class="layui-btn">显示全部</a>-->
-
+        <a href="{:url('egg_num')}" class="layui-btn">显示全部</a>
         <!--<button type="button" class="layui-btn layui-btn-danger" id="delAll">批量删除</button>-->
         <!--<a href="{:url('Category/index')}" class="layui-btn layui-btn-normal" style="float:right;">返回</a>-->
         <!--<a href="{:url('add')}" class="layui-btn" style="float:right;margin-right: 15px;">{:lang('add')}</a>-->
-
         <div style="clear: both;"></div>
     </div>
     <table class="layui-table" id="list" lay-filter="list">
@@ -29,18 +27,22 @@
 </script>
 
 <script type="text/html" id="type">
-    {{(d.type == 1)?'支付宝':''}}
-    {{(d.type == 2)?'银行卡':''}}
+    {{(d.type==0)?'购买':''}}
+    {{(d.type==1)?'赠送':''}}
+    {{(d.type==2)?'被赠送':''}}
+    {{(d.type==3)?'鸡蛋收益':''}}
+    {{(d.type==4)?'直推':''}}
+    {{(d.type==5)?'间推':''}}
+    {{(d.type==6)?'队长':''}}
+    {{(d.type==7)?'场主':''}}
+    {{(d.type==8)?'平级':''}}
+    {{(d.type==9)?'提现':''}}
+
 </script>
 
 <!--这个地方待处理，需要和其他地方匹配-->
 <script type="text/html" id="action">
-    {{# if(d.status==0){ }}
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="xiajia">审核</a>
-    {{# }else{  }}
-    <a class="layui-btn layui-btn-xs">已通过</a>
-    {{# } }}
-    <!--<div data-id="{{d.id}}" class="layui-btn layui-btn-xs {{ (!d.v_state)?'doit':'layui-btn-disabled' }}">{{ d.v_state?"已提现":"提现" }}</div>-->
+
     <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
 
@@ -52,28 +54,26 @@
         var tableIn = table.render({
             id: 'content',
             elem: '#list',
-            url: '{:url("withdraw")}',
+            url: '{:url("egg_num")}',
             method: 'post',
             page: true,
             cols: [[
                 {type: "checkbox", fixed: true},
-                {field: 'id', title: '{:lang("id")}', width: 80, fixed: true,sort:true},
-                {field: 'user_id', title: '用户id', width: 100, templet: '#user_id',sort:true},
-                {field: 'name', title: '用户名', width: 100, templet: '#name',sort:true},
-                {field: 'phone', title: '手机号', width: 100, templet: '#phone',sort:true},
-                {field: 'money', title: '金额', width: 100, templet: '#money',sort:true},
-                {field: 'actual_money', title: '实际到账金额', width: 100, templet: '#actual_money',sort:true},
-                {field: 'fee', title: '手续费', width: 100, templet: '#fee',sort:true},
-                {field: 'type', title: '到账方式', width: 130, templet: '#type',sort:true},
-                {field: 'info', title: '到账信息', width: 200, templet: '#info',sort:true},
-                {field: 'create_time', title: '创建时间', width: 200, templet: function(d){
-                        return FormatDateTime(d.create_time);
-                    },sort:true},
+
+                {field: 'id', title: '{:lang("id")}', width: 80, fixed: true ,sort:true},
+                {field: 'user_id', title: '用户id', width: 200, templet: '#user_id' ,sort:true},
+                {field: 'to_user_id', title: '来源用户id', width: 200, templet: '#to_user_id'},
+                {field: 'money', title: '鸡蛋收益变动', width: 200, templet: '#money' ,sort:true},
+                {field: 'balance', title: '改动之前用户收益数', width: 200, templet: '#balance' ,sort:true},
+                {field: 'type', title: '类型', width: 200, templet: '#type' ,sort:true},
+                {field: 'desc', title: '备注', width: 200, templet: '#desc' ,sort:true},
+                {field: 'add_time', title: '创建时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.add_time);
+                    } ,sort:true},
                 {width: 160, align: 'center', toolbar: '#action',title:'操作'}
             ]],
             limit: 10
         });
-
         //搜索
         $('#search').on('click', function () {
             var key = $('#key').val();
@@ -86,13 +86,10 @@
             });
         });
 
-        //执行 此处修改为点击后修改状态
+        //执行
         $("body").delegate(".doit","click",function(){
-            //layer.msg('点击了', {icon: 6});
             var id = $(this).attr("data-id");
             var user_id = $(this).attr("data-user_id");
-            layer.msg('id'+user_id, {icon: 6});
-
 
             if(user_id == 0){
                 //layer.msg('');
@@ -100,8 +97,8 @@
             }
 
             $.ajax({
-                type: "POST",
-                url: "{:url('admin/Moneydetail/voucher')}",
+                type: "GET",
+                url: "{:url('admin/Couponget/coupongetdo')}",
                 timeout : 100000, //超时时间设置，单位毫秒 为一秒
                 data: {
                     id:id,
@@ -111,9 +108,6 @@
                     console.log(data);
                     if(data > 0){
                         layer.msg('执行成功', {icon: 6});
-                        setTimeout(function () {
-                            window.location.reload();
-                        },2000)
                     }
                 },
             });
@@ -152,24 +146,6 @@
                     layer.close(index);
                 });
             }
-
-            //修改状态 改ajax部分
-            if(obj.event === 'xiajia'){
-                layer.confirm('您确定同意该笔提现申请吗？', function(index){
-                    var loading = layer.load(1, {shade: [0.1, '#fff']});
-                    $.post("{:url('listXiajia')}",{id:data.id,status:data.status},function(res){
-                        layer.close(loading);
-                        if(res.code===1){
-                            layer.msg(res.msg,{time:1000,icon:1});
-                            tableIn.reload({where:{catid:'{:input("catid")}'}});
-                        }else{
-                            layer.msg('操作失败！',{time:1000,icon:2});
-                        }
-                    });
-                    layer.close(index);
-                });
-            }
-
         });
 
         $('#delAll').click(function(){

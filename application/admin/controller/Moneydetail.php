@@ -548,7 +548,105 @@ class Moneydetail extends Common
             return $this->fetch('moneydetail/bi');
         }
     }
+    /*
+     * 养殖场金沙
+     */
+    public function chicken_balance(){
 
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+            $map=[];
+            if(!empty($keyword)){
+                $map['id|user_id'] = array('like','%' . $keyword . '%');
+            }
+
+            $list = Db::name('chicken_balance_log')
+                ->where($map)
+                ->order('id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+
+            //echo $model->getLastSql();
+            $rsult['code'] = 0;
+            $rsult['msg'] = "获取成功";
+            $lists = $list['data'];
+
+            $rsult['data'] = $lists;
+            $rsult['count'] = $list['total'];
+            $rsult['rel'] = 1;
+            return $rsult;
+        }else{
+            return $this->fetch('moneydetail/chicken_balance');
+        }
+    }
+    /*
+     * 鸡蛋收益明细
+     */
+    public function egg_num(){
+
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+            $map=[];
+            if(!empty($keyword)){
+                $map['id|user_id'] = array('like','%' . $keyword . '%');
+            }
+
+            $list = Db::name('egg_log')
+                ->where($map)
+                ->order('id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+
+            //echo $model->getLastSql();
+            $rsult['code'] = 0;
+            $rsult['msg'] = "获取成功";
+            $lists = $list['data'];
+
+            $rsult['data'] = $lists;
+            $rsult['count'] = $list['total'];
+            $rsult['rel'] = 1;
+            return $rsult;
+        }else{
+            return $this->fetch('moneydetail/egg_num');
+        }
+    }
+    /*
+     * 养殖场糖果明细
+     */
+    public function chicken_integral(){
+
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+            $map=[];
+            if(!empty($keyword)){
+                $map['id|user_id'] = array('like','%' . $keyword . '%');
+            }
+
+            $list = Db::name('chicken_integral_log')
+                ->where($map)
+                ->order('id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+
+            //echo $model->getLastSql();
+            $rsult['code'] = 0;
+            $rsult['msg'] = "获取成功";
+            $lists = $list['data'];
+
+            $rsult['data'] = $lists;
+            $rsult['count'] = $list['total'];
+            $rsult['rel'] = 1;
+            return $rsult;
+        }else{
+            return $this->fetch('moneydetail/chicken_integral');
+        }
+    }
     public function card()
     {
         if(request()->isPost()){

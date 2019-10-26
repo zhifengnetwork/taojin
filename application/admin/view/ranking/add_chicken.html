@@ -1,0 +1,64 @@
+{include file="common/head"/}
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>收益查看</legend>
+    </fieldset>
+
+        <style>
+            .layui-form-label{
+                width: 200px !important;
+            }
+        </style>
+
+        <div class="layui-input-inline">
+            <!--<input type="text" class="layui-input" id="start_time" placeholder="yyyy-MM-dd HH:mm:ss" style="width: 150px;">-->
+            <input type="text" class="layui-input" id="start_time" placeholder="日期" style="width: 150px;">
+        </div>
+        <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
+    <div class="layui-form-item">
+        <label class="layui-form-label">新增鸡窝数量</label>
+        <div class="layui-input-4">
+            <label class="layui-form-label" id="chicken_coop_num">{$info.chicken_coop_num}</label>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">新增鸡数量</label>
+        <div class="layui-input-4">
+            <label class="layui-form-label" id="chicken_num">{$info.chicken_num}</label>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">新增鸡蛋数量</label>
+        <div class="layui-input-4">
+            <label class="layui-form-label" id="egg_num">{$info.egg_num}</label>
+        </div>
+    </div>
+</div>
+{include file="common/foot"/}
+<script>
+
+    layui.use(['form', 'layer','upload','laydate'], function () {
+        // var form = layui.form,layer = layui.layer,$= layui.jquery,upload = layui.upload;
+        var form = layui.form,layer = layui.layer,upload = layui.upload,$ = layui.jquery,laydate=layui.laydate;;
+        //提交监听
+        $('#search').on('click', function () {
+            var time = $('#start_time').val();
+            $.post("{:url('ranking/add_chicken')}",{time:time},function(res){
+                $('#start_time').val(res);
+                $('#chicken_coop_num').html(res);
+                $('#chicken_num').html(res);
+                $('#egg_num').html(res);
+            });
+        });
+
+
+        laydate.render({
+            elem: '#start_time'
+            ,type: 'date'
+        });
+    })
+</script>
+</body>
+</html>
