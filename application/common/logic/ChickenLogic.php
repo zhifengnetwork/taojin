@@ -269,7 +269,7 @@ class ChickenLogic
         $where['chicken_status']=0;
         $chicken_list=$chickenM->where($where)->select();//当前用户已经喂养过的所有鸡
         if(!$chicken_list){
-            return array('status'=>-2,'msg'=>'收取失败,您没有需要收取的鸡蛋！');
+            return array('status'=>-2,'msg'=>'您没有需要收取的鸡蛋！');
         }
         $egg_num=0;//鸡蛋数
         $chicken_num=0;//鸡数
@@ -534,11 +534,13 @@ class ChickenLogic
         $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);//用户获得收益
         $egg_log=$this->egg_log($user_id,0,$type,$money,$user['egg_num'],$intro);
         $chicken_integral=$this->chicken_integral_log($user_id,0,$type,$egg_num,$user['chicken_integral'],$intro);
+
         if(!$re||!$egg_log||!$chicken_integral){
             return false;
         }
+
         foreach ($user_chicken as $key=>$value){
-            $where['chicken_id']=$value['$value'];
+            $where['chicken_id']=$value['chicken_id'];
             if($chicken_integral>(120-$value['num'])){//鸡蛋数量大于当前鸡剩余量
                 $data=[];
                 $data['num']=120;//产蛋
@@ -559,7 +561,6 @@ class ChickenLogic
                 break;//下蛋完成，跳出循环
             }
         }
-
         return true;
     }
     /**
