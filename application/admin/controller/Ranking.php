@@ -100,14 +100,22 @@ class Ranking extends Common
 
         if(request()->isPost()) {
             $time=input('time');
-
-            return $time;
+            $data['time']=$time;
+            $start_time=strtotime($time." 00:00:00");
+            $end_time=strtotime($time." 23:59:59");
+            $where['add_time'] = ['between', [$start_time, $end_time]];
+            $data['chicken_coop_num']=Db::name('chicken_coop')->where($where)->count();
+            $data['chicken_num']=Db::name('chicken')->where($where)->count();
+            $data['egg_num']=Db::name('egg_log')->where($where)->where('type=3 or type=4 or type=5 or type=6 or type=7 or type=8')->sum('money');
+            $data['egg_num']=$data['egg_num']/2;
+            return $data;
         }else{
             $start_time=strtotime(date("Y-m-d")." 00:00:00");
             $where['add_time'] = ['between', [$start_time, time()]];
             $data['chicken_coop_num']=Db::name('chicken_coop')->where($where)->count();
             $data['chicken_num']=Db::name('chicken')->where($where)->count();
-            $data['egg_num']=Db::name('egg')->where($where)->sum('num');
+            $data['egg_num']=Db::name('egg_log')->where($where)->where('type=3 or type=4 or type=5 or type=6 or type=7 or type=8')->sum('money');
+            $data['egg_num']=$data['egg_num']/2;
             $this->assign('info', $data);
             return $this->fetch();
         }

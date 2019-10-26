@@ -15,7 +15,7 @@
             <input type="text" class="layui-input" id="start_time" placeholder="日期" style="width: 150px;">
         </div>
         <button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>
-    <div class="layui-form-item">
+    <div class="layui-form-item" style="margin-top: 50px;">
         <label class="layui-form-label">新增鸡窝数量</label>
         <div class="layui-input-4">
             <label class="layui-form-label" id="chicken_coop_num">{$info.chicken_coop_num}</label>
@@ -46,17 +46,16 @@
         $('#search').on('click', function () {
             var time = $('#start_time').val();
             $.post("{:url('ranking/add_chicken')}",{time:time},function(res){
-                $('#start_time').val(res);
-                $('#chicken_coop_num').html(res);
-                $('#chicken_num').html(res);
-                $('#egg_num').html(res);
+                $('#start_time').val(res['time']);
+                $('#chicken_coop_num').html(res['chicken_coop_num']);
+                $('#chicken_num').html(res['chicken_num']);
+                $('#egg_num').html(res['egg_num']);
             });
         });
 
 
         laydate.render({
             elem: '#start_time'
-            ,type: 'date'
         });
     })
 </script>
