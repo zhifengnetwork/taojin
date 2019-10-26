@@ -533,7 +533,7 @@ class ChickenLogic
         $user_balance['chicken_integral']=$chicken_integral;//一个蛋一个糖果
         $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);//用户获得收益
         $egg_log=$this->egg_log($user_id,0,$type,$money,$user['egg_num'],$intro);
-        $chicken_integral=$this->chicken_integral_log($user_id,0,$type,$egg_num,$user['chicken_integral'],$intro);
+        $chicken_integral=$this->chicken_integral_log($user_id,0,$type,$egg_num*$percent/100,$user['chicken_integral'],$intro);
 
         if(!$re||!$egg_log||!$chicken_integral){
             return false;

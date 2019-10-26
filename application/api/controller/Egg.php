@@ -475,7 +475,7 @@ class Egg extends ApiBase
 //        }
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('egg_num',$egg_num);
         if($re){
-            $ids=$chickenLogic->egg_log($give_user['id'],$user_id,1,-$egg_num,$user['egg_num'],'转账给'.$give_user['phone']);
+            $ids=$chickenLogic->egg_log($user_id,$give_user['id'],1,-$egg_num,$user['egg_num'],'转账给'.$give_user['phone']);
             if(!$ids){
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
