@@ -18,12 +18,20 @@ class Farm extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $user=Db::name('users')->field('avatar,nick_name,recharge_balance,chicken_balance,egg_num,chicken_integral')->where('id',$user_id)->find();
+        $user=Db::name('users')->field('avatar,nick_name,recharge_balance,chicken_balance,egg_num,chicken_integral,chicken_recharge_balance,is_give')->where('id',$user_id)->find();
         if(!$user['avatar']){
             $user['avatar']=SITE_URL.'/public/head/20190807156516165734848.png';
         }
         if(!$user['nick_name']){
             $user['nick_name']='未命名';
+        }
+        if($user['is_give']==0){
+            $user_data['is_give']=1;
+            $user_data['chicken_recharge_balance']=20000;
+            $ids=Db::name('users')->where('id',$user_id)->update($user_data);
+            if($ids){
+                $user['chicken_recharge_balance']=20000;
+            }
         }
         $time=time();
         $t_time=$this->get_time();
