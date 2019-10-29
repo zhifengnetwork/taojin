@@ -101,7 +101,7 @@ class Egg extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         if(time()<1572408000){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'10月30号12点开放购买']);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'10月30号12点开放']);
         }
         $time=time();
 
