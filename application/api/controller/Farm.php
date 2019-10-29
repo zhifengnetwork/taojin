@@ -160,7 +160,9 @@ class Farm extends ApiBase
         $page=I('page',1);
         $limit=I('limit',10);
         $start= ($page-1)*$limit;
-        $purchase_list=Db::name('chicken_log')->where('user_id',$user_id)
+        $purchase_list=Db::name('chicken_log')
+            ->where('user_id',$user_id)
+            ->order('id desc')
             ->limit($start,$limit)->select();
         foreach ($purchase_list as $key=>$value){
             $purchase_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
