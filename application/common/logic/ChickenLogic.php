@@ -512,34 +512,35 @@ class ChickenLogic
         $user=Db::name('users')->where('id',$user_id)->find();
         $where['user_id']=$user_id;
         $where['chicken_status']=0;
-        $user_chicken=Db::name('chicken')->where($where)->select();//当前用户鸡数量
+        $user_chicken=Db::name('chicken')->where($where)->order('chicken_id')->select();//当前用户鸡数量
         $user_chicken_num=count($user_chicken);
         if($user_chicken_num==0){
             return true;
         }
-        if($user_chicken_num>=$chicken_num){
+        if($user_chicken_num>=$chicken_num){//用户鸡数量大于返佣用户，则取返佣用户数量
             $user_chicken_num=$chicken_num;
 
         }
-        if($egg_num>$user_chicken_num){
+        if($egg_num>$user_chicken_num){//鸡蛋收益大于鸡数量
             $money=$user_chicken_num*$percent/100*2;//收益
             $chicken_integral=$user_chicken_num;
-        }else{
+        }else{//鸡蛋收益小于鸡数量
             $money=$egg_num*$percent/100*2;//收益
             $chicken_integral=$egg_num;
         }
+        $user_egg=$chicken_integral*$percent/100;//返利鸡蛋、糖果
         $user_balance['egg_num']=$user['egg_num']+$money;//鸡蛋收益
-        $user_balance['chicken_integral']=$user['chicken_integral']+$chicken_integral*$percent/100;//一个蛋一个糖果
+        $user_balance['chicken_integral']=$user['chicken_integral']+$user_egg;//一个蛋一个糖果
         $re=Db::name('users')->where(['id'=>$user_id])->update($user_balance);//用户获得收益
         $egg_log=$this->egg_log($user_id,0,$type,$money,$user['egg_num'],$intro);
-        $chicken_integral=$this->chicken_integral_log($user_id,0,$type,$money/2,$user['chicken_integral'],$intro);
-        if(!$re||!$egg_log||!$chicken_integral){
+        $chicken_integral_log=$this->chicken_integral_log($user_id,0,$type,$money/2,$user['chicken_integral'],$intro);
+        if(!$re||!$egg_log||!$chicken_integral_log){
             return false;
         }
 
         foreach ($user_chicken as $key=>$value){
             $where['chicken_id']=$value['chicken_id'];
-            if($chicken_integral>(120-$value['num'])){//鸡蛋数量大于当前鸡剩余量
+            if($user_egg>(120-$value['num'])){//鸡蛋数量大于当前鸡剩余量
                 $data=[];
                 $data['num']=120;//产蛋
                 $data['chicken_status']=1;//过期
@@ -550,7 +551,7 @@ class ChickenLogic
                 }
             }else{
                 $data=[];
-                $data['num']=$value['num']+$chicken_integral;
+                $data['num']=$value['num']+$user_egg;
                 $data['status']=0;
                 $data_s=Db::name('chicken')->where($where)->update($data);//鸡下蛋
                 if(!$data_s){
