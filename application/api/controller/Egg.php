@@ -18,6 +18,9 @@ class Egg extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
+        if(time()<1572408000){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'10月30号12点开放购买']);
+        }
         $type=I('type');//支付类型  1  金沙  2 余额
         $money=I('money');
 //        $paypwd=I('paypwd');
@@ -56,6 +59,9 @@ class Egg extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
+        if(time()<1572408000){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'10月30号12点开放购买']);
+        }
         $type=I('type');//支付类型  1  金沙  2 余额
         $money=I('money');
 //        $paypwd=I('paypwd');
@@ -93,6 +99,9 @@ class Egg extends ApiBase
         $user_id=$this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        if(time()<1572408000){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'10月30号12点开放购买']);
         }
         $time=time();
 
