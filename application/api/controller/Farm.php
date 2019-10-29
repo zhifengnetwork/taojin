@@ -190,7 +190,9 @@ class Farm extends ApiBase
         $page=I('page',1);
         $limit=I('limit',10);
         $start= ($page-1)*$limit;
-        $chicken_balance_list=Db::name('chicken_balance_log')->where('user_id',$user_id)
+        $chicken_balance_list=Db::name('chicken_balance_log')
+            ->where('user_id',$user_id)
+            ->order('id DESC')
             ->limit($start,$limit)->select();
         foreach ($chicken_balance_list as $key=>$value){
             $chicken_balance_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
@@ -209,6 +211,7 @@ class Farm extends ApiBase
         $limit=I('limit',10);
         $start= ($page-1)*$limit;
         $egg_num_list=Db::name('egg_log')->where('user_id',$user_id)
+            ->order('id DESC')
             ->limit($start,$limit)->select();
         foreach ($egg_num_list as $key=>$value){
             $egg_num_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
@@ -227,6 +230,7 @@ class Farm extends ApiBase
         $limit=I('limit',10);
         $start= ($page-1)*$limit;
         $egg_num_list=Db::name('chicken_integral_log')->where('user_id',$user_id)
+            ->order('id DESC')
             ->limit($start,$limit)->select();
         foreach ($egg_num_list as $key=>$value){
             $egg_num_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
