@@ -33,10 +33,10 @@ class Login extends ApiBase
         if($data['status']==0){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'您的账号已被管理员禁止登陆','data'=>null]);
         }
-//        $verify = password_verify($password,$data['password']);
-//        if ($verify == false) {
-//            $this->ajaxReturn(['status' => -2 , 'msg'=>'登录密码错误','data'=>null]);
-//        }
+        $verify = password_verify($password,$data['password']);
+        if ($verify == false) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'登录密码错误','data'=>null]);
+        }
         unset($data['password']);
 
         //重写
