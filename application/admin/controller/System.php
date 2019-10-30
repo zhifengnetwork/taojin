@@ -312,6 +312,10 @@ class System extends Common
             {
                 $info['qr_code_url']=SITE_URL.__PUBLIC__.$info['qr_code'];
             }
+            if($info['money_qr_code'])
+            {
+                $info['money_qr_code_url']=SITE_URL.__PUBLIC__.$info['money_qr_code'];
+            }
             $this->assign('info', $info);
             return $this->fetch();
         }

@@ -97,6 +97,7 @@ class Farm extends ApiBase
         $chicken =  Db::name('config')->where(['inc_type'=>'chicken'])->select();
         $info = convert_arr_kv($chicken,'name','value');
         $data['qr_code']=SITE_URL.'/public'.$info['qr_code'];
+        $data['money_qr_code']=SITE_URL.'/public'.$info['money_qr_code'];
         $data['customer_service_one']=$info['customer_service_one'];
         $data['customer_service_two']=$info['customer_service_two'];
         $data['customer_service_three']=$info['customer_service_three'];
