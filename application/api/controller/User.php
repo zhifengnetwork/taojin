@@ -535,15 +535,43 @@ class User extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '操作失败']);
     }
+
+    /*
+     * 进入实名认证
+     */
+    public function id_card_add(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
+        }
+        $idcard=Db::name('idcard')->where('user_id',$user_id)->find();
+        if($idcard){
+//            if($idcard['status']==1){
+//
+//            }
+            $idcard['idcard_front']=SITE_URL.__PUBLIC__.$idcard['idcard_front'];
+            $idcard['idcard_back']=SITE_URL.__PUBLIC__.$idcard['idcard_back'];
+            $this->ajaxReturn(['status' => 1, 'msg' => '成功','data'=>$idcard]);
+        }else{
+            $this->ajaxReturn(['status' => 1, 'msg' => '填写资料','data'=>'']);
+        }
+    }
     /*
      * 身份证上传
      */
-    public function ID_card_add(){
+    public function id_card(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
+        }
+        $id=input('id');
         $name=input('name');
         $phone=input('phone');
-        $ID_card=input('ID_card');
+        $ID_card=input('id_card');
         $idcard_front=input('idcard_front');
         $idcard_back=input('idcard_back');
+        $idcard_front='ss';
+        $idcard_back='ssd';
         if (empty($name)) $this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
         if (mb_strlen($name, 'UTF8') > 5) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
@@ -552,12 +580,106 @@ class User extends ApiBase
         if (mb_strlen($phone, 'UTF8') != 11) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的手机号码！']);
         }
-        if (empty($ID_card)) $this->ajaxReturn(['status' => -2, 'msg' => '手机号码不能为空！']);
-        if (mb_strlen($ID_card, 'UTF8') != 18) {
+        if (empty($ID_card)) $this->ajaxReturn(['status' => -2, 'msg' => '身份证号码不能为空！']);
+        if (!$this->is_idcard($ID_card)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的身份证！']);
         }
+        if (empty($idcard_front)) $this->ajaxReturn(['status' => -2, 'msg' => '身份证正面不能为空！']);
+        if (empty($idcard_back)) $this->ajaxReturn(['status' => -2, 'msg' => '身份证反面不能为空！']);
+        if($id){
+            $data=[];
+            $data['id']=$id;
+            $data['user_id']=$user_id;
+            $data['user_name']=$name;
+            $data['phone']=$phone;
+            $data['id_card']=$ID_card;
+            $data['idcard_front']=$idcard_front;
+            $data['idcard_back']=$idcard_back;
+            $data['up_time']=time();
+            $res=Db::name('idcard')->update($data);
+            $this->ajaxReturn(['status' => 1, 'msg' => '成功']);
+        }else{
+            $idcard=Db::name('idcard')->where('user_id',$user_id)->find();
+            if($idcard){
+                $this->ajaxReturn(['status' => -2, 'msg' => '已经提交过了，请不要重复提交']);
+            }
+            $data=[];
+            $data['user_id']=$user_id;
+            $data['user_name']=$name;
+            $data['phone']=$phone;
+            $data['id_card']=$ID_card;
+            $data['idcard_front']=$idcard_front;
+            $data['idcard_back']=$idcard_back;
+            $data['up_time']=time();
+            $data['add_time']=time();
+            $ids=Db::name('idcard')->insertGetId($data);
+            if($ids){
+                $this->ajaxReturn(['status' => 1, 'msg' => '成功']);
+            }else{
+                $this->ajaxReturn(['status' => -2, 'msg' => '提交失败']);
+            }
+        }
 
-        $this->ajaxReturn(['status' => 1, 'msg' => '成功']);
+
+    }
+    function is_idcard($id)
+    {
+        $id = strtoupper($id);
+        $regx = "/(^\d{15}$)|(^\d{17}([0-9]|X)$)/";
+        $arr_split = array();
+        if(!preg_match($regx, $id))
+        {
+            return FALSE;
+        }
+        if(15==strlen($id)) //检查15位
+        {
+            $regx = "/^(\d{6})+(\d{2})+(\d{2})+(\d{2})+(\d{3})$/";
+
+            @preg_match($regx, $id, $arr_split);
+            //检查生日日期是否正确
+            $dtm_birth = "19".$arr_split[2] . '/' . $arr_split[3]. '/' .$arr_split[4];
+            if(!strtotime($dtm_birth))
+            {
+                return FALSE;
+            } else {
+                return TRUE;
+            }
+        }
+        else      //检查18位
+        {
+            $regx = "/^(\d{6})+(\d{4})+(\d{2})+(\d{2})+(\d{3})([0-9]|X)$/";
+            @preg_match($regx, $id, $arr_split);
+            $dtm_birth = $arr_split[2] . '/' . $arr_split[3]. '/' .$arr_split[4];
+            if(!strtotime($dtm_birth)) //检查生日日期是否正确
+            {
+                return FALSE;
+            }
+            else
+            {
+                //检验18位身份证的校验码是否正确。
+                //校验位按照ISO 7064:1983.MOD 11-2的规定生成，X可以认为是数字10。
+                $arr_int = array(7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2);
+                $arr_ch = array('1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2');
+                $sign = 0;
+                for ( $i = 0; $i < 17; $i++ )
+                {
+                    $b = (int) $id{$i};
+                    $w = $arr_int[$i];
+                    $sign += $b * $w;
+                }
+                $n = $sign % 11;
+                $val_num = $arr_ch[$n];
+                if ($val_num != substr($id,17, 1))
+                {
+                    return FALSE;
+                } //phpfensi.com
+                else
+                {
+                    return TRUE;
+                }
+            }
+        }
+
     }
     /**
      * 保存图片
