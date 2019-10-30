@@ -360,6 +360,7 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
         }
         $pay_type=I('pay_type',1);//1:淘金金沙  2:鸡蛋收益
+        $pay_type=1;
         $paypwd=I('paypwd');
         if(!$paypwd){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
@@ -534,6 +535,56 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '操作失败']);
+    }
+    /*
+     * 身份证上传
+     */
+    public function ID_card_add(){
+        $name=input('name');
+        $phone=input('phone');
+        $ID_card=input('ID_card');
+        $idcard_front=input('idcard_front');
+        $idcard_back=input('idcard_back');
+        if (empty($name)) $this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
+        if (mb_strlen($name, 'UTF8') > 5) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
+        }
+        if (empty($phone)) $this->ajaxReturn(['status' => -2, 'msg' => '手机号码不能为空！']);
+        if (mb_strlen($phone, 'UTF8') != 11) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的手机号码！']);
+        }
+        if (empty($ID_card)) $this->ajaxReturn(['status' => -2, 'msg' => '手机号码不能为空！']);
+        if (mb_strlen($ID_card, 'UTF8') != 18) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的身份证！']);
+        }
+
+        $this->ajaxReturn(['status' => 1, 'msg' => '成功']);
+    }
+    /**
+     * 保存图片
+     */
+    public function uploads()
+    {
+        $param = input('image');
+        $up_dir = ROOT_PATH . 'public' . DS . 'uploads/'.date('Ymd').'/';//存放在当前目录的upload文件夹下
+        $base64_img = trim($param);
+        if(preg_match('/^(data:\s*image\/(\w+);base64,)/', $base64_img, $result)){
+            $type = $result[2];
+            if(in_array($type,array('pjpeg','jpeg','jpg','gif','bmp','png'))){
+                if(!is_dir($up_dir)) $res = mkdir($up_dir,0777,true);
+                $img_path=time().'.'.$type;
+                $new_file = $up_dir.$img_path;
+                if(file_put_contents($new_file, base64_decode(str_replace($result[1], '', $base64_img)))){
+                    $this->ajaxReturn(['status' => 1, 'msg' => '上传成功','data'=> '/uploads/'.$img_path]);
+                }else{
+                    $this->ajaxReturn(['status' =>-2, 'msg' => '图片上传失败']);
+                }
+            }else{
+                //文件类型错误
+                $this->ajaxReturn(['status' =>-2, 'msg' => '图片上传类型错误']);
+            }
+        }
+
     }
     public function verify($money){
         $is_int=$money/100;
