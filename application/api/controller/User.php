@@ -360,7 +360,6 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在']);
         }
         $pay_type=I('pay_type',1);//1:淘金金沙  2:鸡蛋收益
-        $pay_type=1;
         $paypwd=I('paypwd');
         if(!$paypwd){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
