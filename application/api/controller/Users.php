@@ -181,7 +181,7 @@ class Users extends ApiBase
                     $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
                 }
             }
-            $re=Db::name('users')->where(['id'=>$user_id])->setDec('recharge_balance',$balance);
+            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
 //            $re=Db::name('users')->where(['id'=>$user_id])->setDec('balance',$balance);
             if($re){
                 $detail=[];
