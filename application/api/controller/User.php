@@ -570,8 +570,6 @@ class User extends ApiBase
         $ID_card=input('id_card');
         $idcard_front=input('idcard_front');
         $idcard_back=input('idcard_back');
-        $idcard_front='ss';
-        $idcard_back='ssd';
         if (empty($name)) $this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
         if (mb_strlen($name, 'UTF8') > 5) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
@@ -595,6 +593,7 @@ class User extends ApiBase
             $data['id_card']=$ID_card;
             $data['idcard_front']=$idcard_front;
             $data['idcard_back']=$idcard_back;
+            $data['status']=0;
             $data['up_time']=time();
             $res=Db::name('idcard')->update($data);
             $this->ajaxReturn(['status' => 1, 'msg' => '成功']);
