@@ -1,0 +1,113 @@
+{include file="common/head"/}
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>认证详情</legend>
+    </fieldset>
+    <form class="layui-form layui-form-pane">
+
+        <style>
+            .layui-form-label{
+                width: 200px !important;
+            }
+        </style>
+        <div class="layui-form-item">
+            <label class="layui-form-label">真实姓名</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$idcard.user_name}</label>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">身份证号码</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$idcard.id_card}</label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">手机号码</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$idcard.phone}</label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">审核状态</label>
+            <div class="layui-input-4">
+                <label class="layui-form-label">{$idcard.status}</label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">身份证正面</label>
+            <div class="layui-input-block">
+                <img class="layui-upload-img" src="{$idcard.idcard_front}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">身份证反面</label>
+            <div class="layui-input-block">
+                <img class="layui-upload-img" src="{$idcard.idcard_back}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">审核备注</label>
+            <div class="layui-input-block">
+                <textarea name="desc" id="desc">{$idcard.desc}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                {if condition="idcard.status eq 0 "}
+                    <a href="#" onclick="approval(1)" class="layui-btn layui-btn-xs">通过</a>
+                    <a href="#" onclick="approval(2)"  class="layui-btn layui-btn-xs">拒绝</a>
+                    {else /}
+                {/if}
+
+            </div>
+        </div>
+
+    </form>
+</div>
+{include file="common/foot"/}
+<script>
+
+
+    layui.use(['form', 'layer'], function () {
+        // var form = layui.form,layer = layui.layer,$= layui.jquery,upload = layui.upload;
+        var form = layui.form,layer = layui.layer,upload = layui.upload,$ = layui.jquery;
+        //提交监听
+        window.approval=function(type) {
+            var desc=$('#desc').val(),id='{$idcard.id}';
+            if(type==2&&!desc){
+                alert('请填写不通过理由');
+                return;
+            }
+            loading =layer.load(1, {shade: [0.1,'#fff']});
+            $.post("{:url('ranking/approval')}",{'id':id,'type':type,'desc':desc},function(res){
+                layer.close(loading);
+                if(res.code > 0){
+                    layer.msg(res.msg,{icon: 1, time: 1000},function(){
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{icon: 2, time: 1000});
+                }
+            });
+        }
+        form.on('submit(submit)', function (data) {
+            loading =layer.load(1, {shade: [0.1,'#fff']});
+            $.post("{:url('system/chicken')}",data.field,function(res){
+                layer.close(loading);
+                if(res.code > 0){
+                    layer.msg(res.msg,{icon: 1, time: 1000},function(){
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{icon: 2, time: 1000});
+                }
+            });
+        })
+    })
+</script>
+</body>
+</html>

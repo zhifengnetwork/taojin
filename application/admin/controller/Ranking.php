@@ -93,6 +93,69 @@ class Ranking extends Common
             return ['code'=>0,'msg' => '排序失败！','url' => url('index')];
         }
     }
+    public function verify(){
+        if(request()->isPost()){
+            $keyword = input('post.key');
+            $page = input('page') ? input('page') : 1;
+            $pageSize = input('limit') ? input('limit') : config('pageSize');
+            $map=[];
+            if(!empty($keyword)){
+                $map['id|user_id'] = array('like','%' . $keyword . '%');
+            }
+            $list = Db::name('idcard')
+                ->order('id desc')
+                ->paginate(array('list_rows' => $pageSize,'page' => $page))
+                ->toArray();
+            //echo $model->getLastSql();
+            $rsult['code'] = 0;
+            $rsult['msg'] = "获取成功";
+            $lists = $list['data'];
+
+            $rsult['data'] = $lists;
+            $rsult['count'] = $list['total'];
+            $rsult['rel'] = 1;
+            return $rsult;
+        }else{
+            return $this->fetch('ranking/verify');
+        }
+    }
+    public function verify_details(){
+
+        $id = input('id');
+        $idcard=Db::name('idcard')->where('id',$id)->find();
+
+        $this->assign('idcard',$idcard);
+        return $this->fetch('ranking/verify_details');
+    }
+    public function approval(){
+        $id = input('id');
+        $type = input('type');
+        $desc = input('desc');
+
+        if($type==1){
+            $data['status']=1;
+            $data['desc']=$desc;
+            $data['up_time']=time();
+            $res=Db::name('idcard')->where('id',$id)->update($data);
+            $user_id=Db::name('idcard')->where('id',$id)->value('user_id');
+            $user['is_verification']=1;
+            $re=Db::name('users')->where('id',$user_id)->update($user);
+            if(!$re||!$res){
+                return ['code'=>0,'msg' => '审核失败,更新数据失败！','url' => url('verify')];
+            }
+            return ['code'=>1,'msg' => '通过审核成功！','url' => url('verify')];
+        }else{
+            $data['status']=0;
+            $data['up_time']=time();
+            $data['desc']=$desc;
+            $res=Db::name('idcard')->where('id',$id)->update($data);
+            if(!$res){
+                return ['code'=>0,'msg' => '审核失败,更新数据失败！','url' => url('verify')];
+            }
+            return ['code'=>1,'msg' => '拒绝审核成功！','url' => url('verify')];
+        }
+
+    }
     /*
      * 当天增加数量
      */

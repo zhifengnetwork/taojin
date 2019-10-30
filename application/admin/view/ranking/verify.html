@@ -1,0 +1,182 @@
+{include file="common/head"/}
+
+<div class="admin-main layui-anim layui-anim-upbit">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>实名认证列表</legend>
+    </fieldset>
+    <div class="demoTable">
+        <!--<div class="layui-inline">-->
+            <!--<input class="layui-input" name="key" id="key" placeholder="{:lang('pleaseEnter')}关键字">-->
+        <!--</div>-->
+        <!--<button class="layui-btn" id="search" data-type="reload">{:lang('search')}</button>-->
+        <!--<div style="clear: both;"></div>-->
+    </div>
+    <table class="layui-table" id="list" lay-filter="list">
+
+    </table>
+</div>
+
+{include file="common/foot"/}
+
+<script type="text/html" id="order">
+    <input name="{{d.id}}" data-id="{{d.id}}" class="list_order layui-input" value=" {{d.listorder}}" size="10"/>
+</script>
+
+<script type="text/html" id="status">
+    {{(d.status == 0)?'未审核':''}}
+    {{(d.status == 1)?'审核通过':''}}
+    {{(d.status == 2)?'审核失败':''}}
+</script>
+
+<!--这个地方待处理，需要和其他地方匹配-->
+<script type="text/html" id="action">
+    {{# if(d.status==0){ }}
+    <a href="{:url('verify_details')}?id={{d.id}}" class="layui-btn layui-btn-xs">审核</a>
+    {{# }else{  }}
+    <a class="layui-btn layui-btn-xs">已通过</a>
+    {{# } }}
+    <!--<div data-id="{{d.id}}" class="layui-btn layui-btn-xs {{ (!d.v_state)?'doit':'layui-btn-disabled' }}">{{ d.v_state?"已提现":"提现" }}</div>-->
+    <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+
+</script>
+
+<script>
+    layui.use('table', function() {
+        var table = layui.table, $ = layui.jquery;
+        var tableIn = table.render({
+            id: 'content',
+            elem: '#list',
+            url: '{:url("verify")}',
+            method: 'post',
+            page: true,
+            cols: [[
+                {type: "checkbox", fixed: true},
+                {field: 'id', title: '{:lang("id")}', width: 80, fixed: true,sort:true},
+                {field: 'user_id', title: '用户id', width: 100, templet: '#user_id',sort:true},
+                {field: 'user_name', title: '真实姓名', width: 100, templet: '#user_name',sort:true},
+                {field: 'phone', title: '手机号', width: 100, templet: '#phone',sort:true},
+                {field: 'id_card', title: '身份证号', width: 100, templet: '#id_card',sort:true},
+                {field: 'status', title: '审核状态', width: 100, templet: '#status',sort:true},
+                {field: 'up_time', title: '审核时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.up_time);
+                    },sort:true},
+                {field: 'add_time', title: '申请时间', width: 200, templet: function(d){
+                        return FormatDateTime(d.add_time);
+                    },sort:true},
+                {width: 160, align: 'center', toolbar: '#action',title:'操作'}
+            ]],
+            limit: 10
+        });
+
+        //搜索
+
+        //执行 此处修改为点击后修改状态
+        $("body").delegate(".doit","click",function(){
+            //layer.msg('点击了', {icon: 6});
+            var id = $(this).attr("data-id");
+            var user_id = $(this).attr("data-user_id");
+            layer.msg('id'+user_id, {icon: 6});
+
+
+            if(user_id == 0){
+                //layer.msg('');
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "{:url('admin/ranking/verify')}",
+                timeout : 100000, //超时时间设置，单位毫秒 为一秒
+                data: {
+                    id:id,
+                },
+                dataType: "json",      //如果有此选项成功返回的json会自动变成对象，如果没有需要用JSON.parse()转换
+                success: function(data){
+                    console.log(data);
+                    if(data > 0){
+                        layer.msg('执行成功', {icon: 6});
+                        setTimeout(function () {
+                            window.location.reload();
+                        },2000)
+                    }
+                },
+            });
+        });
+
+        $('body').on('blur','.list_order',function() {
+            var id = $(this).attr('data-id');
+            var listorder = $(this).val();
+            var loading = layer.load(1, {shade: [0.1, '#fff']});
+            $.post('{:url("listorder")}',{id:id,listorder:listorder,catid:'{:input("catid")}'},function(res){
+                layer.close(loading);
+                if(res.code === 1){
+                    layer.msg(res.msg, {time: 1000, icon: 1}, function () {
+                        location.href = res.url;
+                    });
+                }else{
+                    layer.msg(res.msg,{time:1000,icon:2});
+                }
+            })
+        });
+
+        table.on('tool(list)', function(obj) {
+            var data = obj.data;
+            if(obj.event === 'del'){
+                layer.confirm('您确定要删除该内容吗？', function(index){
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('listDel')}",{id:data.id},function(res){
+                        layer.close(loading);
+                        if(res.code===1){
+                            layer.msg(res.msg,{time:1000,icon:1});
+                            tableIn.reload({where:{catid:'{:input("catid")}'}});
+                        }else{
+                            layer.msg('操作失败！',{time:1000,icon:2});
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+
+            //修改状态 改ajax部分
+            if(obj.event === 'xiajia'){
+                layer.confirm('您确定同意该笔提现申请吗？', function(index){
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('listXiajia')}",{id:data.id,status:data.status},function(res){
+                        layer.close(loading);
+                        if(res.code===1){
+                            layer.msg(res.msg,{time:1000,icon:1});
+                            tableIn.reload({where:{catid:'{:input("catid")}'}});
+                        }else{
+                            layer.msg('操作失败！',{time:1000,icon:2});
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+
+        });
+
+        $('#delAll').click(function(){
+            layer.confirm('确认要删除选中的内容吗？', {icon: 3}, function(index) {
+                layer.close(index);
+                var checkStatus = table.checkStatus('content'); //content即为参数id设定的值
+                var ids = [];
+                $(checkStatus.data).each(function (i, o) {
+                    ids.push(o.id);
+                });
+                var loading = layer.load(1, {shade: [0.1, '#fff']});
+                $.post("{:url('delAll')}", {ids: ids,catid:'{:input("catid")}'}, function (data) {
+                    layer.close(loading);
+                    if (data.code === 1) {
+                        layer.msg(data.msg, {time: 1000, icon: 1});
+                        tableIn.reload({where:{catid:'{:input("catid")}'}});
+                    } else {
+                        layer.msg(data.msg, {time: 1000, icon: 2});
+                    }
+                });
+            });
+        })
+
+    });
+</script>
