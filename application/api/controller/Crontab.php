@@ -2,6 +2,7 @@
 namespace app\api\controller;
 use think\Db;
 use app\common\logic\RankingLogic;
+use app\common\logic\ChickenLogic;
 class Crontab extends ApiBase
 {
     public function ranking_crontab(){
@@ -101,6 +102,11 @@ class Crontab extends ApiBase
     }
     //测试
     public function text(){
+        $where['u.p_1']=45;
+        $chicken=Db::name('chicken')->alias('c')
+            ->join('users u','u.id=c.user_id','LEFT')
+            ->field('c.user_id,count(*) count')->where($where)->group('user_id')->select();
+        var_dump($chicken);
        //$RankingLogic = new RankingLogic();
        //$res=$RankingLogic->user_balance(84,6026.78*4/100,'代理返点',4,10);
        //$re=$RankingLogic->user_balance(72,6026.78*1/100,'平级代理返点',3,10);
@@ -342,21 +348,21 @@ class Crontab extends ApiBase
             return '修改币值失败';
         }
     }
-    public function user_buy(){
-        $user_id=89;
-        $start_time=strtotime(date("Y-m-d")." 14:00:00");
-        $end_time=strtotime(date("Y-m-d")." 14:01:00");
-        if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
-        }
-        $num=6789;
-        if($num<1||(ceil($num)!=$num)){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的购买数量']);
-        }
-        $RankingLogic = new RankingLogic();
-        $res = $RankingLogic->buy_gold_shovel($user_id,$num);
-        return $res['msg'];
-    }
+//    public function user_buy(){
+//        $user_id=89;
+//        $start_time=strtotime(date("Y-m-d")." 14:00:00");
+//        $end_time=strtotime(date("Y-m-d")." 14:01:00");
+//        if(time()>$start_time&&$end_time>time()){//开奖时间段，不能下单
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'开奖时间段，不能下单，请等待'.$end_time-time().'秒']);
+//        }
+//        $num=6789;
+//        if($num<1||(ceil($num)!=$num)){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的购买数量']);
+//        }
+//        $RankingLogic = new RankingLogic();
+//        $res = $RankingLogic->buy_gold_shovel($user_id,$num);
+//        return $res['msg'];
+//    }
     //清理没有使用的饲料和没有收取的蛋
     public function clean_coop(){
         $t_time=$this->get_time();
@@ -385,6 +391,67 @@ class Crontab extends ApiBase
                 return '无需清理';
             }
         }
+    }
+    /*
+     * 每天释放余额
+     */
+    public function release_balance(){
+        //获取每个用户买了多少只鸡
+        set_time_limit(0);
+        $chicken=Db::name('chicken')->field('user_id,count(*) count')->group('user_id')->select();
+        $chickenLogic=new ChickenLogic();
+        Db::startTrans();
+        foreach ($chicken as $key=>$value){
+            $user=Db::name('users')->field('id,is_verification,chicken_recharge_balance,recharge_balance')->where('id',$value['user_id'])->find();//有没有实名认证
+            if($user['is_verification']){
+                $user_num=$this->release($value['user_id'],$value['count']);
+                if($user_num!=0){
+                    $user_money=2*$user_num;//获得双倍
+                    $user_data=[];
+                    if($user['chicken_recharge_balance']!=0){//还有冻结余额
+                        if($user_money>$user['chicken_recharge_balance']){//冻结余额不多了
+                            $user_money=$user['chicken_recharge_balance'];
+                        }
+                        $user_data['chicken_recharge_balance']=$user['chicken_recharge_balance']-$user_money;
+                        $user_data['recharge_balance']=$user['recharge_balance']+$user_money;
+                        $res=Db::name('users')->where('id',$user['id'])->update($user_data);
+                        $re=$chickenLogic->recharge_balance_log($user['id'],0,19,$user_money,$user['recharge_balance'],'余额解冻');
+                        $r=$chickenLogic->release_balance_log($user['id'],0,-$user_money,$user['chicken_recharge_balance'],'余额解冻');
+                        if(!$res||!$re||!$r){
+                            Db::rollback();
+                            return '释放失败！更新数据失败！';
+                        }
+                    }
+                }
+            }
+
+        }
+        Db::commit();
+        return '释放成功';
+    }
+    /*
+     * 释放万分之几
+     */
+    public function release($user_id,$num){
+        $count=0;
+        if($num<3){
+            return $count;
+        }else{
+            $count=2;
+            $count=$count+intval($num/10);
+            $chicken=Db::name('chicken')->alias('c')
+                ->join('users u','u.id=c.user_id','LEFT')
+                ->field('c.user_id,count(*) count')->where('u.p_1',$user_id)->group('user_id')->select();
+            $chicken_num=0;
+            foreach ($chicken as $key=>$value){
+                if($value['count']>=3){
+                    $chicken_num=$chicken_num+1;
+                }
+            }
+            $count=$count+intval($chicken_num/10);
+            return $count;
+        }
+
     }
     public function get_time(){
         $one_time=strtotime(date("Y-m-d")." 12:00:00");

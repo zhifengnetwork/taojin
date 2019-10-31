@@ -327,6 +327,22 @@ class Farm extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'抢红包时间过了！']);
         }
     }
+    public function release_balance_detailed(){
+        $user_id=$this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $page=I('page',1);
+        $limit=I('limit',10);
+        $start= ($page-1)*$limit;
+        $release_balance_list=Db::name('release_balance_log')->where('user_id',$user_id)
+            ->order('add_time DESC')
+            ->limit($start,$limit)->select();
+        foreach ($release_balance_list as $key=>$value){
+            $release_balance_list[$key]['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$release_balance_list]);
+    }
     //随机抽取糖果
     public function red_pack($max,$luck){
         $code = mt_rand(0,100);

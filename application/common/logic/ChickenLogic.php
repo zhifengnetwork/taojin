@@ -663,6 +663,29 @@ class ChickenLogic
         }
     }
     /**
+     * 释放冻结余额log
+     * @param $user_id  用户id
+     * @param $type    类型
+     * @param $money   改变金沙
+     * @param $balance  原有金沙
+     * @param $desc  说明描述
+     * @return boolean
+     */
+    public function release_balance_log($user_id,$type,$money,$balance,$desc){
+        $data['user_id']=$user_id;
+        $data['type']=$type;
+        $data['money']=$money;
+        $data['balance']=$balance;
+        $data['desc']=$desc;
+        $data['add_time']=time();
+        $id=Db::name('release_balance_log')->insertGetId($data);
+        if($id){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    /**
      * @param $user_id  用户id
      * @param $num   购买数量
      * @return bool

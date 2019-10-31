@@ -123,7 +123,8 @@ class Ranking extends Common
 
         $id = input('id');
         $idcard=Db::name('idcard')->where('id',$id)->find();
-
+        $idcard['idcard_front']=SITE_URL.__PUBLIC__.$idcard['idcard_front'];
+        $idcard['idcard_back']=SITE_URL.__PUBLIC__.$idcard['idcard_back'];
         $this->assign('idcard',$idcard);
         return $this->fetch('ranking/verify_details');
     }
