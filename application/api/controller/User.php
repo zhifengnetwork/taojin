@@ -551,6 +551,9 @@ class User extends ApiBase
 //            }
             $idcard['idcard_front']=SITE_URL.__PUBLIC__.$idcard['idcard_front'];
             $idcard['idcard_back']=SITE_URL.__PUBLIC__.$idcard['idcard_back'];
+            if($idcard['status']!=2){
+                unset($idcard['id']);
+            }
             $this->ajaxReturn(['status' => 1, 'msg' => '成功','data'=>$idcard]);
         }else{
             $this->ajaxReturn(['status' => 1, 'msg' => '填写资料','data'=>'']);

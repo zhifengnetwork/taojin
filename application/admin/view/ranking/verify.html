@@ -32,8 +32,10 @@
 <script type="text/html" id="action">
     {{# if(d.status==0){ }}
     <a href="{:url('verify_details')}?id={{d.id}}" class="layui-btn layui-btn-xs">审核</a>
-    {{# }else{  }}
+    {{# } else if(d.status==1) { }}
     <a class="layui-btn layui-btn-xs">已通过</a>
+    {{# }else{  }}
+    <a class="layui-btn layui-btn-xs">已拒绝</a>
     {{# } }}
     <!--<div data-id="{{d.id}}" class="layui-btn layui-btn-xs {{ (!d.v_state)?'doit':'layui-btn-disabled' }}">{{ d.v_state?"已提现":"提现" }}</div>-->
     <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
