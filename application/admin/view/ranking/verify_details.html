@@ -33,7 +33,15 @@
         <div class="layui-form-item">
             <label class="layui-form-label">审核状态</label>
             <div class="layui-input-4">
-                <label class="layui-form-label">{$idcard.status}</label>
+                <label class="layui-form-label">
+                    {if condition="idcard.status eq 0 "}
+                    未审核
+                    {elseif  condition="idcard.status eq 1 "}
+                    审核通过
+                    {else /}
+                    拒绝通过
+                    {/if}
+                    </label>
             </div>
         </div>
 
