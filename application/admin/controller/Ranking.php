@@ -146,7 +146,7 @@ class Ranking extends Common
             }
             return ['code'=>1,'msg' => '通过审核成功！','url' => url('verify')];
         }else{
-            $data['status']=0;
+            $data['status']=2;
             $data['up_time']=time();
             $data['desc']=$desc;
             $res=Db::name('idcard')->where('id',$id)->update($data);
