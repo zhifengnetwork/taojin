@@ -591,6 +591,8 @@ class User extends ApiBase
             $data['user_name']=$name;
             $data['phone']=$phone;
             $data['id_card']=$ID_card;
+            $idcard_front=str_replace(SITE_URL.__PUBLIC__,'',$idcard_front);
+            $idcard_back=str_replace(SITE_URL.__PUBLIC__,'',$idcard_back);
             $data['idcard_front']=$idcard_front;
             $data['idcard_back']=$idcard_back;
             $data['status']=0;
