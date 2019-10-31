@@ -34,15 +34,18 @@ class Users extends ApiBase
         if($balance<1){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入正确的金额']);
         }
-        if($balance<100){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'金额必须大于100']);
-        }
-//        if($this->verify($balance)){//判断是否为100的整数倍
-//            $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
+//        if($balance<100){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'金额必须大于100']);
 //        }
+
 
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
+        if($user['phone']!=18899999999){
+            if($this->verify($balance)){//判断是否为100的整数倍
+                $this->ajaxReturn(['status' => -2, 'msg' => '金额必须是100的倍数！']);
+            }
+        }
         if($type==1){//转淘金
             if($give_user['id']==$user_id){
                 $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
