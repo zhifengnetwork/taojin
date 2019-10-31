@@ -695,7 +695,7 @@ class User extends ApiBase
                 $img_path=time().'.'.$type;
                 $new_file = $up_dir.$img_path;
                 if(file_put_contents($new_file, base64_decode(str_replace($result[1], '', $base64_img)))){
-                    $this->ajaxReturn(['status' => 1, 'msg' => '上传成功','data'=> '/uploads/'.date('Ymd').$img_path]);
+                    $this->ajaxReturn(['status' => 1, 'msg' => '上传成功','data'=> '/uploads/'.date('Ymd').'/'.$img_path]);
                 }else{
                     $this->ajaxReturn(['status' =>-2, 'msg' => '图片上传失败']);
                 }
