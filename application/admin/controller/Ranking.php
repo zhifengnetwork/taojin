@@ -172,6 +172,7 @@ class Ranking extends Common
             $data['chicken_num']=Db::name('chicken')->where($where)->count();
             $data['all_chicken_num']=Db::name('chicken')->count();
             $data['al_egg_num']=Db::name('chicken')->sum('num');
+            $data['user_num']=Db::name('chicken')->group('user_id')->count();
             $data['egg_num']=Db::name('egg_log')->where($where)->where('type=3 or type=4 or type=5 or type=6 or type=7 or type=8')->sum('money');
             $data['egg_num']=$data['egg_num']/2;
             return $data;
@@ -183,6 +184,7 @@ class Ranking extends Common
             $data['chicken_num']=Db::name('chicken')->where($where)->count();
             $data['all_chicken_num']=Db::name('chicken')->count();
             $data['all_egg_num']=Db::name('chicken')->sum('num');
+            $data['user_num']=Db::name('chicken')->group('user_id')->count();
             $data['egg_num']=Db::name('egg_log')->where($where)->where('type=3 or type=4 or type=5 or type=6 or type=7 or type=8')->sum('money');
             $data['egg_num']=$data['egg_num']/2;
             $this->assign('info', $data);
