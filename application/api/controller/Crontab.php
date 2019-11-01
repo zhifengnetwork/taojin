@@ -398,6 +398,9 @@ class Crontab extends ApiBase
     public function release_balance(){
         //获取每个用户买了多少只鸡
         set_time_limit(0);
+        if(time()<1572667200){
+            return '不到时间，不能释放';
+        }
         $chicken=Db::name('chicken')->field('user_id,count(*) count')->group('user_id')->select();
         $chickenLogic=new ChickenLogic();
         Db::startTrans();
