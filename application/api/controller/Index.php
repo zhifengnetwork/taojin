@@ -494,6 +494,9 @@ class Index extends ApiBase
             case 7:
                 return '三倍出局';
                 break;
+            case 8:
+                return '强制出局';
+                break;
             default:
                 return '参数不对';
                 break;
@@ -548,6 +551,18 @@ class Index extends ApiBase
                 break;
             case 16:
                 return '系统';
+                break;
+            case 17:
+                return '买窝';
+                break;
+            case 18:
+                return '买鸡';
+                break;
+            case 19:
+                return '养殖解冻';
+                break;
+            case 20:
+                return '强制出局';
                 break;
             default:
                 return '参数不对';
