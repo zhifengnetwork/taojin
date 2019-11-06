@@ -360,6 +360,8 @@ class Egg extends ApiBase
         $integral=I('money');
         $phone=I('phone');
         $paypwd=I('paypwd');
+        $type=I('type',1);//转账类型  1：养殖场  2：淘金
+
         if(!$paypwd){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'请输入支付密码']);
         }
@@ -395,12 +397,31 @@ class Egg extends ApiBase
         }
         Db::startTrans();
         $chickenLogic=new ChickenLogic();
-        $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_integral',$integral);
-        if($res){
-            $id=$chickenLogic->chicken_integral_log($give_user['id'],$user_id,0,$integral,$give_user['chicken_integral'],$user['phone'].'转入');
-            if(!$id){
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
+        if($type==1){//转养殖场
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_integral',$integral);
+            if($res){
+                $id=$chickenLogic->chicken_integral_log($give_user['id'],$user_id,0,$integral,$give_user['chicken_integral'],$user['phone'].'转入');
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '转账失败！']);
+                }
+            }
+        }else{//转淘金
+            $res=Db::name('users')->where(['phone'=>$phone])->setInc('integral',$integral);
+            if($res){
+                $detail['u_id']=$give_user['id'];
+                $detail['u_name']=$give_user['nick_name'];
+                $detail['for_user_id']=$user_id;//赠送者
+                $detail['for_user_name']=$user['nick_name'];//赠送者
+                $detail['integral']=$integral;
+                $detail['type']=2;//被赠与
+                $detail['then_integral']=$give_user['integral'];
+                $detail['createtime']=time();
+                $id=Db::name('integral')->insertGetId($detail);
+                if(!$id){
+                    Db::rollback();
+                    $this->ajaxReturn(['status' => -2, 'msg' => '赠送失败！']);
+                }
             }
         }
         $re=Db::name('users')->where(['id'=>$user_id])->setDec('chicken_integral',$integral);
