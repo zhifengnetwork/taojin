@@ -379,9 +379,7 @@ class Egg extends ApiBase
         }
         $user=Db::name('users')->where(['id'=>$user_id])->find();
         $give_user=Db::name('users')->where(['phone'=>$phone])->find();
-        if($give_user['id']==$user_id){
-            $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
-        }
+
         $verify = password_verify($paypwd,$user['paypwd']);
         if ($verify == false) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误','data'=>null]);
@@ -398,6 +396,9 @@ class Egg extends ApiBase
         Db::startTrans();
         $chickenLogic=new ChickenLogic();
         if($type==1){//转养殖场
+            if($give_user['id']==$user_id){
+                $this->ajaxReturn(['status' => -2, 'msg' => '不能赠送给自己！']);
+            }
             $res=Db::name('users')->where(['phone'=>$phone])->setInc('chicken_integral',$integral);
             if($res){
                 $id=$chickenLogic->chicken_integral_log($give_user['id'],$user_id,0,$integral,$give_user['chicken_integral'],$user['phone'].'转入');
