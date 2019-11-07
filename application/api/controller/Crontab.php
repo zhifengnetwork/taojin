@@ -348,6 +348,27 @@ class Crontab extends ApiBase
             return '修改币值失败';
         }
     }
+    public function automatic_exit(){
+        set_time_limit(0);
+        $start_time=time();
+        while ((time()-$start_time)<58){
+            if((time()-$start_time)>58){//运行时间大于59秒，退出
+                die;
+            }
+            $where['rank_status']=0;
+            $before_time=strtotime("-61 day");
+            $where['rank_time']=array('egt',$before_time);
+            $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
+            if(!$ranking){
+                sleep(1);
+            }
+            $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
+            $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
+            $RankingLogic = new RankingLogic();
+            $RankingLogic->automatic_exit($balance_give_integral,$double_percent,$ranking);
+        }
+        return '运行结束';
+    }
 //    public function user_buy(){
 //        $user_id=89;
 //        $start_time=strtotime(date("Y-m-d")." 14:00:00");

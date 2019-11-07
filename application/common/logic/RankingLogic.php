@@ -459,6 +459,49 @@ class RankingLogic
         return false;
     }
     /*
+     * 两倍出局
+     */
+    public function automatic_exit($balance_give_integral,$double_percent,$ranking,$goods_money=20){
+        $user=Db::name('users')->where(['id'=>$ranking['user_id']])->find();
+        if(!$user){
+            return false;
+        }
+        $agent_money=$goods_money*2;
+        $money=sprintf("%.2f",$agent_money-($agent_money*$double_percent/100));//两倍、扣除手续费
+        Db::startTrans();
+        $res=Db::name('users')->where(['id'=>$ranking['user_id']])->setInc('recharge_balance',$money);
+        $data=[];
+        $data['rank_status']=1;//出局
+        $data['out_source']='QZ';//出局源   强制出局
+        $data['out_type']=2;//两倍出局
+        $data['out_time']=time();//出局时间
+        $r=Db::name('ranking')->where('id',$ranking['id'])->update($data);
+        if(!$res||!$r){
+            Db::rollback();
+            return false;
+        }
+        $tg_num=sprintf("%.2f",$goods_money*2/$balance_give_integral);//保留两位小数
+        $give=$this->add_give($tg_num,$ranking['user_id'],9,'强制出局');//糖果生成
+        $detail['user_id']=$user['id'];
+        $detail['typefrom']=0;
+        $detail['type']=20;//强制出局赠送
+        $detail['money']=$money;
+        $detail['createtime']=time();
+        $detail['intro']='强制双倍出局获得冻结余额';
+        $id=Db::name('moneydetail')->insertGetId($detail);
+        if(!$id||!$give){
+            Db::rollback();
+            return false;
+        }
+        //代理分佣
+        if(!$this->agent_money($ranking['user_id'],$agent_money,$balance_give_integral)){//代理费计算
+            Db::rollback();
+            return false;
+        }
+        Db::commit();
+        return false;
+    }
+    /*
      * 生成糖果
      */
     public function add_give($num,$user_id,$type,$desc){
