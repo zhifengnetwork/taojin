@@ -459,7 +459,7 @@ class RankingLogic
         return false;
     }
     /*
-     * 两倍出局
+     * 强制两倍出局
      */
     public function automatic_exit($balance_give_integral,$double_percent,$ranking,$goods_money=20){
         $user=Db::name('users')->where(['id'=>$ranking['user_id']])->find();

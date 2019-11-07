@@ -357,7 +357,7 @@ class Crontab extends ApiBase
             }
             $where['rank_status']=0;
             $before_time=strtotime("-61 day");
-            $where['rank_time']=array('egt',$before_time);
+            $where['rank_time']=array('elt',$before_time);
             $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
             if(!$ranking){
                 sleep(1);
