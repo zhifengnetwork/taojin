@@ -360,7 +360,7 @@ class Crontab extends ApiBase
             $where['rank_time']=array('elt',$before_time);
             $ranking=Db::name('ranking')->where($where)->limit(1)->order('id')->find();
             if(!$ranking){
-                sleep(1);
+                return '运行结束,无强制出局单';
             }
             $double_percent = Db::name('config')->where(['name'=>'double_percent','inc_type'=>'taojin'])->value('value');
             $balance_give_integral = Db::name('config')->where(['name'=>'balance_give_integral','inc_type'=>'taojin'])->value('value');
