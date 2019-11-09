@@ -16,7 +16,7 @@ class Crontab extends ApiBase
                 die;
             }
             $where=[];
-            $where['rank_status']=0;
+//            $where['rank_status']=0;
             $num=Db::name('ranking')->where($where)->count();
             $double_out = Db::name('config')->where(['name'=>'double_out','inc_type'=>'taojin'])->value('value');
             $triple_out = Db::name('config')->where(['name'=>'triple_out','inc_type'=>'taojin'])->value('value');
