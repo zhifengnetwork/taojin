@@ -136,6 +136,7 @@ class Farm extends ApiBase
         }
         $where['user_id']=$user_id;
         $where['coop_id']=$coop_id;
+        $where['chicken_status']=0;
         $chicken_list=Db::name('chicken')
             ->where($where)
             ->order('add_time desc')
