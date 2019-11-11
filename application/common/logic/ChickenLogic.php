@@ -301,7 +301,7 @@ class ChickenLogic
                 }else{
                     $ids=$ids.','.$value['chicken_id'];
                 }
-                $chicken_coop=Db::name('chicken_coop')->where('coop_id',$value['$value'])->setDec('num',1);
+                $chicken_coop=Db::name('chicken_coop')->where('coop_id',$value['coop_id'])->setDec('num',1);
                 if(!$chicken_coop){
                     Db::rollback();
                     return array('status'=>-2,'msg'=>'收取失败,鸡窝更新错误！');
