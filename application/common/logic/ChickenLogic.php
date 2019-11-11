@@ -249,10 +249,10 @@ class ChickenLogic
 //            Db::startTrans();
             $res=Db::name('chicken')->where($where)->update($data);
             $re=Db::name('feed')->where('user_id',$user_id)->setDec('num',1);
-//            if(!$res||!$re){
+            if(!$res||!$re){
 //                Db::rollback();
-//                return array('status'=>-2,'msg'=>'喂养失败！');
-//            }
+                return array('status'=>-2,'msg'=>'喂养失败！');
+            }
 //            Db::commit();
             return array('status'=>1,'msg'=>'喂养成功！');
         }else{
