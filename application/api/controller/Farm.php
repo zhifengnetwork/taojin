@@ -33,6 +33,24 @@ class Farm extends ApiBase
                 $user['chicken_recharge_balance']=20000;
             }
         }
+        $where_chicken['user_id']=$user_id;
+        $where_chicken['chicken_status']=0;//是否过期
+        $chicken_num=Db::name('chicken')->where($where_chicken)->count();//当前多少只鸡
+        $coop_chicken_num=Db::name('chicken_coop')->where('user_id',$user_id)->sum('num');
+        if($coop_chicken_num!=$chicken_num){//没有自动修改鸡窝的鸡数量
+            $sql='SELECT a.* FROM clt_chicken_coop a LEFT JOIN clt_chicken co ON co.coop_id=a.coop_id
+                  WHERE a.num>(SELECT COUNT(*) FROM clt_chicken co WHERE co.coop_id=a.coop_id AND co.chicken_status=0 ) AND a.user_id='.$user_id .'  GROUP BY a.coop_id';
+            $result = Db::query($sql);
+            foreach ($result as $key=>$value){
+                $where=[];
+                $where['coop_id']=$value['coop_id'];
+                $where['chicken_status']=0;
+                $num_chicken_coop=Db::name('chicken')->where($where)->count();
+                $data=[];
+                $data['num']=$num_chicken_coop;
+                Db::name('chicken_coop')->where('coop_id',$value['coop_id'])->update($data);
+            }
+        }
         $time=time();
         $t_time=$this->get_time();
         $one_time=$t_time['one_time'];
