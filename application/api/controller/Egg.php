@@ -185,7 +185,7 @@ class Egg extends ApiBase
         }
     }
     public function get_time(){
-        $one_time=strtotime(date("Y-m-d")." 10:00:00");
+        $one_time=strtotime(date("Y-m-d")." 12:00:00");
         $two_time=strtotime(date("Y-m-d")." 13:00:00");
         $three_time=strtotime(date("Y-m-d")." 18:00:00");
         $four_time=strtotime(date("Y-m-d")." 19:00:00");

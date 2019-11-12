@@ -77,8 +77,26 @@ class ChickenLogic
         $where_chicken['user_id']=$user_id;
         $where_chicken['chicken_status']=0;//是否过期
         $chicken_num=Db::name('chicken')->where($where_chicken)->count();//当前多少只鸡
+        $coop_chicken_num=Db::name('chicken_coop')->where('user_id',$user_id)->sum('num');
+        if($coop_chicken_num!=$chicken_num){//没有自动修改鸡窝的鸡数量
+            $sql='SELECT a.* FROM clt_chicken_coop a LEFT JOIN clt_chicken co ON co.coop_id=a.coop_id
+                  WHERE a.num>(SELECT COUNT(*) FROM clt_chicken co WHERE co.coop_id=a.coop_id AND co.chicken_status=0 ) AND a.user_id='.$user_id .'  GROUP BY a.coop_id';
+            $result = Db::query($sql);
+            foreach ($result as $key=>$value){
+                $where=[];
+                $where['coop_id']=$value['coop_id'];
+                $where['chicken_status']=0;
+                $num_chicken_coop=Db::name('chicken')->where($where)->count();
+                $data=[];
+                $data['num']=$num_chicken_coop;
+                Db::name('chicken_coop')->where('coop_id',$value['coop_id'])->update($data);
+            }
+        }
         $coop_num=Db::name('chicken_coop')->where('user_id',$user_id)->count();//当前多少只窝
-        if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
+//        if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
+//            return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
+//        }
+        if(($coop_num*3-$coop_chicken_num)<$num){//鸡窝不够
             return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
         }
         if(!$this->chicken_log($user_id,$num,$money,0,$type)){
@@ -117,6 +135,7 @@ class ChickenLogic
             Db::rollback();
             return array('status'=>-2,'msg'=>'购买失败，类型不存在！');
         }
+        $where=[];
         $where['user_id']=$user_id;
         $where['num']=array('neq',3);
         $ids='';
