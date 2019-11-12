@@ -93,12 +93,12 @@ class ChickenLogic
         }
         Db::startTrans();
         $coop_num=Db::name('chicken_coop')->where('user_id',$user_id)->count();//当前多少只窝
-//        if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
-//            return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
-//        }
-        if(($coop_num*3-$coop_chicken_num)<$num){//鸡窝不够
+        if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
             return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
         }
+//        if(($coop_num*3-$coop_chicken_num)<$num){//鸡窝不够
+//            return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
+//        }
         if(!$this->chicken_log($user_id,$num,$money,0,$type)){
             Db::rollback();
             return array('status'=>-2,'msg'=>'购买失败！');
