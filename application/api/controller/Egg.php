@@ -51,6 +51,21 @@ class Egg extends ApiBase
         $chickenLogic=new ChickenLogic();
         $this->ajaxReturn($chickenLogic->buy_chicken($user_id,$type,$money,$num));
     }
+    public function text($user_id){
+        $sql='SELECT a.* FROM clt_chicken_coop a LEFT JOIN clt_chicken co ON co.coop_id=a.coop_id
+                  WHERE a.num>(SELECT COUNT(*) FROM clt_chicken co WHERE co.coop_id=a.coop_id AND co.chicken_status=0 ) AND a.user_id='.$user_id .'  GROUP BY a.coop_id';
+        $result = Db::query($sql);
+        foreach ($result as $key=>$value){
+            $where=[];
+            $where['coop_id']=$value['coop_id'];
+            $where['chicken_status']=0;
+            $num=Db::name('chicken')->where($where)->count();
+            $data=[];
+            $data['num']=$num;
+            Db::name('chicken_coop')->where('coop_id',$value['coop_id'])->update($data);
+        }
+        var_dump($result);die;
+    }
     /*
      * 购买鸡窝
      */
@@ -170,7 +185,7 @@ class Egg extends ApiBase
         }
     }
     public function get_time(){
-        $one_time=strtotime(date("Y-m-d")." 12:00:00");
+        $one_time=strtotime(date("Y-m-d")." 10:00:00");
         $two_time=strtotime(date("Y-m-d")." 13:00:00");
         $three_time=strtotime(date("Y-m-d")." 18:00:00");
         $four_time=strtotime(date("Y-m-d")." 19:00:00");
