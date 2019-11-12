@@ -73,7 +73,6 @@ class ChickenLogic
     public function buy_chicken($user_id,$type,$money,$num){
         $usersM=Db::name('users');
         $user=$usersM->where('id',$user_id)->find();
-        Db::startTrans();
         $where_chicken['user_id']=$user_id;
         $where_chicken['chicken_status']=0;//是否过期
         $chicken_num=Db::name('chicken')->where($where_chicken)->count();//当前多少只鸡
@@ -92,6 +91,7 @@ class ChickenLogic
                 Db::name('chicken_coop')->where('coop_id',$value['coop_id'])->update($data);
             }
         }
+        Db::startTrans();
         $coop_num=Db::name('chicken_coop')->where('user_id',$user_id)->count();//当前多少只窝
 //        if(($coop_num*3)<($chicken_num+$num)){//鸡窝不够
 //            return array('status'=>-2,'msg'=>'鸡窝不够，请购买鸡窝！');
