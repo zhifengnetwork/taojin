@@ -388,12 +388,12 @@ class User extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '提现数量必须是100的倍数！']);
         }
         if($pay_type==1){//淘金金沙
-            $yu = bcsub($user->balance,$money);
+            $yu = bcsub($user->balance,$money,2);
             if ($yu < 0) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
             }
         }else{//鸡蛋收益
-            $yu = bcsub($user->egg_num,$money);
+            $yu = bcsub($user->egg_num,$money,2);
             if ($yu < 0) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现收益！']);
             }
