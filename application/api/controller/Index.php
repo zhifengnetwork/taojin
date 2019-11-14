@@ -494,7 +494,7 @@ class Index extends ApiBase
             case 7:
                 return '三倍出局';
                 break;
-            case 8:
+            case 9:
                 return '强制出局';
                 break;
             default:
