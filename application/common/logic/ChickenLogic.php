@@ -26,7 +26,7 @@ class ChickenLogic
         $count=$feed_logM->where($where)->count();
         $feed_num= Db::name('config')->where(['name'=>'feed_num','inc_type'=>'chicken'])->value('value');
         if($count>=$feed_num){
-            return array('status'=>1,'msg'=>'饲料已经抢光，请下次早点来！','data'=>0);
+            return array('status'=>-2,'msg'=>'饲料已经抢光，请下次早点来！','data'=>0);
         }
         $where['user_id']=$user_id;
         $feed_log=$feed_logM->where($where)->find();
