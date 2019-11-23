@@ -564,6 +564,9 @@ class Index extends ApiBase
             case 20:
                 return '强制出局';
                 break;
+            case 21:
+                return '提现驳回';
+                break;
             default:
                 return '参数不对';
                 break;

@@ -175,7 +175,39 @@ class Moneydetail extends Common
         return ['code' => 1,'msg' => '审核成功！'];
 
     }
+//修改数据库status的值
+    public function refuse(){
+        $id = input('post.id');
+        $v_state = input('post.status');
+        //如果等于0，则更改状态为1
+        Db::startTrans();
+        if($v_state==0){
+            $result=db('withdraw')
+                ->where('id',$id)
+                ->update(['status'=> 2
+                ]);
+            if(!$result){
+                Db::rollback();
+                return ['code' => 2,'msg' => '更新失败！'];
+            }
+            $withdraw=db('withdraw')->where('id',$id)->find();
+            $res=Db::name('users')->where('id',$withdraw['user_id'])->setInc('recharge_balance',$withdraw['money']);
+            $detail=[];
+            $detail['user_id']=$withdraw['user_id'];
+            $detail['type']=21;//提现拒绝
+            $detail['money']=$withdraw['money'];
+            $detail['createtime']=time();
+            $detail['intro']='系统提现拒绝';
+            $ids=Db::name('moneydetail')->insertGetId($detail);
+            if(!$res||!$ids){
+                Db::rollback();
+                return ['code' => 2,'msg' => '更新失败！'];
+            }
+        }
+        Db::commit();
+        return ['code' => 1,'msg' => '审核成功！'];
 
+    }
     public function edit(){
         $id = input('id');
         $request = Request::instance();

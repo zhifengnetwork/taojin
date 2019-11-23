@@ -37,8 +37,11 @@
 <script type="text/html" id="action">
     {{# if(d.status==0){ }}
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="xiajia">审核</a>
-    {{# }else{  }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="status_j">拒绝</a>
+    {{# }else if(d.status==1){  }}
     <a class="layui-btn layui-btn-xs">已通过</a>
+    {{# }else if(d.status==2){  }}
+    <a class="layui-btn layui-btn-xs">已拒绝</a>
     {{# } }}
     <!--<div data-id="{{d.id}}" class="layui-btn layui-btn-xs {{ (!d.v_state)?'doit':'layui-btn-disabled' }}">{{ d.v_state?"已提现":"提现" }}</div>-->
     <!--<a href="{:url('edit')}?id={{d.id}}" class="layui-btn layui-btn-xs">编辑</a>
@@ -158,6 +161,21 @@
                 layer.confirm('您确定同意该笔提现申请吗？', function(index){
                     var loading = layer.load(1, {shade: [0.1, '#fff']});
                     $.post("{:url('listXiajia')}",{id:data.id,status:data.status},function(res){
+                        layer.close(loading);
+                        if(res.code===1){
+                            layer.msg(res.msg,{time:1000,icon:1});
+                            tableIn.reload({where:{catid:'{:input("catid")}'}});
+                        }else{
+                            layer.msg('操作失败！',{time:1000,icon:2});
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+            if(obj.event === 'status_j'){
+                layer.confirm('您确定拒绝该笔提现申请吗？', function(index){
+                    var loading = layer.load(1, {shade: [0.1, '#fff']});
+                    $.post("{:url('refuse')}",{id:data.id,status:data.status},function(res){
                         layer.close(loading);
                         if(res.code===1){
                             layer.msg(res.msg,{time:1000,icon:1});
